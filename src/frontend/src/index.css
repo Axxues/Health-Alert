@@ -327,7 +327,10 @@ a { color: var(--pine); transition: color 0.2s ease; }
 
 /* ---------- philippines risk map ---------- */
 .phmap { display: grid; justify-items: center; }
-.phmap svg { width: 100%; max-width: 380px; height: auto; }
+.phmap svg { width: 100%; max-width: 380px; height: auto; touch-action: none; cursor: grab; }
+.phmap svg:active { cursor: grabbing; }
+.phmap-tools { display: flex; gap: 8px; margin-bottom: 10px; }
+.phmap-tools .iconbtn:disabled { opacity: 0.35; cursor: default; transform: none; }
 .phmap-land { fill: var(--mint-soft); stroke: var(--hairline); stroke-width: 1; }
 .marker { cursor: pointer; outline: none; }
 .marker .halo { fill: none; stroke: currentColor; stroke-width: 2; opacity: 0.7; transform-box: fill-box; transform-origin: center; animation: halo 2s ease-out infinite; }
