@@ -108,6 +108,33 @@ a { color: var(--pine); }
 /* pointer-tracked tilt: answers the hand, eases back on leave */
 .tilt { transition: transform 0.18s ease-out, box-shadow 0.18s ease-out; will-change: transform; }
 .tilt:hover { box-shadow: var(--shadow-lift); }
+
+/* no-access stage: idle float + drifting blobs + cursor glare + sheen */
+.stage { position: relative; overflow: hidden; }
+.blob { position: absolute; border-radius: 50%; filter: blur(70px); opacity: 0.5; pointer-events: none; }
+.blob--a { width: 340px; height: 340px; background: var(--mint-soft); top: -90px; left: -70px; animation: drift-a 11s ease-in-out infinite alternate; }
+.blob--b { width: 300px; height: 300px; background: #d9e8de; bottom: -100px; right: -60px; animation: drift-b 13s ease-in-out infinite alternate; }
+@keyframes drift-a { to { transform: translate(70px, 50px) scale(1.15); } }
+@keyframes drift-b { to { transform: translate(-60px, -45px) scale(1.1); } }
+.floaty { animation: bob 4.5s ease-in-out infinite; }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+.glare { position: relative; overflow: hidden; }
+.glare::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(143, 206, 171, 0.28), transparent 65%);
+  opacity: 0; transition: opacity 0.25s ease;
+}
+.glare:hover::before { opacity: 1; }
+.mark-spin { display: inline-block; transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+.tilt:hover .mark-spin { transform: rotate(360deg) scale(1.12); }
+.btn-sheen { position: relative; overflow: hidden; }
+.btn-sheen::after {
+  content: ""; position: absolute; top: 0; bottom: 0; width: 45%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  left: -60%; transform: skewX(-18deg);
+}
+.btn-sheen:hover::after { animation: sheen 0.8s ease; }
+@keyframes sheen { to { left: 130%; } }
 .card h3 { margin: 0 0 4px; font-size: 15px; font-weight: 650; }
 .sub { color: var(--mute); font-size: 13px; margin: 0; }
 
@@ -257,7 +284,7 @@ a { color: var(--pine); }
   .shell main { padding: 18px 16px 40px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .anim, .bar, .tracker::after, .dot--pulse { animation: none !important; }
+  .anim, .bar, .tracker::after, .dot--pulse, .floaty, .blob { animation: none !important; }
   .anim { opacity: 1; }
   .bar { transform: none; }
   .ring .prog { transition: none; }
