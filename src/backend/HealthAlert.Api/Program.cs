@@ -8,6 +8,8 @@ builder.Services.AddDbContext<HealthAlertDbContext>(o =>
     o.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 builder.Services.AddScoped<SurveillanceGetTools>();
 builder.Services.AddScoped<SurveillanceEditTools>();
+builder.Services.AddScoped<ForecastGetTools>();
+builder.Services.AddScoped<ForecastEditTools>();
 var app = builder.Build();
 
 app.MapControllers();
