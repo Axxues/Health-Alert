@@ -21,6 +21,7 @@
   --radius: 20px;
   --radius-pill: 999px;
   --shadow-lift: 0 12px 28px rgba(11, 91, 62, 0.14);
+  --ring: rgba(11, 91, 62, 0.16);
 }
 
 [data-theme="dark"] {
@@ -41,6 +42,7 @@
   --red: #e07a63;
   --red-bg: #3d1f18;
   --shadow-lift: 0 12px 28px rgba(0, 0, 0, 0.5);
+  --ring: rgba(60, 171, 124, 0.28);
 }
 
 * { box-sizing: border-box; }
@@ -53,8 +55,39 @@ body {
   font-feature-settings: "ss01";
 }
 
-a { color: var(--pine); }
+a { color: var(--pine); transition: color 0.2s ease; }
 :focus-visible { outline: 2px solid var(--pine); outline-offset: 2px; }
+
+/* ---------- theme crossfade: one orchestrated moment per toggle ---------- */
+.theming, .theming *, .theming *::before, .theming *::after {
+  transition: background-color 0.5s ease, border-color 0.5s ease, color 0.5s ease,
+    fill 0.5s ease, stroke 0.5s ease, box-shadow 0.5s ease !important;
+}
+
+/* ---------- route entrance: single fade per navigation ---------- */
+.shell main > div { animation: page-in 0.4s ease both; }
+@keyframes page-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------- list stagger: rows and table bodies cascade in ---------- */
+.rows li, tbody tr { opacity: 0; animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.rows li:nth-child(1), tbody tr:nth-child(1) { animation-delay: 60ms; }
+.rows li:nth-child(2), tbody tr:nth-child(2) { animation-delay: 120ms; }
+.rows li:nth-child(3), tbody tr:nth-child(3) { animation-delay: 180ms; }
+.rows li:nth-child(4), tbody tr:nth-child(4) { animation-delay: 240ms; }
+.rows li:nth-child(5), tbody tr:nth-child(5) { animation-delay: 300ms; }
+.rows li:nth-child(n+6), tbody tr:nth-child(n+6) { animation-delay: 360ms; }
+
+/* ---------- nav: active marker grows in, toggle icon flips ---------- */
+.sidebar a.active::before { transform-origin: top; animation: grow-ind 0.3s ease both; }
+@keyframes grow-ind { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.spin-in { display: inline-block; animation: spin-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes spin-in { from { transform: rotate(-180deg); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ---------- inputs: focus glows in ---------- */
+.input { transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.input:focus { box-shadow: 0 0 0 3px var(--ring); }
+.pill { transition: transform 0.15s ease, background-color 0.2s ease; }
+.pill:hover { transform: scale(1.05); }
 
 /* ---------- shell ---------- */
 .shell { display: flex; min-height: 100vh; max-width: 1440px; margin: 0 auto; background: var(--canvas); }
@@ -303,8 +336,10 @@ a { color: var(--pine); }
   .shell main { padding: 18px 16px 40px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .anim, .bar, .tracker::after, .dot--pulse, .floaty, .blob { animation: none !important; }
-  .anim { opacity: 1; }
+  .anim, .bar, .tracker::after, .dot--pulse, .floaty, .blob,
+  .shell main > div, .rows li, tbody tr, .spin-in, .sidebar a.active::before { animation: none !important; }
+  .anim, .rows li, tbody tr { opacity: 1; }
+  .theming, .theming *, .theming *::before, .theming *::after { transition: none !important; }
   .bar { transform: none; }
   .ring .prog { transition: none; }
   * { transition-duration: 0.01ms !important; }
