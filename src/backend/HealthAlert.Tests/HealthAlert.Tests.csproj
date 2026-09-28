@@ -21,6 +21,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HealthAlert.Database\HealthAlert.Database.csproj" />
+    <ProjectReference Include="..\HealthAlert.Tools\HealthAlert.Tools.csproj" />
+    <ProjectReference Include="..\HealthAlert.Common\HealthAlert.Common.csproj" />
+    <ProjectReference Include="..\HealthAlert.Api\HealthAlert.Api.csproj" />
   </ItemGroup>
 
 </Project>
