@@ -30,7 +30,7 @@ export function Unauthorized() {
           onPointerLeave={() => setT("perspective(900px)")}
           style={{ maxWidth: 440, textAlign: "center", padding: "40px 36px", transform: t, "--mx": g.x, "--my": g.y } as React.CSSProperties}
         >
-          <span className="avatar anim mark-spin" aria-hidden style={{ width: 52, height: 52, fontSize: 20, "--i": 1 } as React.CSSProperties}>◉</span>
+          <img className="anim mark-spin" src="/Health-Nology_StartupLogo_PSC11_2.png" alt="Health Alert logo" style={{ width: 56, height: 56, borderRadius: 14, "--i": 1 } as React.CSSProperties} />
           <h1 className="anim" style={{ fontSize: 26, margin: "16px 0 8px", letterSpacing: "-0.02em", "--i": 2 } as React.CSSProperties}>No access</h1>
           <p className="sub anim" style={{ margin: "0 0 24px", lineHeight: 1.55, "--i": 3 } as React.CSSProperties}>
             Your role doesn't include this section. Ask an admin if you need it,

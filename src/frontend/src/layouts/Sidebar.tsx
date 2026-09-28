@@ -23,7 +23,7 @@ export function Sidebar() {
   return (
     <nav className="sidebar" aria-label="Primary">
       <div className="brand">
-        <span className="mark">◉</span> Health Alert
+        <img src="/Health-Nology_StartupLogo_PSC11_2.png" alt="Health Alert logo" /> Health Alert
       </div>
       {(["Menu", "General"] as const).map((sec) => (
         <div key={sec}>

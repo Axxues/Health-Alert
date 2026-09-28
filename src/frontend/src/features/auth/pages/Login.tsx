@@ -29,7 +29,7 @@ export function Login() {
     <div className="login">
       <div className="panel">
         <div className="brand anim" style={{ padding: 0, color: "#fff", "--i": 0 } as React.CSSProperties}>
-          <span className="mark" style={{ borderColor: "#fff", color: "#fff" }}>◉</span> Health Alert
+          <img src="/Health-Nology_StartupLogo_PSC11_2.png" alt="Health Alert logo" style={{ width: 34, height: 34, borderRadius: 9 }} /> Health Alert
         </div>
         <div style={{ marginTop: "12vh" }}>
           <h1 className="anim" style={{ "--i": 1 } as React.CSSProperties}>Today's outlook, before the clinic opens.</h1>
