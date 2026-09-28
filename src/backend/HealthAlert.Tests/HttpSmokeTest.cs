@@ -63,6 +63,20 @@ public class HttpSmokeTest
     }
 
     [Fact]
+    public async Task Guest_gets_public_slices_only()
+    {
+        using var f = new SmokeFactory();
+        var c = f.CreateClient();
+        var r = await c.PostAsJsonAsync("/api/auth/login", new { username = "guest", password = "" });
+        r.EnsureSuccessStatusCode();
+        var data = JsonDocument.Parse(await r.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        Assert.Equal("Guest", data.GetProperty("role").GetString());
+        var perms = data.GetProperty("permissions").EnumerateArray().Select(x => x.GetString()).ToHashSet();
+        Assert.Equal(3, perms.Count);
+        Assert.DoesNotContain("alerts:list:view", perms);
+    }
+
+    [Fact]
     public async Task Login_ingest_outlook_returns_probability_and_drivers()
     {
         using var f = new SmokeFactory();

@@ -11,6 +11,18 @@ export function Login() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
+  async function guest() {
+    setError("");
+    setBusy(true);
+    try {
+      const data = await authApi.login({ username: "guest", password: "" });
+      setSession(data.token, data.role, data.permissions ?? []);
+      navigate("/");
+    } catch {
+      setError("Could not sign in. Check your details and try again.");
+      setBusy(false);
+    }
+  }
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -51,6 +63,9 @@ export function Login() {
             <input className="input" placeholder="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
             <button className="btn-pill btn-sheen" type="submit" disabled={busy} style={{ justifyContent: "center" }}>
               {busy ? "Signing in…" : "Sign in"}
+            </button>
+            <button className="btn-pill btn-pill--ghost" type="button" disabled={busy} onClick={guest} style={{ justifyContent: "center" }}>
+              Continue as guest
             </button>
           </div>
         </form>
