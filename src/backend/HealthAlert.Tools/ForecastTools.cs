@@ -1,4 +1,5 @@
 using HealthAlert.Database;
+using Microsoft.EntityFrameworkCore;
 
 namespace HealthAlert.Tools;
 
@@ -37,8 +38,9 @@ public class ForecastGetTools(HealthAlertDbContext ctx)
 {
     public async Task<ForecastOutlook> OutlookAsync(string? disease, string? muni)
     {
-        await Task.CompletedTask;
-        return Build(disease, muni);
+        var o = Build(disease, muni);
+        var n = await ctx.Cases.CountAsync(); // ponytail: count shifts probability; real covariates if accuracy matters
+        return o with { Probability = Math.Min(0.97, o.Probability + n * 0.01) };
     }
 
     internal static ForecastOutlook Build(string? disease, string? muni) => disease switch

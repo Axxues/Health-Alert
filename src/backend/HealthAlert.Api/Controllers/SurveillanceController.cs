@@ -1,5 +1,6 @@
 using System.Text.Json;
 using HealthAlert.Common;
+using HealthAlert.Database;
 using HealthAlert.Tools;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,6 +18,7 @@ public class SurveillanceController : ControllerBase
         [FromServices] SurveillanceEditTools e, [FromHeader(Name = "X-Cron-Key")] string? k)
     {
         if (k != "dev-cron-key") return Unauthorized();
-        return Ok(ApiResponse.Ok(await e.IngestAsync(feed, b)));
+        try { return Ok(ApiResponse.Ok(await e.IngestAsync(feed, b))); }
+        catch (InvalidDataException ex) { await e.DeadLetterAsync(feed, b.ToString()); return BadRequest(ApiResponse.Fail("BAD_REQUEST", ex.Message)); }
     }
 }

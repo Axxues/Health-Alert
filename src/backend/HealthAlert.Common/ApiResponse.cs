@@ -18,4 +18,5 @@ public class ApiResponse<T>
 public static class ApiResponse
 {
     public static ApiResponse<T> Ok<T>(T? data) => new(true, "OK", "", data);
+    public static ApiResponse<object> Fail(string code, string msg) => new(false, code, msg, null);
 }

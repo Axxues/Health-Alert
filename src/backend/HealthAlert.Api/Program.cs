@@ -1,4 +1,5 @@
 using HealthAlert.Api.Hubs;
+using HealthAlert.Api.Services;
 using HealthAlert.Database;
 using HealthAlert.Tools;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +16,7 @@ builder.Services.AddScoped<ForecastEditTools>();
 builder.Services.AddScoped<RagTools>();
 builder.Services.AddScoped<PlaybookTools>();
 builder.Services.AddScoped<AlertsTools>();
+builder.Services.AddHostedService<IngestTickerService>();
 var app = builder.Build();
 
 app.MapControllers();
