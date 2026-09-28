@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="HealthAlert.Api/HealthAlert.Api.csproj" />
+  <Project Path="HealthAlert.Common/HealthAlert.Common.csproj" />
+  <Project Path="HealthAlert.Database/HealthAlert.Database.csproj" />
+  <Project Path="HealthAlert.Tests/HealthAlert.Tests.csproj" />
+  <Project Path="HealthAlert.Tools/HealthAlert.Tools.csproj" />
+</Solution>

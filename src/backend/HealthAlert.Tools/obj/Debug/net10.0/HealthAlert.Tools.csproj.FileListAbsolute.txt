@@ -1,0 +1,11 @@
+D:\SILLAG-Project-1\system\src\backend\HealthAlert.Tools\bin\Debug\net10.0\HealthAlert.Tools.deps.json
+D:\SILLAG-Project-1\system\src\backend\HealthAlert.Tools\bin\Debug\net10.0\HealthAlert.Tools.dll
+D:\SILLAG-Project-1\system\src\backend\HealthAlert.Tools\bin\Debug\net10.0\HealthAlert.Tools.pdb
+D:\SILLAG-Project-1\system\src\backend\HealthAlert.Tools\obj\Debug\net10.0\HealthAlert.Tools.GeneratedMSBuildEditorConfig.editorconfig
+D:\SILLAG-Project-1\system\src\backend\HealthAlert.Tools\obj\Debug\net10.0\HealthAlert.Tools.AssemblyInfoInputs.cache
+D:\SILLAG-Project-1\system\src\backend\HealthAlert.Tools\obj\Debug\net10.0\HealthAlert.Tools.AssemblyInfo.cs
+D:\SILLAG-Project-1\system\src\backend\HealthAlert.Tools\obj\Debug\net10.0\HealthAlert.Tools.csproj.CoreCompileInputs.cache
+D:\SILLAG-Project-1\system\src\backend\HealthAlert.Tools\obj\Debug\net10.0\HealthAlert.Tools.dll
+D:\SILLAG-Project-1\system\src\backend\HealthAlert.Tools\obj\Debug\net10.0\refint\HealthAlert.Tools.dll
+D:\SILLAG-Project-1\system\src\backend\HealthAlert.Tools\obj\Debug\net10.0\HealthAlert.Tools.pdb
+D:\SILLAG-Project-1\system\src\backend\HealthAlert.Tools\obj\Debug\net10.0\ref\HealthAlert.Tools.dll
