@@ -3,10 +3,16 @@ import { Link } from "react-router";
 import { listHotspots } from "@/services/riskmaps/api";
 import type { Hotspot } from "@/services/riskmaps/types";
 import { getOutlook } from "@/services/forecast/api";
+import type { ForecastOutlook } from "@/services/forecast/types";
+import { listAlerts, ackAlert } from "@/services/alerts/api";
+import type { HealthAlert } from "@/services/alerts/types";
+import { listPlaybooks, executePlaybook } from "@/services/playbook/api";
+import type { Playbook } from "@/services/playbook/types";
 import { StatCards } from "../components/StatCards";
 import { WeekBars, type Bar } from "../components/WeekBars";
-import { ProgressRing } from "../components/ProgressRing";
-import { ShiftTimer } from "../components/ShiftTimer";
+import { ActNowCard, diseaseName } from "../components/ActNowCard";
+import { AlertsCard } from "../components/AlertsCard";
+import { PlaybooksCard } from "../components/PlaybooksCard";
 
 const DISEASES = ["dengue", "leptospirosis", "ili", "asthma"] as const;
 
@@ -24,19 +30,33 @@ function pill(sevN: number) {
 
 export function Dashboard() {
   const [spots, setSpots] = useState<Hotspot[]>([]);
-  const [probs, setProbs] = useState<Record<string, number>>({});
+  const [outlooks, setOutlooks] = useState<Record<string, ForecastOutlook>>({});
+  const [alerts, setAlerts] = useState<HealthAlert[]>([]);
+  const [books, setBooks] = useState<Playbook[]>([]);
+  const [ran, setRan] = useState<Set<number>>(new Set());
   const [error, setError] = useState("");
 
   useEffect(() => {
     listHotspots().then(setSpots).catch(() => setError("Could not load the map. Try again."));
-    Promise.all(DISEASES.map((d) => getOutlook({ disease: d }).then((o) => [d, o.probability] as const)))
-      .then((rows) => setProbs(Object.fromEntries(rows)))
+    Promise.all(DISEASES.map((d) => getOutlook({ disease: d }).then((o) => [d, o] as const)))
+      .then((rows) => setOutlooks(Object.fromEntries(rows)))
       .catch(() => {});
+    listAlerts().then(setAlerts).catch(() => {});
+    listPlaybooks().then(setBooks).catch(() => {});
   }, []);
+
+  async function onAck(id: number) {
+    await ackAlert(id).catch(() => null);
+    setAlerts((list) => list.filter((a) => a.id !== id));
+  }
+
+  async function onRun(id: number) {
+    await executePlaybook(id).catch(() => null);
+    setRan((prev) => new Set(prev).add(id));
+  }
 
   const high = spots.filter((s) => sev(s) >= 3).length;
   const med = spots.filter((s) => sev(s) === 2).length;
-  const action = spots.length === 0 ? 0 : Math.round(((high + med) / spots.length) * 100);
 
   const bars: Bar[] = [...spots]
     .sort((a, b) => sev(b) - sev(a))
@@ -49,7 +69,10 @@ export function Dashboard() {
       tip: `${s.muni} · ${s.disease} · ${s.level} risk`,
     }));
 
-  const next = spots.find((s) => sev(s) >= 3) ?? spots[0];
+  const topDisease = [...DISEASES]
+    .map((d) => ({ disease: d, outlook: outlooks[d] }))
+    .filter((r) => r.outlook)
+    .sort((a, b) => b.outlook.probability - a.outlook.probability)[0] ?? null;
 
   return (
     <div>
@@ -83,16 +106,7 @@ export function Dashboard() {
             ? <p className="muted">No hotspots right now. Check back after the next run.</p>
             : <WeekBars bars={bars} />}
         </div>
-        <div className="card card--lift anim" style={{ "--i": 5 } as React.CSSProperties}>
-          <h3>Next visit</h3>
-          {next ? (
-            <>
-              <p style={{ fontSize: 17, fontWeight: 650, margin: "10px 0 2px" }}>{next.muni}</p>
-              <p className="sub">{next.disease} · {next.level} risk · due this week</p>
-              <Link className="btn-pill" to="/playbooks" style={{ textDecoration: "none", marginTop: 14 }}>▶ Open playbooks</Link>
-            </>
-          ) : <p className="muted">Nothing scheduled. New hotspots will land here.</p>}
-        </div>
+        <ActNowCard top={topDisease} />
         <div className="card card--lift anim" style={{ "--i": 6 } as React.CSSProperties}>
           <h3>Hotspots needing action</h3>
           {spots.length === 0
@@ -120,12 +134,12 @@ export function Dashboard() {
           <p className="sub">Live outlook for the four tracked diseases.</p>
           <ul className="rows">
             {DISEASES.map((d) => {
-              const p = probs[d] ?? 0;
+              const p = outlooks[d]?.probability ?? 0;
               return (
                 <li key={d}>
                   <span className="glyph" aria-hidden>{d.slice(0, 1).toUpperCase()}</span>
                   <div className="meta">
-                    <p style={{ textTransform: "capitalize" }}>{d === "ili" ? "Flu-like illness" : d}</p>
+                    <p>{diseaseName(d)}</p>
                     <small className="tabular">{Math.round(p * 100)}% chance this week</small>
                   </div>
                   <span className="tail">
@@ -138,18 +152,8 @@ export function Dashboard() {
             })}
           </ul>
         </div>
-        <div className="card card--lift anim" style={{ "--i": 8 } as React.CSSProperties}>
-          <h3>Share needing action</h3>
-          <ProgressRing
-            pct={action}
-            label="Need action"
-            legend={[
-              { color: "var(--pine)", text: "Need action" },
-              { color: "var(--hatch)", text: "Routine" },
-            ]}
-          />
-        </div>
-        <ShiftTimer />
+        <AlertsCard alerts={alerts} onAck={onAck} />
+        <PlaybooksCard books={books} ran={ran} onRun={onRun} />
       </div>
     </div>
   );
