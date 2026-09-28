@@ -46,6 +46,7 @@ export function Dashboard() {
       value: sev(s),
       kind: sev(s) >= 3 ? "solid" : sev(s) === 2 ? "mint" : "hatch",
       tag: i === 0 && arr.length > 1 ? "peak" : undefined,
+      tip: `${s.muni} · ${s.disease} · ${s.level} risk`,
     }));
 
   const next = spots.find((s) => sev(s) >= 3) ?? spots[0];

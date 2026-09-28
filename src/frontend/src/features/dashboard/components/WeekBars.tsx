@@ -1,4 +1,4 @@
-export interface Bar { label: string; value: number; kind: "solid" | "mint" | "hatch"; tag?: string }
+export interface Bar { label: string; value: number; kind: "solid" | "mint" | "hatch"; tag?: string; tip?: string }
 
 // Values drive height; hatch marks projected counts, never confirmed ones.
 export function WeekBars({ bars }: { bars: Bar[] }) {
@@ -6,7 +6,8 @@ export function WeekBars({ bars }: { bars: Bar[] }) {
   return (
     <div className="bars" role="img" aria-label="Risk by place">
       {bars.map((b, i) => (
-        <div className="barcol" key={b.label}>
+        <div className="barcol" key={b.label} tabIndex={0} aria-label={b.tip ?? b.label}>
+          {b.tip && <span className="bar-tip" role="tooltip">{b.tip}</span>}
           {b.tag && <span className="barval">{b.tag}</span>}
           <div
             className={`bar bar--${b.kind}`}
