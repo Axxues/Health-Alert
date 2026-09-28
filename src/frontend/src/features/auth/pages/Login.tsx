@@ -46,9 +46,9 @@ export function Login() {
           <h2 style={{ fontSize: 26, margin: "0 0 6px", letterSpacing: "-0.02em" }}>Welcome back</h2>
           <p className="sub" style={{ margin: "0 0 22px" }}>Sign in to see today's health outlook.</p>
           <div style={{ display: "grid", gap: 12 }}>
+            {error && <p key={error} className="err">{error}</p>}
             <input className="input" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" />
             <input className="input" placeholder="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
-            {error && <p key={error} className="err">{error}</p>}
             <button className="btn-pill btn-sheen" type="submit" disabled={busy} style={{ justifyContent: "center" }}>
               {busy ? "Signing in…" : "Sign in"}
             </button>
