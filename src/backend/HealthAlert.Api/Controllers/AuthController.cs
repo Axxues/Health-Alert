@@ -18,7 +18,10 @@ public class AuthController(IConfiguration cfg, IHostEnvironment env) : Controll
     {
         var key = CronAuth.JwtKey(cfg, env.IsDevelopment());
         var role = "MHO";
-        var perms = new[] { Permissions.ForecastView };
+        // MHO sees every MVP slice; per-role grants if roles grow
+        var perms = new[] { Permissions.DashboardView, Permissions.ForecastView,
+            Permissions.SurveillanceView, Permissions.RiskmapsView, Permissions.RagView,
+            Permissions.PlaybookView, Permissions.AlertsView, Permissions.CitizenView };
         var claims = new List<Claim> { new(ClaimTypes.Name, r.Username ?? "mho"), new(ClaimTypes.Role, role) };
         claims.AddRange(perms.Select(p => new Claim("perm", p)));
         var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();

@@ -40,12 +40,27 @@ public class HttpSmokeTest
         var r = await c.PostAsJsonAsync("/api/auth/login", new { username = "mho", password = "x" });
         r.EnsureSuccessStatusCode();
         var data = JsonDocument.Parse(await r.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
-        Assert.Equal("surveillance:forecast:view", data.GetProperty("permissions")[0].GetString());
+        Assert.Equal("dashboard:view", data.GetProperty("permissions")[0].GetString());
         return data.GetProperty("token").GetString()!;
     }
 
     private static void Bearer(HttpClient c, string token) =>
         c.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+    [Fact]
+    public async Task Login_grants_every_guarded_slice()
+    {
+        using var f = new SmokeFactory();
+        var c = f.CreateClient();
+        var r = await c.PostAsJsonAsync("/api/auth/login", new { username = "mho", password = "x" });
+        r.EnsureSuccessStatusCode();
+        var perms = JsonDocument.Parse(await r.Content.ReadAsStringAsync()).RootElement
+            .GetProperty("data").GetProperty("permissions").EnumerateArray()
+            .Select(x => x.GetString()).ToHashSet();
+        foreach (var p in new[] { "dashboard:view", "surveillance:forecast:view", "surveillance:feeds:view",
+            "riskmaps:hotspots:view", "rag:answer:view", "playbook:list:view", "alerts:list:view", "citizen:ask:view" })
+            Assert.Contains(p, perms);
+    }
 
     [Fact]
     public async Task Login_ingest_outlook_returns_probability_and_drivers()
