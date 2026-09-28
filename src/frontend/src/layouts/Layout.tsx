@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
-import { Rail } from "./Rail";
-import { ContextPanel } from "./ContextPanel";
+import { Sidebar } from "./Sidebar";
 import { menuItems } from "@/constants/layout/menu/menu";
 import { clearSession, getRole, hasPermission } from "@/utils/auth";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
@@ -70,14 +69,10 @@ export function Layout() {
 
       <div className="below">
         {drawer && <div className="overlay" onClick={close} />}
-        <div className="railarrow">
-          <Rail items={links} />
-          <ContextPanel items={links} />
-        </div>
+        <Sidebar items={links} />
         {drawer && (
           <div className="drawer anim">
-            <Rail items={links} onNavigate={close} />
-            <ContextPanel items={links} onNavigate={close} />
+            <Sidebar items={links} onNavigate={close} />
           </div>
         )}
         <main className="mainscroll">
