@@ -1,6 +1,7 @@
 import { Suspense, lazy } from "react";
 import { Navigate, Outlet, createBrowserRouter } from "react-router";
 import { hasPermission, isAuthenticated } from "@/utils/auth";
+import { PERMISSIONS } from "@/constants/permissions";
 
 const Layout = lazy(() => import("@/layouts/Layout").then((m) => ({ default: m.Layout })));
 const Login = lazy(() => import("@/pages/Login").then((m) => ({ default: m.Login })));
@@ -44,7 +45,7 @@ export const router = createBrowserRouter([
         element: <Suspense fallback={null}><Layout /></Suspense>,
         children: [
           { index: true, element: slice(<DashboardPage />) },
-          { path: "forecast", element: <PermissionRoute permission="forecast:view" />, children: [{ index: true, element: slice(<ForecastingPage />) }] },
+          { path: "forecast", element: <PermissionRoute permission={PERMISSIONS.forecastView} />, children: [{ index: true, element: slice(<ForecastingPage />) }] },
           { path: "surveillance", element: slice(<SurveillancePage />) },
           { path: "risk-maps", element: slice(<RiskMapsPage />) },
           { path: "rag", element: slice(<RagPage />) },

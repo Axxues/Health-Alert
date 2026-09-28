@@ -1,10 +1,11 @@
 using HealthAlert.Common;
 using HealthAlert.Tools;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HealthAlert.Api.Controllers;
 
-[ApiController, Route("api/playbooks")]
+[ApiController, Route("api/playbooks"), Authorize]
 public class PlaybookController(PlaybookTools t) : ControllerBase
 {
     [HttpGet]

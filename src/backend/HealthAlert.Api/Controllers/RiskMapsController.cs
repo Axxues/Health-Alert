@@ -1,9 +1,10 @@
 using HealthAlert.Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HealthAlert.Api.Controllers;
 
-[ApiController, Route("api/riskmaps")]
+[ApiController, Route("api/riskmaps"), Authorize]
 public class RiskMapsController : ControllerBase
 {
     // ponytail: seeded hotspots; vwHotspots view if queries grow

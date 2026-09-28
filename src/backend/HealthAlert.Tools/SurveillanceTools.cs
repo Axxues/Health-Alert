@@ -33,8 +33,18 @@ public class SurveillanceEditTools(HealthAlertDbContext ctx)
             diseaseId = d?.Id;
         }
         var c = new TblCase { FeedId = f.Id, DiseaseId = diseaseId, SourceKey = key, Count = count, ReportedAt = DateTime.UtcNow };
-        await ctx.Cases.AddAsync(c);
-        await ctx.SaveChangesAsync();
+        try
+        {
+            await ctx.Cases.AddAsync(c);
+            await ctx.SaveChangesAsync();
+        }
+        catch (DbUpdateException) // ponytail: lost the race on IX_tblCases_SourceKey; return the winner (idempotent)
+        {
+            ctx.Entry(c).State = EntityState.Detached;
+            var winner = await ctx.Cases.FirstOrDefaultAsync(x => x.SourceKey == key);
+            if (winner is not null) return winner;
+            throw;
+        }
         return c;
     }
 

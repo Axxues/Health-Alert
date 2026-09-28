@@ -150,6 +150,9 @@ namespace HealthAlert.Database.Migrations
                     b.Property<string>("Drivers")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Muni")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<double?>("Probability")
                         .HasColumnType("float");
 

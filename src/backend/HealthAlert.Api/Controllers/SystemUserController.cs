@@ -1,11 +1,12 @@
 using HealthAlert.Common;
 using HealthAlert.Database;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace HealthAlert.Api.Controllers;
 
-[ApiController, Route("api/users")]
+[ApiController, Route("api/users"), Authorize]
 public class SystemUserController(HealthAlertDbContext ctx) : ControllerBase
 {
     [HttpGet]

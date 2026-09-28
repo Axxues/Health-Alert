@@ -25,7 +25,7 @@ public class IngestVerificationTest
     public async Task Malformed_returns_400_deadletter_audit()
     {
         var ctx = TestDb.Create();
-        var c = new SurveillanceController();
+        var c = new SurveillanceController(TestCfg.Config(), TestCfg.Env());
         var r = await c.Ingest("pidsr", Json("{\"disease\":\"dengue\"}"), new SurveillanceEditTools(ctx), "dev-cron-key");
         var bad = Assert.IsType<BadRequestObjectResult>(r);
         Assert.Equal(400, bad.StatusCode);

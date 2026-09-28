@@ -1,12 +1,13 @@
 using HealthAlert.Common;
 using HealthAlert.Tools;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HealthAlert.Api.Controllers;
 
 public record ForecastReq(string? Disease, string? Muni);
 
-[ApiController, Route("api/forecast")]
+[ApiController, Route("api/forecast"), Authorize]
 public class ForecastController : ControllerBase
 {
     [HttpGet("outlook")]

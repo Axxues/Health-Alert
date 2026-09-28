@@ -6,7 +6,7 @@ namespace HealthAlert.Database;
 public class TblDisease { public long Id { get; set; } public string? Code { get; set; } public string? Category { get; set; } }
 public class TblFeed { public long Id { get; set; } public string? Code { get; set; } public string? Name { get; set; } }
 public class TblCase { public long Id { get; set; } public long? DiseaseId { get; set; } public long? FeedId { get; set; } public string? SourceKey { get; set; } public double? Count { get; set; } public DateTime? ReportedAt { get; set; } }
-public class TblForecastRun { public long Id { get; set; } public long? DiseaseId { get; set; } public double? Probability { get; set; } public string? Band { get; set; } public string? Drivers { get; set; } }
+public class TblForecastRun { public long Id { get; set; } public long? DiseaseId { get; set; } public string? Muni { get; set; } public double? Probability { get; set; } public string? Band { get; set; } public string? Drivers { get; set; } }
 public class TblAlert { public long Id { get; set; } public long? DiseaseId { get; set; } public string? Message { get; set; } public string? Status { get; set; } }
 public class TblPlaybook { public long Id { get; set; } public string? Code { get; set; } public string? Title { get; set; } }
 public class TblPlaybookExecution { public long Id { get; set; } public long? PlaybookId { get; set; } public string? Status { get; set; } public string? Log { get; set; } }

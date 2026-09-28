@@ -33,7 +33,7 @@ public class SurveillanceTest
     public async Task Ingest_rejects_bad_cron_key()
     {
         var ctx = TestDb.Create();
-        var c = new SurveillanceController();
+        var c = new SurveillanceController(TestCfg.Config(), TestCfg.Env());
         var r = await c.Ingest("weather", Json("{\"sourceKey\":\"k2\"}"), new SurveillanceEditTools(ctx), "wrong");
         Assert.IsType<UnauthorizedResult>(r);
     }

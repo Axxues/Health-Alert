@@ -1,10 +1,11 @@
 using HealthAlert.Common;
 using HealthAlert.Tools;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HealthAlert.Api.Controllers;
 
-[ApiController, Route("api/alerts")]
+[ApiController, Route("api/alerts"), Authorize]
 public class AlertsController(AlertsTools t) : ControllerBase
 {
     [HttpGet]

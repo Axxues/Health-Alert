@@ -1,11 +1,12 @@
 using HealthAlert.Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HealthAlert.Api.Controllers;
 
 public record SendReq(string? To, string? Message);
 
-[ApiController, Route("api/messaging")]
+[ApiController, Route("api/messaging"), Authorize]
 public class MessagingController : ControllerBase
 {
     [HttpPost("send")]

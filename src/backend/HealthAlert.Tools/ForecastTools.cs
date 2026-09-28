@@ -31,19 +31,19 @@ public class ArgoForecaster : IForecaster
     public bool IsOutbreak(double[] h) => h.TakeLast(2).Average() > h.Take(h.Length - 2).Average() * 1.2;
 }
 
-public record ForecastOutlook(double Probability, string Band, string[] Drivers);
+public record ForecastOutlook(double Probability, string Band, string[] Drivers, string? Muni = null);
 
 // ponytail: one file for forecasters + tools; split Get/Edit when a second consumer lands
 public class ForecastGetTools(HealthAlertDbContext ctx)
 {
     public async Task<ForecastOutlook> OutlookAsync(string? disease, string? muni)
     {
-        var o = Build(disease, muni);
+        var o = Build(disease);
         var n = await ctx.Cases.CountAsync(); // ponytail: count shifts probability; real covariates if accuracy matters
-        return o with { Probability = Math.Min(0.97, o.Probability + n * 0.01) };
+        return o with { Probability = Math.Min(0.97, o.Probability + n * 0.01), Muni = muni };
     }
 
-    internal static ForecastOutlook Build(string? disease, string? muni) => disease switch
+    internal static ForecastOutlook Build(string? disease) => disease switch
     {
         "leptospirosis" => new(0.45, "heavy", ["rainfall", "flood"]),
         "ili" => new(new ArgoForecaster().Probability([10, 12], [20, 22]), "Caution", ["cases", "search-trends"]),
@@ -56,9 +56,10 @@ public class ForecastEditTools(HealthAlertDbContext ctx)
 {
     public async Task<ForecastOutlook> RunAsync(string? disease, string? muni)
     {
-        var o = ForecastGetTools.Build(disease, muni);
-        var d = await ctx.Diseases.FindAsync(1L);
-        await ctx.ForecastRuns.AddAsync(new TblForecastRun { DiseaseId = d?.Id, Probability = o.Probability, Band = o.Band, Drivers = string.Join(",", o.Drivers) });
+        var o = ForecastGetTools.Build(disease) with { Muni = muni };
+        var code = string.IsNullOrWhiteSpace(disease) ? "dengue" : disease.Trim().ToLowerInvariant();
+        var d = await ctx.Diseases.FirstOrDefaultAsync(x => x.Code == code);
+        await ctx.ForecastRuns.AddAsync(new TblForecastRun { DiseaseId = d?.Id, Muni = muni, Probability = o.Probability, Band = o.Band, Drivers = string.Join(",", o.Drivers) });
         await ctx.SaveChangesAsync();
         return o;
     }

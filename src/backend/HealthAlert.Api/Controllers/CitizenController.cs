@@ -1,11 +1,12 @@
 using HealthAlert.Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HealthAlert.Api.Controllers;
 
 public record CitizenAskReq(string? Q);
 
-[ApiController, Route("api/citizen")]
+[ApiController, Route("api/citizen"), AllowAnonymous]
 public class CitizenController : ControllerBase
 {
     // ponytail: Taglish stub; real triage model if clinicians ask
