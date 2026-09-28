@@ -34,6 +34,7 @@ public class HealthAlertDbContext(DbContextOptions<HealthAlertDbContext> o) : Db
         m.Entity<TblDisease>().ToTable("tblDiseases");
         m.Entity<TblFeed>().ToTable("tblFeeds");
         m.Entity<TblCase>().ToTable("tblCases");
+        m.Entity<TblCase>().HasIndex(c => c.SourceKey).IsUnique(); // ponytail: DB guard for ingest idempotency under concurrency
         m.Entity<TblForecastRun>().ToTable("tblForecastRuns");
         m.Entity<TblAlert>().ToTable("tblAlerts");
         m.Entity<TblPlaybook>().ToTable("tblPlaybooks");
