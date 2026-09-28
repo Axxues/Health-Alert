@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { getOutlook, runForecast } from "@/services/forecast/api";
 import type { ForecastOutlook } from "@/services/forecast/types";
 import { OutlookCard } from "../components/OutlookCard";
+import { ForecastToolbar } from "../components/ForecastToolbar";
 
 export function Forecast() {
   const [disease, setDisease] = useState("dengue");
