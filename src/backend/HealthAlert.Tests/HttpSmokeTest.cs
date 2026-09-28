@@ -63,7 +63,7 @@ public class HttpSmokeTest
     }
 
     [Fact]
-    public async Task Guest_gets_public_slices_only()
+    public async Task Guest_has_full_access_for_now()
     {
         using var f = new SmokeFactory();
         var c = f.CreateClient();
@@ -72,8 +72,8 @@ public class HttpSmokeTest
         var data = JsonDocument.Parse(await r.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
         Assert.Equal("Guest", data.GetProperty("role").GetString());
         var perms = data.GetProperty("permissions").EnumerateArray().Select(x => x.GetString()).ToHashSet();
-        Assert.Equal(3, perms.Count);
-        Assert.DoesNotContain("alerts:list:view", perms);
+        Assert.Equal(8, perms.Count);
+        Assert.Contains("alerts:list:view", perms);
     }
 
     [Fact]

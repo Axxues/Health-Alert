@@ -19,12 +19,10 @@ public class AuthController(IConfiguration cfg, IHostEnvironment env) : Controll
         var key = CronAuth.JwtKey(cfg, env.IsDevelopment());
         var isGuest = string.Equals(r.Username, "guest", StringComparison.OrdinalIgnoreCase);
         var role = isGuest ? "Guest" : "MHO";
-        // MHO sees every MVP slice; guests read the public overview only
-        var perms = isGuest
-            ? new[] { Permissions.DashboardView, Permissions.ForecastView, Permissions.CitizenView }
-            : new[] { Permissions.DashboardView, Permissions.ForecastView,
-                Permissions.SurveillanceView, Permissions.RiskmapsView, Permissions.RagView,
-                Permissions.PlaybookView, Permissions.AlertsView, Permissions.CitizenView };
+        // ponytail: guests get full access for now; trim to public slices when roles grow
+        var perms = new[] { Permissions.DashboardView, Permissions.ForecastView,
+            Permissions.SurveillanceView, Permissions.RiskmapsView, Permissions.RagView,
+            Permissions.PlaybookView, Permissions.AlertsView, Permissions.CitizenView };
         var claims = new List<Claim> { new(ClaimTypes.Name, r.Username ?? "mho"), new(ClaimTypes.Role, role) };
         claims.AddRange(perms.Select(p => new Claim("perm", p)));
         var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
