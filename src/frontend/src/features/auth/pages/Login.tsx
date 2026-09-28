@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { authApi } from "@/services/auth/api";
-import { setSession } from "@/utils/auth";
+import { isServerUnreachable, setSession } from "@/utils/auth";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 
 export function Login() {
@@ -10,6 +10,12 @@ export function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  function fail(e: unknown) {
+    setError(isServerUnreachable(e)
+      ? "Cannot reach the server. Start the backend on port 5109 first."
+      : "Could not sign in. Check your details and try again.");
+    setBusy(false);
+  }
 
   async function guest() {
     setError("");
@@ -18,11 +24,11 @@ export function Login() {
       const data = await authApi.login({ username: "guest", password: "" });
       setSession(data.token, data.role, data.permissions ?? []);
       navigate("/");
-    } catch {
-      setError("Could not sign in. Check your details and try again.");
-      setBusy(false);
+    } catch (e) {
+      fail(e);
     }
   }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -31,9 +37,8 @@ export function Login() {
       const data = await authApi.login({ username, password });
       setSession(data.token, data.role, data.permissions ?? []);
       navigate("/");
-    } catch {
-      setError("Could not sign in. Check your details and try again.");
-      setBusy(false);
+    } catch (err) {
+      fail(err);
     }
   }
 

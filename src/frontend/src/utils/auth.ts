@@ -22,6 +22,12 @@ export function hasPermission(permission: string): boolean {
   return getPermissions().includes(permission);
 }
 
+// ponytail: duck-typed so callers never import axios for one check
+export function isServerUnreachable(e: unknown): boolean {
+  const err = e as { isAxiosError?: boolean; response?: unknown } | null;
+  return !!err && err.isAxiosError === true && err.response == null;
+}
+
 export function setSession(token: string, role: string, permissions: string[]): void {
   localStorage.setItem(TOKEN_KEY, token);
   localStorage.setItem(ROLE_KEY, role);
