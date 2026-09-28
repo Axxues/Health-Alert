@@ -1,4 +1,4 @@
-import type { Hotspot } from "@/services/riskmaps";
+import type { Hotspot } from "@/services/riskmaps/types";
 
 // ponytail: pure list, no fetch inside
 export function HotspotCard({ spots }: { spots: Hotspot[] }) {

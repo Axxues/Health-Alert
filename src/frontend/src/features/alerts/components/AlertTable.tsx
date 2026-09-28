@@ -1,4 +1,4 @@
-import type { HealthAlert } from "@/services/alerts";
+import type { HealthAlert } from "@/services/alerts/types";
 
 export function AlertTable({ items, onAck }: { items: HealthAlert[]; onAck: (id: number) => void }) {
   if (items.length === 0) return <p className="muted">All clear. No alerts.</p>;

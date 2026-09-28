@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { askLibrary } from "@/services/rag/api/rag.api";
-import type { RagAnswer } from "@/services/rag";
+import { askLibrary } from "@/services/rag/api";
+import type { RagAnswer } from "@/services/rag/types";
 import { CitationCard } from "../components/CitationCard";
 
-export function RagPage() {
+export function Rag() {
   const [q, setQ] = useState("");
   const [result, setResult] = useState<RagAnswer | null>(null);
   const [error, setError] = useState("");

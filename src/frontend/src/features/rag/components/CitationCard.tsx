@@ -1,4 +1,4 @@
-import type { RagCitation } from "@/services/rag";
+import type { RagCitation } from "@/services/rag/types";
 
 export function CitationCard({ citations }: { citations: RagCitation[] }) {
   if (citations.length === 0) return null;

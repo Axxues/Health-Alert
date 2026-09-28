@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { authApi } from "@/services/auth/api";
 import { setSession } from "@/utils/auth";
 
 export function Login() {
@@ -12,14 +13,8 @@ export function Login() {
     e.preventDefault();
     setError("");
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-      const json = await res.json();
-      if (!json.success) throw new Error(json.message || "Sign in failed");
-      setSession(json.data.token, json.data.role, json.data.permissions ?? []);
+      const data = await authApi.login({ username, password });
+      setSession(data.token, data.role, data.permissions ?? []);
       navigate("/");
     } catch {
       setError("Could not sign in. Check your details and try again.");

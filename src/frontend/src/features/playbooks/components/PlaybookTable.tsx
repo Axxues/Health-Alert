@@ -1,4 +1,4 @@
-import type { Playbook } from "@/services/playbook";
+import type { Playbook } from "@/services/playbook/types";
 
 export function PlaybookTable({ items, onExecute }: { items: Playbook[]; onExecute: (id: number) => void }) {
   if (items.length === 0) return <p className="muted">No playbooks yet.</p>;

@@ -1,4 +1,4 @@
-import type { ForecastOutlook } from "@/services/forecast";
+import type { ForecastOutlook } from "@/services/forecast/types";
 
 const WORDS: Record<string, string> = {
   cases: "recent cases",

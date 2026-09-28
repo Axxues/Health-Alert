@@ -1,4 +1,4 @@
-import type { Hotspot } from "@/services/riskmaps";
+import type { Hotspot } from "@/services/riskmaps/types";
 
 export function HotspotTable({ spots }: { spots: Hotspot[] }) {
   if (spots.length === 0) return <p className="muted">No hotspots right now.</p>;

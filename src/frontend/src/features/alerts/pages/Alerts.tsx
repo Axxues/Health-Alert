@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { ackAlert, listAlerts } from "@/services/alerts/api/alerts.api";
-import type { HealthAlert } from "@/services/alerts";
+import { ackAlert, listAlerts } from "@/services/alerts/api";
+import type { HealthAlert } from "@/services/alerts/types";
 import { AlertTable } from "../components/AlertTable";
 
-export function AlertsPage() {
+export function Alerts() {
   const [items, setItems] = useState<HealthAlert[]>([]);
   const [error, setError] = useState("");
 

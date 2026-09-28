@@ -4,24 +4,25 @@ import { hasPermission, isAuthenticated } from "@/utils/auth";
 import { PERMISSIONS } from "@/constants/permissions";
 
 const Layout = lazy(() => import("@/layouts/Layout").then((m) => ({ default: m.Layout })));
-const Login = lazy(() => import("@/pages/Login").then((m) => ({ default: m.Login })));
-const Unauthorized = lazy(() => import("@/pages/Unauthorized").then((m) => ({ default: m.Unauthorized })));
-const Placeholder = lazy(() => import("@/pages/Placeholder").then((m) => ({ default: m.Placeholder })));
-const DashboardPage = lazy(() => import("@/features/dashboard/pages/DashboardPage").then((m) => ({ default: m.DashboardPage })));
-const ForecastingPage = lazy(() => import("@/features/forecasting/pages/ForecastingPage").then((m) => ({ default: m.ForecastingPage })));
-const SurveillancePage = lazy(() => import("@/features/surveillance/pages/SurveillancePage").then((m) => ({ default: m.SurveillancePage })));
-const RiskMapsPage = lazy(() => import("@/features/risk-maps/pages/RiskMapsPage").then((m) => ({ default: m.RiskMapsPage })));
-const RagPage = lazy(() => import("@/features/rag/pages/RagPage").then((m) => ({ default: m.RagPage })));
-const PlaybooksPage = lazy(() => import("@/features/playbooks/pages/PlaybooksPage").then((m) => ({ default: m.PlaybooksPage })));
-const AlertsPage = lazy(() => import("@/features/alerts/pages/AlertsPage").then((m) => ({ default: m.AlertsPage })));
-const CitizenPage = lazy(() => import("@/features/citizen/pages/CitizenPage").then((m) => ({ default: m.CitizenPage })));
+const Login = lazy(() => import("@/features/auth/pages/Login").then((m) => ({ default: m.Login })));
+const Unauthorized = lazy(() => import("@/features/auth/pages/Unauthorized").then((m) => ({ default: m.Unauthorized })));
+const Placeholder = lazy(() => import("@/components/shared/Placeholder").then((m) => ({ default: m.Placeholder })));
+const Dashboard = lazy(() => import("@/features/dashboard/pages/Dashboard").then((m) => ({ default: m.Dashboard })));
+const Forecast = lazy(() => import("@/features/forecasting/pages/Forecast").then((m) => ({ default: m.Forecast })));
+const Surveillance = lazy(() => import("@/features/surveillance/pages/Surveillance").then((m) => ({ default: m.Surveillance })));
+const RiskMaps = lazy(() => import("@/features/risk-maps/pages/RiskMaps").then((m) => ({ default: m.RiskMaps })));
+const Rag = lazy(() => import("@/features/rag/pages/Rag").then((m) => ({ default: m.Rag })));
+const Playbooks = lazy(() => import("@/features/playbooks/pages/Playbooks").then((m) => ({ default: m.Playbooks })));
+const Alerts = lazy(() => import("@/features/alerts/pages/Alerts").then((m) => ({ default: m.Alerts })));
+const Citizen = lazy(() => import("@/features/citizen/pages/Citizen").then((m) => ({ default: m.Citizen })));
 
 function ProtectedRoute() {
   return isAuthenticated() ? <Outlet /> : <Navigate to="/login" replace />;
 }
 
-function PermissionRoute({ permission }: { permission: string }) {
-  return hasPermission(permission) ? <Outlet /> : <Navigate to="/unauthorized" replace />;
+function PermissionRoute({ permission, children }: { permission: string; children?: React.ReactNode }) {
+  if (!hasPermission(permission)) return <Navigate to="/unauthorized" replace />;
+  return children ?? <Outlet />;
 }
 
 const slice = (el: React.ReactNode) => (
@@ -34,6 +35,11 @@ const page = (title: string) => (
   </Suspense>
 );
 
+const guard = (permission: string, el: React.ReactNode) => ({
+  element: <PermissionRoute permission={permission} />,
+  children: [{ index: true, element: slice(el) }],
+});
+
 // ponytail: real slices for Task 6; reports/users/messaging/system stay placeholder until needed
 export const router = createBrowserRouter([
   { path: "/login", element: <Suspense fallback={null}><Login /></Suspense> },
@@ -44,14 +50,14 @@ export const router = createBrowserRouter([
       {
         element: <Suspense fallback={null}><Layout /></Suspense>,
         children: [
-          { index: true, element: slice(<DashboardPage />) },
-          { path: "forecast", element: <PermissionRoute permission={PERMISSIONS.forecastView} />, children: [{ index: true, element: slice(<ForecastingPage />) }] },
-          { path: "surveillance", element: slice(<SurveillancePage />) },
-          { path: "risk-maps", element: slice(<RiskMapsPage />) },
-          { path: "rag", element: slice(<RagPage />) },
-          { path: "playbooks", element: slice(<PlaybooksPage />) },
-          { path: "alerts", element: slice(<AlertsPage />) },
-          { path: "citizen", element: slice(<CitizenPage />) },
+          { index: true, element: slice(<PermissionRoute permission={PERMISSIONS.dashboardView}><Dashboard /></PermissionRoute>) },
+          { path: "forecast", ...guard(PERMISSIONS.forecastView, <Forecast />) },
+          { path: "surveillance", ...guard(PERMISSIONS.surveillanceView, <Surveillance />) },
+          { path: "risk-maps", ...guard(PERMISSIONS.riskmapsView, <RiskMaps />) },
+          { path: "rag", ...guard(PERMISSIONS.ragView, <Rag />) },
+          { path: "playbooks", ...guard(PERMISSIONS.playbookView, <Playbooks />) },
+          { path: "alerts", ...guard(PERMISSIONS.alertsView, <Alerts />) },
+          { path: "citizen", ...guard(PERMISSIONS.citizenView, <Citizen />) },
           { path: "reports", element: page("Reports") },
           { path: "users", element: page("Users") },
           { path: "messaging", element: page("Messaging") },

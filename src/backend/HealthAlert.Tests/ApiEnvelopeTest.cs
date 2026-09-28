@@ -12,7 +12,7 @@ public class ApiEnvelopeTest
     public async Task Rag_returns_citation()
     {
         var ctx = TestDb.Create();
-        var c = new RagController(new RagTools(ctx), TestCfg.Config(), TestCfg.Env());
+        var c = new RagController(new RagGetTools(ctx), new RagEditTools(ctx), TestCfg.Config(), TestCfg.Env());
         var r = await c.Ask(new RagAskReq("dengue fluids?"));
         var ok = Assert.IsType<OkObjectResult>(r);
         var j = System.Text.Json.JsonSerializer.Serialize(ok.Value);

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { listFeeds } from "@/services/surveillance/api/surveillance.api";
-import type { SurveillanceFeed } from "@/services/surveillance";
+import { listFeeds } from "@/services/surveillance/api";
+import type { SurveillanceFeed } from "@/services/surveillance/types";
 import { FeedTable } from "../components/FeedTable";
 
-export function SurveillancePage() {
+export function Surveillance() {
   const [feeds, setFeeds] = useState<SurveillanceFeed[]>([]);
   const [error, setError] = useState("");
 

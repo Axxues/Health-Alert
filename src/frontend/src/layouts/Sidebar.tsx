@@ -1,26 +1,14 @@
 import { NavLink } from "react-router";
-
-const links = [
-  ["/", "Dashboard"],
-  ["/forecast", "Forecast"],
-  ["/surveillance", "Surveillance"],
-  ["/risk-maps", "Risk maps"],
-  ["/rag", "Ask the library"],
-  ["/playbooks", "Playbooks"],
-  ["/alerts", "Alerts"],
-  ["/citizen", "Citizen"],
-  ["/reports", "Reports"],
-  ["/messaging", "Messaging"],
-  ["/users", "Users"],
-  ["/system", "System"],
-] as const;
+import { menuItems } from "@/constants/layout/menu/menu";
+import { hasPermission } from "@/utils/auth";
 
 export function Sidebar() {
+  const links = menuItems.filter((m) => !m.permission || hasPermission(m.permission));
   return (
     <nav className="sidebar" aria-label="Primary">
-      {links.map(([to, label]) => (
-        <NavLink key={to} to={to} end={to === "/"} className={({ isActive }) => (isActive ? "active" : "")}>
-          {label}
+      {links.map((m) => (
+        <NavLink key={m.path} to={m.path} end={m.path === "/"} className={({ isActive }) => (isActive ? "active" : "")}>
+          {m.name}
         </NavLink>
       ))}
     </nav>

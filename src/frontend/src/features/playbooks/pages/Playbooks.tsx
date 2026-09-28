@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { executePlaybook, listPlaybooks } from "@/services/playbook/api/playbook.api";
-import type { Playbook } from "@/services/playbook";
+import { executePlaybook, listPlaybooks } from "@/services/playbook/api";
+import type { Playbook } from "@/services/playbook/types";
 import { PlaybookTable } from "../components/PlaybookTable";
 
-export function PlaybooksPage() {
+export function Playbooks() {
   const [items, setItems] = useState<Playbook[]>([]);
   const [note, setNote] = useState("");
   const [error, setError] = useState("");

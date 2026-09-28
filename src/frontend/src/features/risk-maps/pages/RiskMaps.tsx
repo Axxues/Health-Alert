@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { listHotspots } from "@/services/riskmaps/api/riskmaps.api";
-import type { Hotspot } from "@/services/riskmaps";
+import { listHotspots } from "@/services/riskmaps/api";
+import type { Hotspot } from "@/services/riskmaps/types";
 import { HotspotTable } from "../components/HotspotTable";
 
-export function RiskMapsPage() {
+export function RiskMaps() {
   const [spots, setSpots] = useState<Hotspot[]>([]);
   const [error, setError] = useState("");
 

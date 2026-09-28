@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { askCitizen } from "@/services/citizen/api/citizen.api";
+import { askCitizen } from "@/services/citizen/api";
 import { ReplyCard } from "../components/ReplyCard";
 
-export function CitizenPage() {
+export function Citizen() {
   const [q, setQ] = useState("");
   const [reply, setReply] = useState("");
   const [error, setError] = useState("");

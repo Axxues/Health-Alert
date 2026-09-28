@@ -1,4 +1,4 @@
-import type { SurveillanceFeed } from "@/services/surveillance";
+import type { SurveillanceFeed } from "@/services/surveillance/types";
 
 export function FeedTable({ feeds }: { feeds: SurveillanceFeed[] }) {
   if (feeds.length === 0) return <p className="muted">No feeds yet.</p>;

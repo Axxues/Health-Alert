@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router";
-import { getOutlook, runForecast } from "@/services/forecast/api/forecast.api";
-import type { ForecastOutlook } from "@/services/forecast";
+import { getOutlook, runForecast } from "@/services/forecast/api";
+import type { ForecastOutlook } from "@/services/forecast/types";
 import { OutlookCard } from "../components/OutlookCard";
-import { ForecastToolbar } from "../components/ForecastToolbar";
 
-export function ForecastingPage() {
+export function Forecast() {
   const [disease, setDisease] = useState("dengue");
   const [outlook, setOutlook] = useState<ForecastOutlook | null>(null);
   const [error, setError] = useState("");

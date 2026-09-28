@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { listHotspots } from "@/services/riskmaps/api/riskmaps.api";
-import type { Hotspot } from "@/services/riskmaps";
+import { listHotspots } from "@/services/riskmaps/api";
+import type { Hotspot } from "@/services/riskmaps/types";
 import { HotspotCard } from "../components/HotspotCard";
 
-export function DashboardPage() {
+export function Dashboard() {
   const [spots, setSpots] = useState<Hotspot[]>([]);
   const [error, setError] = useState("");
 
