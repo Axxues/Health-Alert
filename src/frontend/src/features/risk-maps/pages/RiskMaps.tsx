@@ -13,11 +13,14 @@ export function RiskMaps() {
 
   return (
     <div style={{ display: "grid", gap: 16 }}>
-      <section className="hero-mesh" style={{ borderRadius: 12, padding: "32px 24px", color: "#fff" }}>
-        <h1 className="display" style={{ fontSize: 32, margin: 0, maxWidth: "22ch" }}>Streets to watch</h1>
-      </section>
-      <div className="card">
-        {error ? <p style={{ color: "var(--ruby)", margin: 0 }}>{error}</p> : <HotspotTable spots={spots} />}
+      <div className="dash-head anim" style={{ marginBottom: 0, "--i": 0 } as React.CSSProperties}>
+        <div>
+          <h1>Streets to watch</h1>
+          <p className="sub">Every hotspot on the map, worst first.</p>
+        </div>
+      </div>
+      <div className="card anim" style={{ "--i": 1 } as React.CSSProperties}>
+        {error ? <p style={{ color: "var(--red)", margin: 0 }}>{error}</p> : <HotspotTable spots={spots} />}
       </div>
     </div>
   );

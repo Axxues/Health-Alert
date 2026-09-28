@@ -17,11 +17,30 @@
   --amber-bg: #faf0dc;
   --red: #be3e2b;
   --red-bg: #f9e7e3;
-  --ruby: #be3e2b;
   --primary: var(--pine);
   --radius: 20px;
   --radius-pill: 999px;
   --shadow-lift: 0 12px 28px rgba(11, 91, 62, 0.14);
+}
+
+[data-theme="dark"] {
+  --canvas: #101711;
+  --backdrop: #090e0b;
+  --card: #16211b;
+  --pine: #3cab7c;
+  --pine-deep: #1f7350;
+  --mint: #5cb98c;
+  --mint-soft: #1e3a2d;
+  --hatch: #3a4a42;
+  --ink: #e9f1eb;
+  --mute: #8fa198;
+  --hairline: #24352b;
+  --green-bg: #143527;
+  --amber: #d99a3d;
+  --amber-bg: #3a2c14;
+  --red: #e07a63;
+  --red-bg: #3d1f18;
+  --shadow-lift: 0 12px 28px rgba(0, 0, 0, 0.5);
 }
 
 * { box-sizing: border-box; }
@@ -289,4 +308,36 @@ a { color: var(--pine); }
   .bar { transform: none; }
   .ring .prog { transition: none; }
   * { transition-duration: 0.01ms !important; }
+}
+
+/* ---------- login: pine panel + form, split screen ---------- */
+.login { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; }
+.login .panel {
+  background: radial-gradient(130% 120% at 80% 0%, #147a54 0%, var(--pine-deep) 55%, #052a1e 100%);
+  color: #fff; padding: 64px 56px; display: flex; flex-direction: column;
+  position: relative; overflow: hidden;
+}
+.login .panel::after {
+  content: ""; position: absolute; inset: -40%;
+  background: conic-gradient(from 0deg, transparent 0 70%, rgba(143, 206, 171, 0.2) 82%, transparent 94%);
+  animation: swirl 12s linear infinite; pointer-events: none;
+}
+.login .panel > * { position: relative; z-index: 1; }
+.login .panel h1 { font-size: clamp(30px, 3.4vw, 46px); letter-spacing: -0.03em; line-height: 1.05; margin: 0; max-width: 16ch; }
+.login .panel .rule { width: 56px; height: 4px; border-radius: 4px; background: var(--mint); margin: 22px 0; }
+.login .panel p { color: #cde9d8; margin: 0; max-width: 38ch; line-height: 1.6; }
+.login .panel .foot { margin-top: auto; padding-top: 40px; color: #9fd3b8; font-size: 13px; }
+.login .formwrap { display: flex; align-items: center; justify-content: center; padding: 40px 24px; background: var(--canvas); position: relative; }
+.login .formwrap .toggle { position: absolute; top: 20px; right: 24px; }
+.login form.card { width: 100%; max-width: 400px; }
+.login .err {
+  color: var(--red); background: var(--red-bg); border-radius: 12px;
+  padding: 10px 14px; margin: 0; font-size: 14px;
+  animation: shake 0.4s ease;
+}
+@keyframes shake { 0%, 100% { transform: none; } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+@media (max-width: 860px) {
+  .login { grid-template-columns: 1fr; }
+  .login .panel { padding: 40px 28px; }
+  .login .panel .foot { display: none; }
 }

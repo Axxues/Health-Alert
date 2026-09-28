@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router";
 import { clearSession } from "@/utils/auth";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
 
 export function Navbar() {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ export function Navbar() {
         <span className="muted" style={{ fontSize: 12 }}>⌘F</span>
       </label>
       <div className="who">
+        <ThemeToggle />
         <button className="iconbtn" aria-label="Messages">✉</button>
         <button className="iconbtn" aria-label="Notifications">
           ♪<span className="dot dot--pulse" style={{ position: "absolute", marginLeft: 18, marginTop: -16, color: "var(--red)" }} />

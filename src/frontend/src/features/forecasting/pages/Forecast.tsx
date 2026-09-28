@@ -33,7 +33,7 @@ export function Forecast() {
     <div style={{ display: "grid", gap: 16 }}>
       <h1 className="display" style={{ fontSize: 32, margin: 0, maxWidth: "24ch" }}>What to expect this week</h1>
       <ForecastToolbar disease={disease} onChange={setDisease} onRun={onRun} />
-      {error ? <p style={{ color: "var(--ruby)", margin: 0 }}>{error}</p> : <OutlookCard outlook={outlook} />}
+      {error ? <p style={{ color: "var(--red)", margin: 0 }}>{error}</p> : <OutlookCard outlook={outlook} />}
       <Link to="/playbooks" style={{ justifySelf: "start" }}>Open the playbook for {disease} →</Link>
     </div>
   );

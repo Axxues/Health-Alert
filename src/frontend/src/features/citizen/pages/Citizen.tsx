@@ -25,7 +25,7 @@ export function Citizen() {
         <input className="input" style={{ flex: 1 }} placeholder="May lagnat ako ng 2 araw…" value={q} onChange={(e) => setQ(e.target.value)} />
         <button className="btn-pill" type="submit">Magtanong</button>
       </form>
-      {error ? <p style={{ color: "var(--ruby)", margin: 0 }}>{error}</p> : <ReplyCard reply={reply} />}
+      {error ? <p style={{ color: "var(--red)", margin: 0 }}>{error}</p> : <ReplyCard reply={reply} />}
     </div>
   );
 }

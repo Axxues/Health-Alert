@@ -15,7 +15,7 @@ export function Surveillance() {
     <div style={{ display: "grid", gap: 16 }}>
       <h1 className="display" style={{ fontSize: 32, margin: 0 }}>Feeds feeding the outlook</h1>
       <div className="card">
-        {error ? <p style={{ color: "var(--ruby)", margin: 0 }}>{error}</p> : <FeedTable feeds={feeds} />}
+        {error ? <p style={{ color: "var(--red)", margin: 0 }}>{error}</p> : <FeedTable feeds={feeds} />}
       </div>
     </div>
   );

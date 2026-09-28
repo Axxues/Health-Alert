@@ -24,7 +24,7 @@ export function Alerts() {
     <div style={{ display: "grid", gap: 16 }}>
       <h1 className="display" style={{ fontSize: 32, margin: 0 }}>Alerts needing you</h1>
       <div className="card">
-        {error ? <p style={{ color: "var(--ruby)", margin: 0 }}>{error}</p> : <AlertTable items={items} onAck={onAck} />}
+        {error ? <p style={{ color: "var(--red)", margin: 0 }}>{error}</p> : <AlertTable items={items} onAck={onAck} />}
       </div>
     </div>
   );

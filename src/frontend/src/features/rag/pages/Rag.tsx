@@ -25,7 +25,7 @@ export function Rag() {
         <input className="input" style={{ flex: 1 }} placeholder="How do we manage dengue fluids?" value={q} onChange={(e) => setQ(e.target.value)} />
         <button className="btn-pill" type="submit">Ask</button>
       </form>
-      {error && <p style={{ color: "var(--ruby)", margin: 0 }}>{error}</p>}
+      {error && <p style={{ color: "var(--red)", margin: 0 }}>{error}</p>}
       {result && (
         <div className="card">
           <p style={{ margin: 0, maxWidth: "70ch" }}>{result.answer}</p>

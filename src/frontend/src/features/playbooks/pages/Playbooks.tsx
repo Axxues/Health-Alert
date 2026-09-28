@@ -27,7 +27,7 @@ export function Playbooks() {
     <div style={{ display: "grid", gap: 16 }}>
       <h1 className="display" style={{ fontSize: 32, margin: 0 }}>What to do next</h1>
       <div className="card">
-        {error ? <p style={{ color: "var(--ruby)", margin: 0 }}>{error}</p> : <PlaybookTable items={items} onExecute={onExecute} />}
+        {error ? <p style={{ color: "var(--red)", margin: 0 }}>{error}</p> : <PlaybookTable items={items} onExecute={onExecute} />}
         {note && <p style={{ margin: "12px 0 0" }}>{note} <Link to="/alerts">Check alerts →</Link></p>}
       </div>
     </div>
