@@ -6,6 +6,10 @@ export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
 }
 
+export function getRole(): string | null {
+  return localStorage.getItem(ROLE_KEY);
+}
+
 export function isAuthenticated(): boolean {
   return getToken() !== null;
 }
