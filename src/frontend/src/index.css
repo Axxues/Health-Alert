@@ -326,6 +326,11 @@ a { color: var(--pine); transition: color 0.2s ease; }
 .tracker .tbtn--stop { background: #e2574c; border-color: transparent; }
 
 /* ---------- philippines risk map ---------- */
+.maplayout { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: start; }
+.maplayout--open { grid-template-columns: 1fr 330px; }
+@media (max-width: 900px) {
+  .maplayout--open { grid-template-columns: 1fr; }
+}
 .phmap { display: grid; justify-items: center; }
 .phmap svg { width: 100%; max-width: 380px; height: auto; touch-action: none; cursor: grab; }
 .phmap svg:active { cursor: grabbing; }
