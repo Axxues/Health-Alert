@@ -105,6 +105,9 @@ a { color: var(--pine); }
   transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 .card--lift:hover { transform: translateY(-3px); box-shadow: var(--shadow-lift); }
+/* pointer-tracked tilt: answers the hand, eases back on leave */
+.tilt { transition: transform 0.18s ease-out, box-shadow 0.18s ease-out; will-change: transform; }
+.tilt:hover { box-shadow: var(--shadow-lift); }
 .card h3 { margin: 0 0 4px; font-size: 15px; font-weight: 650; }
 .sub { color: var(--mute); font-size: 13px; margin: 0; }
 
