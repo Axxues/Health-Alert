@@ -9,7 +9,13 @@ const Unauthorized = lazy(() => import("@/features/auth/pages/Unauthorized").the
 const Placeholder = lazy(() => import("@/components/shared/Placeholder").then((m) => ({ default: m.Placeholder })));
 const Dashboard = lazy(() => import("@/features/dashboard/pages/Dashboard").then((m) => ({ default: m.Dashboard })));
 const Forecast = lazy(() => import("@/features/forecasting/pages/Forecast").then((m) => ({ default: m.Forecast })));
+const LocationForecastDetail = lazy(() =>
+  import("@/features/forecasting/pages/LocationForecastDetail").then((m) => ({ default: m.LocationForecastDetail }))
+);
 const Surveillance = lazy(() => import("@/features/surveillance/pages/Surveillance").then((m) => ({ default: m.Surveillance })));
+const LocationSurveillanceDetail = lazy(() =>
+  import("@/features/surveillance/pages/LocationSurveillanceDetail").then((m) => ({ default: m.LocationSurveillanceDetail }))
+);
 const RiskMaps = lazy(() => import("@/features/risk-maps/pages/RiskMaps").then((m) => ({ default: m.RiskMaps })));
 const Rag = lazy(() => import("@/features/rag/pages/Rag").then((m) => ({ default: m.Rag })));
 const Playbooks = lazy(() => import("@/features/playbooks/pages/Playbooks").then((m) => ({ default: m.Playbooks })));
@@ -54,8 +60,22 @@ export const router = createBrowserRouter([
         element: <Suspense fallback={null}><Layout /></Suspense>,
         children: [
           { index: true, element: slice(<PermissionRoute permission={PERMISSIONS.dashboardView}><Dashboard /></PermissionRoute>) },
-          { path: "forecast", ...guard(PERMISSIONS.forecastView, <Forecast />) },
-          { path: "surveillance", ...guard(PERMISSIONS.surveillanceView, <Surveillance />) },
+          {
+            path: "forecast",
+            element: <PermissionRoute permission={PERMISSIONS.forecastView} />,
+            children: [
+              { index: true, element: slice(<Forecast />) },
+              { path: ":locationId", element: slice(<LocationForecastDetail />) },
+            ],
+          },
+          {
+            path: "surveillance",
+            element: <PermissionRoute permission={PERMISSIONS.surveillanceView} />,
+            children: [
+              { index: true, element: slice(<Surveillance />) },
+              { path: ":locationId", element: slice(<LocationSurveillanceDetail />) },
+            ],
+          },
           { path: "risk-maps", ...guard(PERMISSIONS.riskmapsView, <RiskMaps />) },
           { path: "rag", ...guard(PERMISSIONS.ragView, <Rag />) },
           { path: "playbooks", ...guard(PERMISSIONS.playbookView, <Playbooks />) },

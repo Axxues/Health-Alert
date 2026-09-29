@@ -9,7 +9,7 @@ const RAW_LOCATIONS: Omit<LocationDiseaseEntry, "activeCases" | "prevWeekCases" 
   {
     id: "lu-sfc-sevilla",
     province: "La Union",
-    municipality: "City of San Fernando",
+    municipality: "San Fernando City",
     barangay: "Sevilla",
     disease: "dengue",
     diseaseName: "Dengue Fever",
@@ -22,7 +22,7 @@ const RAW_LOCATIONS: Omit<LocationDiseaseEntry, "activeCases" | "prevWeekCases" 
   {
     id: "lu-sfc-catbangen",
     province: "La Union",
-    municipality: "City of San Fernando",
+    municipality: "San Fernando City",
     barangay: "Catbangen",
     disease: "dengue",
     diseaseName: "Dengue Fever",
@@ -35,7 +35,7 @@ const RAW_LOCATIONS: Omit<LocationDiseaseEntry, "activeCases" | "prevWeekCases" 
   {
     id: "lu-sfc-lingsat",
     province: "La Union",
-    municipality: "City of San Fernando",
+    municipality: "San Fernando City",
     barangay: "Lingsat",
     disease: "ili",
     diseaseName: "Flu-like Illness (ILI)",
@@ -225,8 +225,17 @@ export async function listLocations(filter: LocationFilter = {}): Promise<Locati
     if (filter.province && loc.province.toLowerCase() !== filter.province.toLowerCase()) {
       return false;
     }
-    if (filter.municipality && loc.municipality.toLowerCase() !== filter.municipality.toLowerCase()) {
-      return false;
+    if (filter.municipality) {
+      const targetMuni = filter.municipality.toLowerCase();
+      const locMuni = loc.municipality.toLowerCase();
+      const matches =
+        locMuni === targetMuni ||
+        locMuni.includes(targetMuni) ||
+        targetMuni.includes(locMuni) ||
+        (locMuni.includes("san fernando") && targetMuni.includes("san fernando"));
+      if (!matches) {
+        return false;
+      }
     }
     if (filter.disease && loc.disease.toLowerCase() !== filter.disease.toLowerCase()) {
       return false;

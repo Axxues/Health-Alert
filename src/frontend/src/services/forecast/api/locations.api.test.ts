@@ -23,6 +23,24 @@ describe("locations.api", () => {
     expect(sfc.some((l) => l.barangay === "Sevilla")).toBe(true);
   });
 
+  it("filters locations by municipality", async () => {
+    const sfc = await listLocations({ municipality: "San Fernando City" });
+    expect(sfc.length).toBeGreaterThan(0);
+    expect(sfc.every((l) => l.municipality === "San Fernando City")).toBe(true);
+  });
+
+  it("filters locations by disease", async () => {
+    const dengue = await listLocations({ disease: "dengue" });
+    expect(dengue.length).toBeGreaterThan(0);
+    expect(dengue.every((l) => l.disease === "dengue")).toBe(true);
+  });
+
+  it("filters locations by risk level", async () => {
+    const high = await listLocations({ riskLevel: "high" });
+    expect(high.length).toBeGreaterThan(0);
+    expect(high.every((l) => l.riskLevel === "high")).toBe(true);
+  });
+
   it("returns location detail with 8 past weeks and 4 future weeks", async () => {
     const detail = await getLocationDetail("lu-sfc-sevilla", "dengue");
     expect(detail).toBeDefined();
