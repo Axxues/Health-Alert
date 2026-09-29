@@ -1,177 +1,324 @@
-import { useRef, useState } from "react";
-import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
-import { PH_PATHS, project } from "./phOutline";
+import { useEffect, useRef, useState } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { ZoomIn, ZoomOut, RotateCcw, MapPin } from "lucide-react";
 import type { Hotspot } from "@/services/riskmaps/types";
 
-const HOME = { x: 0, y: 0, w: 360, h: 600 };
-const MIN_W = 50;
+// Region 1 Default Centroid (La Union / Pangasinan corridor)
+const REGION_1_CENTER: [number, number] = [16.6159, 120.3209];
+const DEFAULT_ZOOM = 9;
 
-function color(level: string) {
-  if (/high/i.test(level)) return "var(--red)";
-  if (/med|moderate/i.test(level)) return "var(--amber)";
-  return "var(--primary)";
+type BasemapType = "auto" | "clean" | "dark" | "satellite";
+
+const TILE_SERVERS = {
+  clean: {
+    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+    attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap',
+    maxZoom: 19,
+    subdomains: "abcd",
+  },
+  dark: {
+    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+    attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap',
+    maxZoom: 19,
+    subdomains: "abcd",
+  },
+  satellite: {
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    attribution: "&copy; Esri, Maxar, Earthstar Geographics, GIS Community",
+    maxZoom: 18,
+  },
+};
+
+interface PHMapProps {
+  spots: Hotspot[];
+  selected: Hotspot | null;
+  onSelect: (s: Hotspot | null) => void;
+  showDensity?: boolean;
 }
 
 export function PHMap({
   spots,
   selected,
   onSelect,
-}: {
-  spots: Hotspot[];
-  selected: Hotspot | null;
-  onSelect: (s: Hotspot | null) => void;
-}) {
-  const svgRef = useRef<SVGSVGElement>(null);
-  const downRef = useRef<{ x: number; y: number } | null>(null);
-  const [vb, setVb] = useState(HOME);
-  const [drag, setDrag] = useState<{ sx: number; sy: number; ox: number; oy: number } | null>(null);
+  showDensity = true,
+}: PHMapProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
+  const markersLayerRef = useRef<L.LayerGroup | null>(null);
+  const densityLayerRef = useRef<L.LayerGroup | null>(null);
 
-  function toSvg(e: { clientX: number; clientY: number }) {
-    const r = svgRef.current!.getBoundingClientRect();
-    return {
-      x: vb.x + ((e.clientX - r.left) / r.width) * vb.w,
-      y: vb.y + ((e.clientY - r.top) / r.height) * vb.h,
-    };
-  }
+  const [basemap, setBasemap] = useState<BasemapType>("auto");
+  const [isSystemDark, setIsSystemDark] = useState<boolean>(() => {
+    return (
+      document.documentElement.getAttribute("data-theme") === "dark" ||
+      document.documentElement.classList.contains("dark")
+    );
+  });
 
-  function pick(s: Hotspot, isSel: boolean, e: { clientX: number; clientY: number }) {
-    const d = downRef.current;
-    if (d && Math.hypot(e.clientX - d.x, e.clientY - d.y) > 5) return;
-    onSelect(isSel ? null : s);
-  }
-
-  function clamp(v: typeof HOME) {
-    const w = Math.min(HOME.w, Math.max(MIN_W, v.w));
-    const h = (w / HOME.w) * HOME.h;
-    return {
-      w,
-      h,
-      x: Math.min(HOME.x + HOME.w - w, Math.max(HOME.x, v.x)),
-      y: Math.min(HOME.y + HOME.h - h, Math.max(HOME.y, v.y)),
-    };
-  }
-
-  function zoom(f: number, c?: { x: number; y: number }) {
-    setVb((v) => {
-      const w = Math.min(HOME.w, Math.max(MIN_W, v.w * f));
-      const s = w / v.w;
-      const cx = c ?? { x: v.x + v.w / 2, y: v.y + v.h / 2 };
-      const h = (w / HOME.w) * HOME.h;
-      return clamp({ w, h, x: cx.x - (cx.x - v.x) * s, y: cx.y - (cx.y - v.y) * s });
+  // Track theme changes on html element
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const isDark =
+        document.documentElement.getAttribute("data-theme") === "dark" ||
+        document.documentElement.classList.contains("dark");
+      setIsSystemDark(isDark);
     });
-  }
 
-  function onWheel(e: React.WheelEvent) {
-    e.preventDefault();
-    zoom(e.deltaY > 0 ? 1.2 : 1 / 1.2, toSvg(e));
-  }
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme", "class"],
+    });
 
-  const zoomed = vb.w < HOME.w - 1;
+    return () => observer.disconnect();
+  }, []);
+
+  // Initialize Map
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return;
+
+    const map = L.map(containerRef.current, {
+      center: REGION_1_CENTER,
+      zoom: DEFAULT_ZOOM,
+      zoomControl: false,
+      attributionControl: false,
+    });
+
+    // Custom attribution in bottom-right
+    L.control
+      .attribution({ position: "bottomright", prefix: false })
+      .addTo(map);
+
+    markersLayerRef.current = L.layerGroup().addTo(map);
+    densityLayerRef.current = L.layerGroup().addTo(map);
+
+    mapRef.current = map;
+
+    return () => {
+      map.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  // Update Base Tile Layer based on basemap & theme
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const activeMode =
+      basemap === "auto" ? (isSystemDark ? "dark" : "clean") : basemap;
+
+    const config = TILE_SERVERS[activeMode];
+
+    if (tileLayerRef.current) {
+      map.removeLayer(tileLayerRef.current);
+    }
+
+    const newTile = L.tileLayer(config.url, {
+      attribution: config.attribution,
+      maxZoom: config.maxZoom,
+      subdomains: "subdomains" in config ? config.subdomains : "abc",
+    }).addTo(map);
+
+    tileLayerRef.current = newTile;
+    newTile.bringToBack();
+  }, [basemap, isSystemDark]);
+
+  // Update Hotspot Markers & Density Circles
+  useEffect(() => {
+    const map = mapRef.current;
+    const markersGroup = markersLayerRef.current;
+    const densityGroup = densityLayerRef.current;
+    if (!map || !markersGroup || !densityGroup) return;
+
+    markersGroup.clearLayers();
+    densityGroup.clearLayers();
+
+    spots.forEach((spot) => {
+      const isSelected =
+        selected?.muni === spot.muni && selected?.disease === spot.disease;
+      const isHigh = /high/i.test(spot.level);
+      const isMed = /med|moderate/i.test(spot.level);
+
+      const colorHex = isHigh ? "#ef4444" : isMed ? "#f59e0b" : "#2563eb";
+      const diseaseShort = spot.disease.slice(0, 3).toUpperCase();
+
+      // 1. Transmission Density Buffer Circle
+      if (showDensity) {
+        const radius = isHigh ? 6500 : isMed ? 4000 : 2500;
+        const circle = L.circle([spot.lat, spot.lng], {
+          radius,
+          color: colorHex,
+          weight: 1.5,
+          opacity: 0.7,
+          fillColor: colorHex,
+          fillOpacity: isSelected ? 0.25 : 0.12,
+          dashArray: isHigh ? "6, 6" : undefined,
+          className: "leaflet-density-circle",
+        });
+
+        circle.on("click", () => {
+          onSelect(isSelected ? null : spot);
+        });
+
+        densityGroup.addLayer(circle);
+      }
+
+      // 2. Custom Animated Pulse Marker
+      const iconHtml = `
+        <div class="gis-pulse-marker ${isHigh ? "gis-pulse--high" : isMed ? "gis-pulse--med" : "gis-pulse--baseline"} ${isSelected ? "gis-pulse--selected" : ""}">
+          <div class="gis-pulse-ring"></div>
+          <div class="gis-marker-badge">
+            <span class="gis-badge-code">${diseaseShort}</span>
+          </div>
+          <div class="gis-marker-label">${spot.muni.split(",")[0]}</div>
+        </div>
+      `;
+
+      const customIcon = L.divIcon({
+        html: iconHtml,
+        className: "gis-custom-icon",
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+      });
+
+      const marker = L.marker([spot.lat, spot.lng], { icon: customIcon });
+
+      marker.on("click", (e) => {
+        L.DomEvent.stopPropagation(e);
+        onSelect(isSelected ? null : spot);
+      });
+
+      // Interactive Tooltip
+      marker.bindTooltip(
+        `<div class="p-1 font-sans text-xs">
+          <div class="font-bold text-foreground">${spot.muni}</div>
+          <div class="capitalize text-muted-foreground">${spot.disease} · <span class="font-bold ${isHigh ? "text-destructive" : isMed ? "text-amber-500" : "text-primary"}">${spot.level} risk</span></div>
+        </div>`,
+        { direction: "top", offset: [0, -18], opacity: 0.95 }
+      );
+
+      markersGroup.addLayer(marker);
+    });
+  }, [spots, selected, showDensity, onSelect]);
+
+  // Fly to selected hotspot
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !selected) return;
+
+    map.flyTo([selected.lat, selected.lng], 13, {
+      duration: 1.2,
+      easeLinearity: 0.25,
+    });
+  }, [selected]);
+
+  const handleZoomIn = () => mapRef.current?.zoomIn();
+  const handleZoomOut = () => mapRef.current?.zoomOut();
+  const handleReset = () => {
+    onSelect(null);
+    mapRef.current?.flyTo(REGION_1_CENTER, DEFAULT_ZOOM, { duration: 1 });
+  };
+
+  const highCount = spots.filter((s) => /high/i.test(s.level)).length;
+  const medCount = spots.filter((s) => /med|moderate/i.test(s.level)).length;
 
   return (
-    <div className="phmap">
-      <div className="phmap-tools" role="toolbar" aria-label="Map navigation tools">
+    <div className="relative w-full h-full min-h-[520px] rounded-xl overflow-hidden border border-border bg-card">
+      {/* Map Target Canvas */}
+      <div ref={containerRef} className="w-full h-full min-h-[520px] z-0" />
+
+      {/* Floating Basemap Switcher (Top Right) */}
+      <div className="absolute top-3 right-3 z-[1000] flex items-center gap-1 p-1 bg-card/90 backdrop-blur-md rounded-lg border border-border shadow-md text-xs">
         <button
-          className="iconbtn"
-          onClick={() => zoom(1 / 1.4)}
-          aria-label="Zoom in"
-          title="Zoom in"
+          type="button"
+          onClick={() => setBasemap("clean")}
+          className={`px-2.5 py-1 rounded-md font-medium transition-all ${
+            basemap === "clean" || (basemap === "auto" && !isSystemDark)
+              ? "bg-primary text-primary-foreground shadow-xs font-semibold"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+          }`}
+          title="Minimal Clean Slate Vector Tiles"
+        >
+          Clean Slate
+        </button>
+        <button
+          type="button"
+          onClick={() => setBasemap("dark")}
+          className={`px-2.5 py-1 rounded-md font-medium transition-all ${
+            basemap === "dark" || (basemap === "auto" && isSystemDark)
+              ? "bg-primary text-primary-foreground shadow-xs font-semibold"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+          }`}
+          title="Night Ops Deep Slate Map"
+        >
+          Night Ops
+        </button>
+        <button
+          type="button"
+          onClick={() => setBasemap("satellite")}
+          className={`px-2.5 py-1 rounded-md font-medium transition-all ${
+            basemap === "satellite"
+              ? "bg-primary text-primary-foreground shadow-xs font-semibold"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+          }`}
+          title="High-Resolution ESRI Satellite Imagery"
+        >
+          Satellite
+        </button>
+      </div>
+
+      {/* Map Navigation Controls (Top Left) */}
+      <div className="absolute top-3 left-3 z-[1000] flex flex-col gap-1.5 p-1 bg-card/90 backdrop-blur-md rounded-lg border border-border shadow-md">
+        <button
+          type="button"
+          onClick={handleZoomIn}
+          className="w-8 h-8 rounded-md flex items-center justify-center text-foreground hover:bg-muted transition-colors cursor-pointer"
+          title="Zoom In"
         >
           <ZoomIn size={16} strokeWidth={2.2} />
         </button>
         <button
-          className="iconbtn"
-          onClick={() => zoom(1.4)}
-          aria-label="Zoom out"
-          title="Zoom out"
+          type="button"
+          onClick={handleZoomOut}
+          className="w-8 h-8 rounded-md flex items-center justify-center text-foreground hover:bg-muted transition-colors cursor-pointer"
+          title="Zoom Out"
         >
           <ZoomOut size={16} strokeWidth={2.2} />
         </button>
+        <div className="h-px bg-border my-0.5" />
         <button
-          className="iconbtn"
-          onClick={() => setVb(HOME)}
-          disabled={!zoomed}
-          aria-label="Reset map extent"
-          title="Reset map extent"
+          type="button"
+          onClick={handleReset}
+          className="w-8 h-8 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+          title="Reset to Region 1 Extent"
         >
-          <RotateCcw size={16} strokeWidth={2.2} />
+          <RotateCcw size={15} strokeWidth={2.2} />
         </button>
       </div>
 
-      <svg
-        ref={svgRef}
-        viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}
-        role="img"
-        aria-label="Geospatial outbreak map of the Philippines with active surveillance hotspots"
-        onWheel={onWheel}
-        onPointerDown={(e) => {
-          downRef.current = { x: e.clientX, y: e.clientY };
-          (e.target as Element).setPointerCapture?.(e.pointerId);
-          const p = toSvg(e);
-          setDrag({ sx: e.clientX, sy: e.clientY, ox: p.x, oy: p.y });
-        }}
-        onPointerMove={(e) => {
-          if (!drag) return;
-          const r = svgRef.current!.getBoundingClientRect();
-          const px = ((e.clientX - drag.sx) / r.width) * vb.w;
-          const py = ((e.clientY - drag.sy) / r.height) * vb.h;
-          setVb((v) => clamp({ ...v, x: drag.ox - px, y: drag.oy - py }));
-        }}
-        onPointerUp={() => setDrag(null)}
-        onPointerCancel={() => setDrag(null)}
-      >
-        {PH_PATHS.map((d, i) => (
-          <path key={i} d={d} className="phmap-land" />
-        ))}
-
-        {spots.map((s) => {
-          const [x, y] = project(s.lng, s.lat);
-          const hot = /high/i.test(s.level);
-          const isSel = selected?.muni === s.muni && selected?.disease === s.disease;
-          const c = color(s.level);
-
-          return (
-            <g
-              key={`${s.muni}-${s.disease}`}
-              className={`marker${isSel ? " marker--sel" : ""}`}
-              tabIndex={0}
-              aria-label={`${s.muni}, ${s.disease}, ${s.level} risk`}
-              onClick={(e) => {
-                e.stopPropagation();
-                pick(s, isSel, e);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  onSelect(isSel ? null : s);
-                }
-              }}
-            >
-              {hot && <circle cx={x} cy={y} r="14" className="halo" style={{ color: c }} />}
-              {isSel && <circle cx={x} cy={y} r="13" fill="none" stroke="var(--primary)" strokeWidth="3" />}
-              <circle cx={x} cy={y} r="6.5" fill={c} stroke="var(--card)" strokeWidth="2.5" />
-              <text x={x} y={y - 12} textAnchor="middle" className="marker-lbl">
-                {s.muni}
-              </text>
-              <title>{`${s.muni} · ${s.disease} · ${s.level} risk tier`}</title>
-            </g>
-          );
-        })}
-      </svg>
-
-      <div className="legend" style={{ marginTop: 14 }}>
-        <span style={{ display: "inline-flex", alignItems: "center" }}>
-          <i style={{ background: "var(--red)" }} />
-          <span>High Outbreak Surge</span>
-        </span>
-        <span style={{ display: "inline-flex", alignItems: "center" }}>
-          <i style={{ background: "var(--amber)" }} />
-          <span>Elevated Watch</span>
-        </span>
-        <span style={{ display: "inline-flex", alignItems: "center" }}>
-          <i style={{ background: "var(--primary)" }} />
-          <span>Routine Sentinel</span>
-        </span>
+      {/* Floating Status / Legend Bar (Bottom Left) */}
+      <div className="absolute bottom-3 left-3 z-[1000] p-2.5 px-3 bg-card/92 backdrop-blur-md rounded-lg border border-border shadow-md flex items-center gap-4 text-xs">
+        <div className="flex items-center gap-1.5 font-bold text-foreground">
+          <MapPin size={14} className="text-primary" />
+          <span>{spots.length} Active Hotspots</span>
+        </div>
+        <div className="h-3.5 w-px bg-border" />
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-destructive animate-pulse" />
+            <span className="text-foreground font-medium">{highCount} High</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+            <span className="text-muted-foreground">{medCount} Watch</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+            <span className="text-muted-foreground">Baseline</span>
+          </div>
+        </div>
       </div>
     </div>
   );

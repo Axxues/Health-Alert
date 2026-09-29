@@ -7,7 +7,6 @@ import {
   Compass,
   ArrowRight,
   TrendingUp,
-  Workflow,
   AlertCircle,
 } from "lucide-react";
 import { listHotspots } from "@/services/riskmaps/api";
@@ -43,6 +42,7 @@ export function RiskMaps() {
   const [spots, setSpots] = useState<Hotspot[]>([]);
   const [filter, setFilter] = useState<string>("all");
   const [selected, setSelected] = useState<Hotspot | null>(null);
+  const [showDensity, setShowDensity] = useState<boolean>(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -71,25 +71,41 @@ export function RiskMaps() {
         </div>
       </div>
 
-      {/* Disease Layer Filter Toolbar */}
-      <div className="section-card p-3 flex items-center gap-2 overflow-x-auto">
-        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider mr-2 shrink-0">
-          Disease Layer:
-        </span>
-        <div className="flex gap-1.5 items-center">
-          {DISEASE_FILTERS.map((d) => (
-            <button
-              key={d}
-              className={`btn-pill text-xs px-3 py-1 capitalize ${filter === d ? "" : "btn-pill--ghost"}`}
-              onClick={() => {
-                setFilter(d);
-                setSelected(null);
-              }}
-              type="button"
-            >
-              {d === "all" ? "All Diseases (Full Overlay)" : d}
-            </button>
-          ))}
+      {/* Disease Layer Filter & Overlay Toolbar */}
+      <div className="section-card p-3 flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2 overflow-x-auto">
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider mr-1 shrink-0">
+            Disease Layer:
+          </span>
+          <div className="flex gap-1.5 items-center">
+            {DISEASE_FILTERS.map((d) => (
+              <button
+                key={d}
+                className={`btn-pill text-xs px-3 py-1 capitalize ${filter === d ? "" : "btn-pill--ghost"}`}
+                onClick={() => {
+                  setFilter(d);
+                  setSelected(null);
+                }}
+                type="button"
+              >
+                {d === "all" ? "All Diseases (Full Overlay)" : d}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            className={`btn-pill text-xs px-3 py-1 gap-1.5 ${showDensity ? "" : "btn-pill--ghost"}`}
+            onClick={() => setShowDensity(!showDensity)}
+            title="Toggle outbreak transmission density zone buffers"
+          >
+            <span>Transmission Zones</span>
+            <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${showDensity ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"}`}>
+              {showDensity ? "ON" : "OFF"}
+            </span>
+          </button>
         </div>
       </div>
 
@@ -102,13 +118,18 @@ export function RiskMaps() {
 
       {/* Map + Hotspot Details Drawer */}
       <div className={`maplayout${selected ? " maplayout--open" : ""}`}>
-        <div className="section-card overflow-hidden" style={{ minHeight: 480 }}>
+        <div className="section-card overflow-hidden" style={{ minHeight: 520 }}>
           {filteredSpots.length === 0 && !error ? (
             <div className="py-12 text-center text-xs text-muted-foreground">
               No active hotspots found for the selected disease filter.
             </div>
           ) : (
-            <PHMap spots={filteredSpots} selected={selected} onSelect={setSelected} />
+            <PHMap
+              spots={filteredSpots}
+              selected={selected}
+              onSelect={setSelected}
+              showDensity={showDensity}
+            />
           )}
         </div>
 
@@ -169,13 +190,6 @@ export function RiskMaps() {
               >
                 <span>Run Forecast for {selected.muni}</span>
                 <ArrowRight size={13} strokeWidth={2.2} />
-              </Link>
-              <Link
-                className="btn-pill btn-pill--ghost text-xs justify-center py-2 no-underline"
-                to="/playbooks"
-              >
-                <Workflow size={14} strokeWidth={2.2} />
-                <span>Trigger Outbreak Playbook</span>
               </Link>
             </div>
           </div>
