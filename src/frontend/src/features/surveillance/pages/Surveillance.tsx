@@ -107,41 +107,42 @@ export function Surveillance() {
   }, [selectedProvince]);
 
   return (
-    <div style={{ display: "grid", gap: 20 }}>
+    <div className="space-y-6">
       {/* Header */}
-      <div className="dash-head" style={{ margin: "0 0 4px" }}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <span className="live-badge">
-              <span className="dot dot--pulse" />
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Automated Data Pipeline Active
             </span>
-            <span className="pill pill--primary" style={{ fontSize: "11px" }}>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/10 px-2.5 py-0.5 text-[11px] font-medium text-blue-600 dark:text-blue-400">
               DOH PIDSR & PAGASA Ingestion
             </span>
           </div>
-          <h1>Multi-Syndromic Surveillance & Monitored Sentinels</h1>
-          <p className="sub">
-            Real-time disease surveillance streams, clinical reporting health centers, and automated n8n pipeline telemetry across Region 1.
+          <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+            Multi-Syndromic Surveillance & Monitored Sentinels
+          </h1>
+          <p className="text-xs text-muted-foreground mt-1">
+            Real-time disease surveillance streams, clinical reporting health centers, and automated pipeline telemetry across Region 1.
           </p>
         </div>
 
-        <div className="dash-actions">
+        <div className="flex items-center gap-2">
           <Link
-            className="btn-pill btn-pill--ghost"
             to="/forecast"
-            style={{ textDecoration: "none" }}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors shadow-xs"
           >
-            <TrendingUp size={16} strokeWidth={2.2} />
+            <TrendingUp size={15} strokeWidth={2.2} />
             <span>AI Forecast Models</span>
-            <ArrowRight size={14} strokeWidth={2.2} />
+            <ArrowRight size={13} strokeWidth={2.2} />
           </Link>
         </div>
       </div>
 
       {/* Surveillance Feed Telemetry Metrics - Cellwego border-l-4 style */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-card border border-border border-l-4 border-l-blue-500 rounded-lg p-5 shadow-sm flex items-center justify-between">
+        <div className="bg-card border border-border border-l-4 border-l-blue-500 rounded-xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">24h Ingested Records</span>
             <div className="text-2xl font-bold tracking-tight text-foreground mt-1 font-mono">14,820</div>
@@ -152,7 +153,7 @@ export function Surveillance() {
           </div>
         </div>
 
-        <div className="bg-card border border-border border-l-4 border-l-indigo-500 rounded-lg p-5 shadow-sm flex items-center justify-between">
+        <div className="bg-card border border-border border-l-4 border-l-indigo-500 rounded-xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Monitored Sentinels</span>
             <div className="text-2xl font-bold tracking-tight text-foreground mt-1 font-mono">{locations.length}</div>
@@ -163,7 +164,7 @@ export function Surveillance() {
           </div>
         </div>
 
-        <div className="bg-card border border-border border-l-4 border-l-amber-500 rounded-lg p-5 shadow-sm flex items-center justify-between">
+        <div className="bg-card border border-border border-l-4 border-l-amber-500 rounded-xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Pipeline Latency</span>
             <div className="text-2xl font-bold tracking-tight text-foreground mt-1 font-mono">380ms</div>
@@ -174,7 +175,7 @@ export function Surveillance() {
           </div>
         </div>
 
-        <div className="bg-card border border-border border-l-4 border-l-emerald-500 rounded-lg p-5 shadow-sm flex items-center justify-between">
+        <div className="bg-card border border-border border-l-4 border-l-emerald-500 rounded-xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Active Pipelines</span>
             <div className="text-2xl font-bold tracking-tight text-foreground mt-1 font-mono">{feeds.length || 10}</div>
@@ -191,7 +192,11 @@ export function Surveillance() {
         <button
           type="button"
           onClick={() => setActiveTab("locations")}
-          className={`btn-pill text-xs px-3.5 py-1.5 gap-2 ${activeTab === "locations" ? "" : "btn-pill--ghost"}`}
+          className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            activeTab === "locations"
+              ? "bg-primary text-primary-foreground shadow-xs font-semibold"
+              : "border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground"
+          }`}
         >
           <MapPin size={14} />
           <span>Monitored Sentinel Locations ({locations.length})</span>
@@ -199,7 +204,11 @@ export function Surveillance() {
         <button
           type="button"
           onClick={() => setActiveTab("pipelines")}
-          className={`btn-pill text-xs px-3.5 py-1.5 gap-2 ${activeTab === "pipelines" ? "" : "btn-pill--ghost"}`}
+          className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            activeTab === "pipelines"
+              ? "bg-primary text-primary-foreground shadow-xs font-semibold"
+              : "border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground"
+          }`}
         >
           <Radio size={14} />
           <span>Ingestion Pipelines ({feeds.length || 10})</span>
@@ -207,45 +216,27 @@ export function Surveillance() {
       </div>
 
       {activeTab === "locations" ? (
-        <div style={{ display: "grid", gap: 16 }}>
-          <div className="section-card p-4">
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center", justifyContent: "space-between" }}>
+        <div className="space-y-4">
+          <div className="rounded-xl border border-border bg-card p-5 shadow-xs space-y-4">
+            <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
               {/* Search Bar */}
-              <div style={{ flex: "1 1 260px", minWidth: 240, position: "relative" }}>
+              <div className="flex-1 relative">
                 <Search
                   size={15}
-                  style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--mute)" }}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
                 />
                 <input
                   type="text"
                   placeholder="Filter sentinels by barangay, municipality, hospital..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "7px 12px 7px 34px",
-                    background: "var(--card-subtle)",
-                    border: "1px solid var(--border)",
-                    borderRadius: "var(--radius-md)",
-                    color: "var(--ink)",
-                    fontSize: "13px",
-                    outline: "none",
-                  }}
+                  className="w-full pl-9 pr-8 py-2 bg-background border border-input rounded-md text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-xs"
                 />
                 {searchQuery && (
                   <button
                     type="button"
                     onClick={() => setSearchQuery("")}
-                    style={{
-                      position: "absolute",
-                      right: 10,
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      background: "transparent",
-                      border: "none",
-                      color: "var(--mute)",
-                      cursor: "pointer",
-                    }}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded"
                   >
                     <X size={14} />
                   </button>
@@ -253,45 +244,31 @@ export function Surveillance() {
               </div>
 
               {/* Geographic Dropdowns */}
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <Building2 size={14} style={{ color: "var(--mute)" }} />
+              <div className="flex flex-wrap gap-2 items-center">
+                <div className="flex items-center gap-1.5 rounded-md border border-input bg-background px-2.5 py-1.5 shadow-xs">
+                  <Building2 size={14} className="text-muted-foreground shrink-0" />
                   <select
                     value={selectedProvince}
                     onChange={(e) => handleProvinceChange(e.target.value)}
-                    style={{
-                      padding: "6px 10px",
-                      background: "var(--card-subtle)",
-                      border: "1px solid var(--border)",
-                      borderRadius: "var(--radius-md)",
-                      color: "var(--ink)",
-                      fontSize: "12.5px",
-                    }}
+                    className="bg-transparent border-none text-xs text-foreground focus:outline-none cursor-pointer pr-1"
                   >
                     {PROVINCES.map((prov) => (
-                      <option key={prov} value={prov}>
+                      <option key={prov} value={prov} className="bg-card text-foreground">
                         {prov}
                       </option>
                     ))}
                   </select>
                 </div>
 
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <MapPin size={14} style={{ color: "var(--mute)" }} />
+                <div className="flex items-center gap-1.5 rounded-md border border-input bg-background px-2.5 py-1.5 shadow-xs">
+                  <MapPin size={14} className="text-muted-foreground shrink-0" />
                   <select
                     value={selectedMunicipality}
                     onChange={(e) => setSelectedMunicipality(e.target.value)}
-                    style={{
-                      padding: "6px 10px",
-                      background: "var(--card-subtle)",
-                      border: "1px solid var(--border)",
-                      borderRadius: "var(--radius-md)",
-                      color: "var(--ink)",
-                      fontSize: "12.5px",
-                    }}
+                    className="bg-transparent border-none text-xs text-foreground focus:outline-none cursor-pointer pr-1"
                   >
                     {availableMunicipalities.map((muni) => (
-                      <option key={muni} value={muni}>
+                      <option key={muni} value={muni} className="bg-card text-foreground">
                         {muni}
                       </option>
                     ))}
@@ -301,9 +278,8 @@ export function Surveillance() {
                 {isFiltered && (
                   <button
                     type="button"
-                    className="btn-pill btn-pill--ghost"
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-border bg-muted/50 hover:bg-muted text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
                     onClick={handleClearFilters}
-                    style={{ fontSize: "12px", padding: "5px 10px" }}
                   >
                     <RefreshCw size={12} />
                     <span>Reset</span>
@@ -313,15 +289,20 @@ export function Surveillance() {
             </div>
 
             {/* Disease Filter Pills */}
-            <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--hairline)", display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-              <span style={{ fontSize: "11.5px", color: "var(--mute)", marginRight: 4 }}>Tracked Disease:</span>
+            <div className="pt-3.5 border-t border-border flex flex-wrap gap-1.5 items-center">
+              <span className="text-xs font-semibold text-muted-foreground mr-1 uppercase tracking-wider text-[10px]">
+                Tracked Disease:
+              </span>
               {DISEASES.map((d) => (
                 <button
                   key={d.id}
                   type="button"
                   onClick={() => setSelectedDisease(d.id)}
-                  className={`btn-pill ${selectedDisease === d.id ? "" : "btn-pill--ghost"}`}
-                  style={{ fontSize: "11.5px", padding: "3px 9px" }}
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                    selectedDisease === d.id
+                      ? "bg-primary text-primary-foreground shadow-xs font-semibold"
+                      : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
                 >
                   {d.label}
                 </button>

@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* ==========================================================================
    Health Alert — Cellwego Enterprise B2B SaaS Design System
    Architecture: Clean Slate Surface, Soft Status Tints & Linear Typography
@@ -8,142 +12,171 @@
   /* Cellwego Core HSL Tokens (Light Mode) */
   --background: 220 14% 97.5%;        /* #f8fafc */
   --foreground: 222.2 84% 5%;          /* #020617 */
-  --card-raw: 0 0% 100%;               /* #ffffff */
-  --card-hover-raw: 220 14% 95%;       /* #f1f5f9 */
-  --surface-raw: 0 0% 100%;
+  --card: 0 0% 100%;                  /* #ffffff */
+  --card-foreground: 222.2 84% 5%;
+  --card-hover: 220 14% 95%;          /* #f1f5f9 */
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 5%;
+  --surface: 0 0% 100%;
 
   /* Primary Brand - Precision Slate Blue */
-  --primary-raw: 221 83% 55%;          /* #2563eb */
-  --primary-foreground-raw: 210 40% 98%;
+  --primary: 221 83% 55%;             /* #2563eb */
+  --primary-foreground: 210 40% 98%;
 
   /* Neutral & Muted */
-  --secondary-raw: 210 40% 96.1%;
-  --muted-raw: 210 40% 96.1%;          /* #f1f5f9 */
-  --muted-foreground-raw: 215.4 16.3% 46.9%; /* #64748b */
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;             /* #f1f5f9 */
+  --muted-foreground: 215.4 16.3% 46.9%; /* #64748b */
+
+  /* Accent */
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
 
   /* Soft Semantic Statuses (10% Pastels, No Neon Glare) */
-  --success-raw: 142 71% 30%;          /* #15803d */
-  --warning-raw: 38 92% 50%;           /* #d97706 */
-  --destructive-raw: 0 84.2% 60.2%;    /* #dc2626 */
-  --info-raw: 199 89% 48%;             /* #0284c7 */
+  --destructive: 0 84.2% 60.2%;       /* #dc2626 */
+  --destructive-foreground: 210 40% 98%;
+  --success: 142 71% 30%;             /* #15803d */
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 50%;              /* #d97706 */
+  --warning-foreground: 0 0% 100%;
+  --info: 199 89% 48%;                /* #0284c7 */
+  --info-foreground: 0 0% 100%;
+
+  /* Sidebar tokens */
+  --sidebar-bg: 0 0% 100%;
+  --sidebar-hover: 210 40% 96.1%;
+  --sidebar-active: 221 83% 55%;
+  --sidebar-foreground: 222.2 84% 5%;
 
   /* Subtle Crisp Borders */
-  --border-raw: 214.3 31.8% 91.4%;     /* #e2e8f0 */
-  --input-raw: 214.3 31.8% 91.4%;
-  --ring-raw: 221 83% 55%;
-
-  /* Direct CSS Color Aliases */
-  --canvas: hsl(var(--background));
-  --backdrop: hsl(var(--muted-raw));
-  --card: hsl(var(--card-raw));
-  --card-glass: rgba(255, 255, 255, 0.9);
-  --card-subtle: hsl(var(--muted-raw));
-  --ink: hsl(var(--foreground));
-  --ink-secondary: hsl(var(--muted-foreground-raw));
-  --mute: hsl(var(--muted-foreground-raw));
-  --hairline: hsl(var(--border-raw));
-  --hairline-input: hsl(var(--input-raw));
-
-  --primary: hsl(var(--primary-raw));
-  --primary-hover: hsl(var(--primary-raw) / 0.9);
-  --primary-deep: #1d4ed8;
-  --primary-light: hsl(var(--primary-raw) / 0.1);
-  --primary-glow: hsl(var(--primary-raw) / 0.15);
-  --primary-border: hsl(var(--primary-raw) / 0.25);
-
-  --green: hsl(var(--success-raw));
-  --green-bg: hsl(var(--success-raw) / 0.1);
-  --green-border: hsl(var(--success-raw) / 0.25);
-
-  --amber: hsl(var(--warning-raw));
-  --amber-bg: hsl(var(--warning-raw) / 0.1);
-  --amber-border: hsl(var(--warning-raw) / 0.25);
-
-  --red: hsl(var(--destructive-raw));
-  --red-bg: hsl(var(--destructive-raw) / 0.1);
-  --red-border: hsl(var(--destructive-raw) / 0.25);
-
-  --cyan: hsl(var(--info-raw));
-  --cyan-bg: hsl(var(--info-raw) / 0.1);
-  --cyan-border: hsl(var(--info-raw) / 0.25);
-
-  --purple: #7c3aed;
-  --purple-bg: rgba(124, 58, 237, 0.1);
+  --border: 214.3 31.8% 91.4%;        /* #e2e8f0 */
+  --input: 214.3 31.8% 91.4%;
+  --ring: 221 83% 55%;
 
   /* Cellwego Radii Scale */
-  --radius: 0.75rem;                   /* 12px */
-  --radius-sm: 0.375rem;               /* 6px */
-  --radius-md: 0.5rem;                 /* 8px */
-  --radius-lg: 0.75rem;                /* 12px */
-  --radius-xl: 1rem;                   /* 16px */
-  --radius-2xl: 1.5rem;                /* 24px */
+  --radius: 0.625rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
   --radius-pill: 9999px;
 
   /* Subtle Clean Shadows (Cellwego Standard) */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
   --shadow-lift: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -4px rgba(0, 0, 0, 0.07);
-  --ring: hsl(var(--primary-raw) / 0.25);
+
+  /* Direct CSS Color Aliases for compatibility */
+  --canvas: hsl(var(--background));
+  --backdrop: hsl(var(--muted));
+  --card-subtle: hsl(var(--muted));
+  --card-glass: rgba(255, 255, 255, 0.9);
+  --ink: hsl(var(--foreground));
+  --ink-secondary: hsl(var(--muted-foreground));
+  --mute: hsl(var(--muted-foreground));
+  --hairline: hsl(var(--border));
+  --hairline-input: hsl(var(--input));
+
+  --primary-hover: hsl(var(--primary) / 0.9);
+  --primary-deep: #1d4ed8;
+  --primary-light: hsl(var(--primary) / 0.1);
+  --primary-glow: hsl(var(--primary) / 0.15);
+  --primary-border: hsl(var(--primary) / 0.25);
+
+  --green: hsl(var(--success));
+  --green-bg: hsl(var(--success) / 0.1);
+  --green-border: hsl(var(--success) / 0.25);
+
+  --amber: hsl(var(--warning));
+  --amber-bg: hsl(var(--warning) / 0.1);
+  --amber-border: hsl(var(--warning) / 0.25);
+
+  --red: hsl(var(--destructive));
+  --red-bg: hsl(var(--destructive) / 0.1);
+  --red-border: hsl(var(--destructive) / 0.25);
+
+  --cyan: hsl(var(--info));
+  --cyan-bg: hsl(var(--info) / 0.1);
+  --cyan-border: hsl(var(--info) / 0.25);
+
+  --purple: #7c3aed;
+  --purple-bg: rgba(124, 58, 237, 0.1);
 }
 
 [data-theme="dark"], .dark {
   /* Cellwego Premium Deep Slate Dark Mode Tokens */
   --background: 220 29% 10%;           /* #111726 */
   --foreground: 210 40% 96%;           /* #f1f5f9 */
-  --card-raw: 220 29% 12%;             /* #151d30 */
-  --card-hover-raw: 217 19% 18%;       /* #1e293b */
-  --surface-raw: 220 29% 14%;          /* #1b243b */
+  --card: 220 29% 12%;                 /* #151d30 */
+  --card-foreground: 210 40% 96%;
+  --card-hover: 217 19% 18%;           /* #1e293b */
+  --popover: 220 29% 12%;
+  --popover-foreground: 210 40% 96%;
+  --surface: 220 29% 14%;              /* #1b243b */
 
-  --primary-raw: 217 91% 60%;          /* #3b82f6 */
-  --primary-foreground-raw: 0 0% 100%;
+  --primary: 217 91% 60%;              /* #3b82f6 */
+  --primary-foreground: 0 0% 100%;
 
-  --secondary-raw: 217.2 32.6% 17.5%;
-  --muted-raw: 217.2 32.6% 17.5%;
-  --muted-foreground-raw: 215 20% 65%; /* #94a3b8 */
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 96%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20% 65%;     /* #94a3b8 */
 
-  --success-raw: 142 70% 38%;          /* #22c55e */
-  --warning-raw: 38 92% 50%;           /* #f59e0b */
-  --destructive-raw: 0 62.8% 50%;      /* #ef4444 */
-  --info-raw: 199 89% 55%;             /* #38bdf8 */
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 96%;
 
-  --border-raw: 217 19% 20%;           /* #252f42 */
-  --input-raw: 217 19% 20%;
-  --ring-raw: 217 91% 60%;
+  --destructive: 0 62.8% 50%;          /* #ef4444 */
+  --destructive-foreground: 210 40% 98%;
+  --success: 142 70% 38%;              /* #22c55e */
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 50%;               /* #f59e0b */
+  --warning-foreground: 0 0% 100%;
+  --info: 199 89% 55%;                 /* #38bdf8 */
+  --info-foreground: 0 0% 100%;
+
+  --sidebar-bg: 220 29% 10%;
+  --sidebar-hover: 217.2 32.6% 17.5%;
+  --sidebar-active: 217 91% 60%;
+  --sidebar-foreground: 210 40% 96%;
+
+  --border: 217 19% 20%;               /* #252f42 */
+  --input: 217 19% 20%;
+  --ring: 217 91% 60%;
 
   /* Dark CSS Color Aliases */
   --canvas: hsl(var(--background));
-  --backdrop: hsl(var(--muted-raw));
-  --card: hsl(var(--card-raw));
+  --backdrop: hsl(var(--muted));
+  --card-subtle: hsl(var(--surface));
   --card-glass: rgba(21, 29, 48, 0.88);
-  --card-subtle: hsl(var(--surface-raw));
   --ink: hsl(var(--foreground));
-  --ink-secondary: hsl(var(--muted-foreground-raw));
-  --mute: hsl(var(--muted-foreground-raw));
-  --hairline: hsl(var(--border-raw));
-  --hairline-input: hsl(var(--input-raw));
+  --ink-secondary: hsl(var(--muted-foreground));
+  --mute: hsl(var(--muted-foreground));
+  --hairline: hsl(var(--border));
+  --hairline-input: hsl(var(--input));
 
-  --primary: hsl(var(--primary-raw));
-  --primary-hover: hsl(var(--primary-raw) / 0.9);
+  --primary-hover: hsl(var(--primary) / 0.9);
   --primary-deep: #1e40af;
-  --primary-light: hsl(var(--primary-raw) / 0.12);
-  --primary-glow: hsl(var(--primary-raw) / 0.18);
-  --primary-border: hsl(var(--primary-raw) / 0.3);
+  --primary-light: hsl(var(--primary) / 0.12);
+  --primary-glow: hsl(var(--primary) / 0.18);
+  --primary-border: hsl(var(--primary) / 0.3);
 
-  --green: hsl(var(--success-raw));
-  --green-bg: hsl(var(--success-raw) / 0.12);
-  --green-border: hsl(var(--success-raw) / 0.25);
+  --green: hsl(var(--success));
+  --green-bg: hsl(var(--success) / 0.12);
+  --green-border: hsl(var(--success) / 0.25);
 
-  --amber: hsl(var(--warning-raw));
-  --amber-bg: hsl(var(--warning-raw) / 0.12);
-  --amber-border: hsl(var(--warning-raw) / 0.25);
+  --amber: hsl(var(--warning));
+  --amber-bg: hsl(var(--warning) / 0.12);
+  --amber-border: hsl(var(--warning) / 0.25);
 
-  --red: hsl(var(--destructive-raw));
-  --red-bg: hsl(var(--destructive-raw) / 0.12);
-  --red-border: hsl(var(--destructive-raw) / 0.25);
+  --red: hsl(var(--destructive));
+  --red-bg: hsl(var(--destructive) / 0.12);
+  --red-border: hsl(var(--destructive) / 0.25);
 
-  --cyan: hsl(var(--info-raw));
-  --cyan-bg: hsl(var(--info-raw) / 0.12);
-  --cyan-border: hsl(var(--info-raw) / 0.25);
+  --cyan: hsl(var(--info));
+  --cyan-bg: hsl(var(--info) / 0.12);
+  --cyan-border: hsl(var(--info) / 0.25);
 
   --purple: #a855f7;
   --purple-bg: rgba(168, 85, 247, 0.12);
@@ -168,7 +201,106 @@
 [data-theme="dark"] .mainscroll::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.14);
 }
+@layer components {
+  /* Section and Stat Cards */
+  .section-card {
+    @apply rounded-xl border border-border bg-card shadow-sm overflow-hidden;
+  }
 
+  .stat-card {
+    @apply rounded-xl border border-border bg-card p-5 shadow-sm;
+  }
+
+  /* Page Header standard */
+  .dash-head {
+    @apply flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4;
+  }
+  .dash-head h1 {
+    @apply text-xl sm:text-2xl font-bold tracking-tight text-foreground m-0;
+  }
+  .dash-head p.sub {
+    @apply text-xs text-muted-foreground mt-1 mb-0;
+  }
+  .dash-actions {
+    @apply flex items-center gap-2 shrink-0;
+  }
+
+  /* Buttons */
+  .btn-pill {
+    @apply inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-medium transition-all bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed select-none;
+  }
+  .btn-pill--ghost {
+    @apply bg-transparent text-foreground border border-border hover:bg-muted shadow-none;
+  }
+  .btn-pill--sheen {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs;
+  }
+
+  /* Badges & Pills */
+  .pill {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium;
+  }
+  .pill--primary {
+    @apply bg-blue-500/10 text-blue-600 dark:text-blue-400;
+  }
+  .pill--ok {
+    @apply bg-emerald-500/10 text-emerald-600 dark:text-emerald-400;
+  }
+  .pill--warn {
+    @apply bg-amber-500/10 text-amber-600 dark:text-amber-400;
+  }
+  .pill--bad {
+    @apply bg-rose-500/10 text-rose-600 dark:text-rose-400;
+  }
+
+  .live-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400;
+  }
+
+  /* Pulse Dot */
+  .dot {
+    @apply inline-block h-1.5 w-1.5 rounded-full bg-current;
+  }
+  .dot--pulse {
+    @apply animate-pulse;
+  }
+
+  /* Data Table standards */
+  .table-wrap {
+    @apply overflow-x-auto rounded-lg border border-border;
+  }
+  .data-table {
+    @apply w-full text-xs text-left border-collapse;
+  }
+  .data-table thead {
+    @apply bg-muted/40 text-muted-foreground border-b border-border;
+  }
+  .data-table th {
+    @apply px-4 py-3 font-semibold uppercase tracking-wider text-[11px];
+  }
+  .data-table td {
+    @apply px-4 py-3 border-b border-border text-foreground;
+  }
+  .data-table tbody tr:hover td {
+    @apply bg-muted/30 transition-colors;
+  }
+
+  /* Inputs and Search */
+  .input {
+    @apply rounded-md border border-input bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-xs;
+  }
+  .search {
+    @apply flex items-center gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-xs text-foreground shadow-xs;
+  }
+  .search input {
+    @apply bg-transparent border-0 outline-none text-xs w-full text-foreground placeholder:text-muted-foreground;
+  }
+
+  /* General Card */
+  .card {
+    @apply rounded-xl border border-border bg-card p-5 shadow-sm;
+  }
+}
 
 /* ==========================================================================
    Base & Typography

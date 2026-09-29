@@ -111,35 +111,36 @@ export function Forecast() {
   const totalCases = locations.reduce((sum, l) => sum + l.activeCases, 0);
 
   return (
-    <div style={{ display: "grid", gap: 20 }}>
+    <div className="space-y-6">
       {/* Header */}
-      <div className="dash-head" style={{ margin: "0 0 4px" }}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <span className="pill pill--primary" style={{ fontSize: "11px" }}>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/10 px-2.5 py-0.5 text-[11px] font-medium text-blue-600 dark:text-blue-400">
               <TrendingUp size={13} strokeWidth={2.2} />
               AI Predictive Outbreak Intelligence
             </span>
-            <span className="live-badge">
-              <span className="dot dot--pulse" />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Continuous Sentinel Tracking
             </span>
           </div>
-          <h1>Location Disease Forecast & Early Warning</h1>
-          <p className="sub">
+          <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+            Location Disease Forecast & Early Warning
+          </h1>
+          <p className="text-xs text-muted-foreground mt-1">
             Filter and examine monitored barangays across Region 1 to evaluate disease outbreak probabilities, multi-week predictive curves, and targeted intervention playbooks.
           </p>
         </div>
 
-        <div className="dash-actions">
+        <div className="flex items-center gap-2">
           <Link
-            className="btn-pill btn-pill--ghost"
             to="/surveillance"
-            style={{ textDecoration: "none" }}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors shadow-xs"
           >
-            <Activity size={16} strokeWidth={2.2} />
+            <Activity size={15} strokeWidth={2.2} />
             <span>Live Surveillance Feeds</span>
-            <ArrowRight size={14} strokeWidth={2.2} />
+            <ArrowRight size={13} strokeWidth={2.2} />
           </Link>
         </div>
       </div>
@@ -181,10 +182,10 @@ export function Forecast() {
       </div>
 
       {/* Filter & Search Bar Toolbar */}
-      <div className="section-card p-5">
-        <div className="flex flex-wrap gap-3 items-center justify-between">
+      <div className="rounded-xl border border-border bg-card p-5 shadow-xs space-y-4">
+        <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
           {/* Search Input */}
-          <div className="flex-1 min-w-[260px] relative">
+          <div className="flex-1 relative">
             <Search
               size={15}
               className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
@@ -194,13 +195,13 @@ export function Forecast() {
               placeholder="Search barangay, municipality, province, or disease..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-8 py-2 bg-background border border-input rounded-md text-xs sm:text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              className="w-full pl-9 pr-8 py-2 bg-background border border-input rounded-md text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-xs"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded"
               >
                 <X size={14} />
               </button>
@@ -209,30 +210,30 @@ export function Forecast() {
 
           {/* Geographic Selects */}
           <div className="flex flex-wrap gap-2 items-center">
-            <div className="flex items-center gap-1.5">
-              <Building2 size={14} className="text-muted-foreground" />
+            <div className="flex items-center gap-1.5 rounded-md border border-input bg-background px-2.5 py-1.5 shadow-xs">
+              <Building2 size={14} className="text-muted-foreground shrink-0" />
               <select
                 value={selectedProvince}
                 onChange={(e) => handleProvinceChange(e.target.value)}
-                className="px-2.5 py-1.5 bg-background border border-input rounded-md text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer"
+                className="bg-transparent border-none text-xs text-foreground focus:outline-none cursor-pointer pr-1"
               >
                 {PROVINCES.map((prov) => (
-                  <option key={prov} value={prov}>
+                  <option key={prov} value={prov} className="bg-card text-foreground">
                     {prov}
                   </option>
                 ))}
               </select>
             </div>
 
-            <div className="flex items-center gap-1.5">
-              <MapPin size={14} className="text-muted-foreground" />
+            <div className="flex items-center gap-1.5 rounded-md border border-input bg-background px-2.5 py-1.5 shadow-xs">
+              <MapPin size={14} className="text-muted-foreground shrink-0" />
               <select
                 value={selectedMunicipality}
                 onChange={(e) => setSelectedMunicipality(e.target.value)}
-                className="px-2.5 py-1.5 bg-background border border-input rounded-md text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer"
+                className="bg-transparent border-none text-xs text-foreground focus:outline-none cursor-pointer pr-1"
               >
                 {availableMunicipalities.map((muni) => (
-                  <option key={muni} value={muni}>
+                  <option key={muni} value={muni} className="bg-card text-foreground">
                     {muni}
                   </option>
                 ))}
@@ -242,27 +243,33 @@ export function Forecast() {
             {isFiltered && (
               <button
                 type="button"
-                className="btn-pill btn-pill--ghost text-xs px-2.5 py-1.5 gap-1"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-border bg-muted/50 hover:bg-muted text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
                 onClick={handleClearFilters}
               >
                 <RefreshCw size={12} />
-                <span>Reset Filters</span>
+                <span>Reset</span>
               </button>
             )}
           </div>
         </div>
 
         {/* Disease & Risk Band Pills */}
-        <div className="mt-4 pt-3.5 border-t border-border flex flex-wrap gap-4 items-center justify-between">
+        <div className="pt-3.5 border-t border-border flex flex-col lg:flex-row gap-3 lg:items-center justify-between">
           {/* Disease Filter Pills */}
           <div className="flex flex-wrap gap-1.5 items-center">
-            <span className="text-xs font-medium text-muted-foreground mr-1">Disease:</span>
+            <span className="text-xs font-semibold text-muted-foreground mr-1 uppercase tracking-wider text-[10px]">
+              Disease:
+            </span>
             {DISEASES.map((d) => (
               <button
                 key={d.id}
                 type="button"
                 onClick={() => setSelectedDisease(d.id)}
-                className={`btn-pill text-xs px-2.5 py-1 ${selectedDisease === d.id ? "" : "btn-pill--ghost"}`}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                  selectedDisease === d.id
+                    ? "bg-primary text-primary-foreground shadow-xs font-semibold"
+                    : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
               >
                 {d.label}
               </button>
@@ -271,13 +278,19 @@ export function Forecast() {
 
           {/* Risk Band Pills */}
           <div className="flex flex-wrap gap-1.5 items-center">
-            <span className="text-xs font-medium text-muted-foreground mr-1">Risk:</span>
+            <span className="text-xs font-semibold text-muted-foreground mr-1 uppercase tracking-wider text-[10px]">
+              Risk:
+            </span>
             {RISK_LEVELS.map((r) => (
               <button
                 key={r.id}
                 type="button"
                 onClick={() => setSelectedRisk(r.id)}
-                className={`btn-pill text-xs px-2.5 py-1 ${selectedRisk === r.id ? "" : "btn-pill--ghost"}`}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                  selectedRisk === r.id
+                    ? "bg-primary text-primary-foreground shadow-xs font-semibold"
+                    : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
               >
                 {r.label}
               </button>
