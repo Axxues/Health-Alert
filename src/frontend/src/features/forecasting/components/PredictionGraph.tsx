@@ -6,7 +6,6 @@ import {
   ShieldCheck,
   Table as TableIcon,
   LineChart as ChartIcon,
-  HelpCircle,
 } from "lucide-react";
 import type { TimelineWeek } from "@/services/forecast/types/forecast.types";
 
@@ -119,7 +118,7 @@ export function PredictionGraph({ timeline, metrics, diseaseName }: PredictionGr
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
             <BrainCircuit size={18} strokeWidth={2.2} style={{ color: "var(--primary)" }} />
-            <h3 style={{ margin: 0, fontSize: "16px" }}>Dual-Horizon Outbreak Prediction Trajectory</h3>
+            <h3 style={{ margin: 0, fontSize: "16px" }}>Dual-Horizon {diseaseName} Outbreak Prediction Trajectory</h3>
           </div>
           <p className="sub" style={{ fontSize: "13px" }}>
             Bi-LSTM and ARGO neural forecasting with 8-week historical clinical observation and 4-week projected horizon.
