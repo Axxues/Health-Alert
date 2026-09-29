@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import {
-  Sparkles,
   MapPin,
   TrendingUp,
   Layers,
   ArrowRight,
   Radio,
-  FileSpreadsheet,
 } from "lucide-react";
 import { listHotspots } from "@/services/riskmaps/api";
 import type { Hotspot } from "@/services/riskmaps/types";
@@ -101,16 +99,6 @@ export function Dashboard() {
           <p className="sub" style={{ fontSize: "13.5px" }}>
             Real-time multi-syndromic intelligence, outbreak forecasting & coordinated field response across Region 1.
           </p>
-        </div>
-        <div className="dash-actions">
-          <Link className="btn-pill" to="/forecast" style={{ textDecoration: "none", fontSize: "13px" }}>
-            <Sparkles size={14} />
-            <span>Examine Forecasts</span>
-          </Link>
-          <Link className="btn-pill btn-pill--ghost" to="/reports" style={{ textDecoration: "none", fontSize: "13px" }}>
-            <FileSpreadsheet size={14} />
-            <span>Generate Report</span>
-          </Link>
         </div>
       </div>
 
