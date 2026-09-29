@@ -76,13 +76,6 @@ export function LocationSurveillanceDetail() {
     );
   }
 
-  const riskBadgeClass =
-    detail.riskLevel === "high"
-      ? "badge--red"
-      : detail.riskLevel === "moderate"
-      ? "badge--amber"
-      : "badge--emerald";
-
   // Synthesize realistic recent case logs consistent with HealthAlert PIDSR intake
   const caseLogs: SurveillanceCaseLog[] = [
     {
@@ -163,82 +156,77 @@ export function LocationSurveillanceDetail() {
         </div>
       </div>
 
-      {/* Header Banner */}
-      <div
-        className="card"
-        style={{
-          padding: "24px 28px",
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: 24,
-          alignItems: "center",
-          background: "linear-gradient(135deg, rgba(82, 93, 249, 0.08) 0%, rgba(20, 22, 34, 0.6) 100%)",
-          border: "1px solid rgba(82, 93, 249, 0.2)",
-        }}
-      >
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-            <span className={`badge ${riskBadgeClass}`}>
-              {detail.riskLevel.toUpperCase()} EPIDEMIC WATCH
-            </span>
-            <span className="badge badge--indigo">
-              <Radio size={12} style={{ marginRight: 4 }} />
-              SENTINEL STREAM ACTIVE
-            </span>
-          </div>
-          <h1 style={{ margin: "0 0 6px", fontSize: "28px", letterSpacing: "-0.02em" }}>
-            Brgy. {detail.barangay}, {detail.municipality}
-          </h1>
-          <p className="sub" style={{ margin: 0, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-              <Building2 size={14} /> {detail.province} Province
-            </span>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-              <Users size={14} /> Pop. At Risk: {detail.populationAtRisk.toLocaleString()}
-            </span>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-              <Clock size={14} /> Ingestion: {detail.lastUpdated} (n8n PIDSR v1.0)
-            </span>
-          </p>
-        </div>
-
-        {/* Quick Surveillance KPIs */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-          <div style={{ background: "rgba(0,0,0,0.25)", padding: "12px 14px", borderRadius: "10px", border: "1px solid var(--border)" }}>
-            <div style={{ fontSize: "11px", color: "var(--mute)", textTransform: "uppercase", fontWeight: 600 }}>Active Cases</div>
-            <div style={{ fontSize: "24px", fontWeight: 800, color: "var(--ink)", marginTop: 2 }}>{detail.activeCases}</div>
-            <div style={{ fontSize: "11px", color: detail.changePercent >= 0 ? "var(--red)" : "var(--emerald)", fontWeight: 600 }}>
-              {detail.changePercent >= 0 ? `+${detail.changePercent}%` : `${detail.changePercent}%`} vs W-1
+      {/* Header Banner - Cellwego section-card */}
+      <div className={`section-card border-l-4 ${detail.riskLevel === "high" ? "border-l-destructive" : detail.riskLevel === "moderate" ? "border-l-amber-500" : "border-l-emerald-500"} p-6`}>
+        <div className="flex justify-between items-start flex-wrap gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${
+                detail.riskLevel === "high"
+                  ? "bg-destructive/10 text-destructive border-destructive/20"
+                  : detail.riskLevel === "moderate"
+                  ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                  : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+              }`}>
+                {detail.riskLevel} Epidemic Watch
+              </span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold uppercase tracking-wider">
+                <Radio size={11} className="mr-0.5" />
+                Sentinel Stream Active
+              </span>
             </div>
+            <h1 className="text-2xl font-bold text-foreground m-0 mb-1">
+              Brgy. {detail.barangay}, {detail.municipality}
+            </h1>
+            <p className="text-xs text-muted-foreground m-0 flex items-center gap-4 flex-wrap">
+              <span className="inline-flex items-center gap-1.5">
+                <Building2 size={13} /> {detail.province} Province
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Users size={13} /> Pop. At Risk: {detail.populationAtRisk.toLocaleString()}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Clock size={13} /> Ingestion: {detail.lastUpdated} (n8n PIDSR v1.0)
+              </span>
+            </p>
           </div>
 
-          <div style={{ background: "rgba(0,0,0,0.25)", padding: "12px 14px", borderRadius: "10px", border: "1px solid var(--border)" }}>
-            <div style={{ fontSize: "11px", color: "var(--mute)", textTransform: "uppercase", fontWeight: 600 }}>Threshold</div>
-            <div style={{ fontSize: "20px", fontWeight: 800, color: "var(--amber)", marginTop: 4 }}>
-              {detail.riskLevel === "high" ? "ALERT" : "WATCH"}
+          {/* Quick Surveillance KPIs */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-muted/40 p-3 rounded-lg border border-border">
+              <div className="text-[10px] text-muted-foreground uppercase font-semibold">Active Cases</div>
+              <div className="text-xl font-bold text-foreground font-mono mt-0.5">{detail.activeCases}</div>
+              <div className={`text-[11px] font-semibold ${detail.changePercent >= 0 ? "text-destructive" : "text-emerald-500"}`}>
+                {detail.changePercent >= 0 ? `+${detail.changePercent}%` : `${detail.changePercent}%`} vs W-1
+              </div>
             </div>
-            <div style={{ fontSize: "11px", color: "var(--mute)" }}>Baseline: {Math.round(detail.activeCases * 0.45)}</div>
-          </div>
 
-          <div style={{ background: "rgba(0,0,0,0.25)", padding: "12px 14px", borderRadius: "10px", border: "1px solid var(--border)" }}>
-            <div style={{ fontSize: "11px", color: "var(--mute)", textTransform: "uppercase", fontWeight: 600 }}>Facility Sentinel</div>
-            <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--ink)", marginTop: 6, lineHeight: 1.2 }}>
-              {detail.sentinelFacility.split(" ")[0]} ...
+            <div className="bg-muted/40 p-3 rounded-lg border border-border">
+              <div className="text-[10px] text-muted-foreground uppercase font-semibold">Threshold</div>
+              <div className="text-lg font-bold text-amber-500 mt-1">
+                {detail.riskLevel === "high" ? "ALERT" : "WATCH"}
+              </div>
+              <div className="text-[11px] text-muted-foreground">Baseline: {Math.round(detail.activeCases * 0.45)}</div>
             </div>
-            <div style={{ fontSize: "11px", color: "var(--emerald)", fontWeight: 600 }}>eClaims Sync 100%</div>
+
+            <div className="bg-muted/40 p-3 rounded-lg border border-border">
+              <div className="text-[10px] text-muted-foreground uppercase font-semibold">Sentinel Facility</div>
+              <div className="text-xs font-bold text-foreground mt-1 truncate max-w-[110px]">
+                {detail.sentinelFacility.split(" ")[0]}
+              </div>
+              <div className="text-[11px] text-emerald-500 font-semibold">eClaims 100%</div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Epidemic Surveillance Curve & Prediction Graph */}
       <div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <div>
-            <h2 style={{ fontSize: "18px", margin: 0, fontWeight: 700 }}>Epidemiological Surveillance Curve & Projections</h2>
-            <p className="sub" style={{ margin: "2px 0 0" }}>
-              Continuous multi-week surveillance curve showing 8-week actuals tracked against baseline alert levels and 4-week forecast.
-            </p>
-          </div>
+        <div className="mb-3">
+          <h2 className="text-base font-bold text-foreground m-0">Epidemiological Surveillance Curve & Projections</h2>
+          <p className="text-xs text-muted-foreground m-0 mt-0.5">
+            Continuous multi-week surveillance curve showing 8-week actuals tracked against baseline alert levels and 4-week forecast.
+          </p>
         </div>
         <PredictionGraph
           timeline={detail.timeline}
@@ -248,113 +236,119 @@ export function LocationSurveillanceDetail() {
       </div>
 
       {/* Lower Section: Environmental Telemetry & Clinical Feed Logs */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))", gap: 24 }}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Environmental Telemetry Panel */}
-        <div className="card" style={{ padding: "22px 24px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <h3 style={{ margin: 0, fontSize: "16px", display: "flex", alignItems: "center", gap: 8 }}>
-              <CloudRain size={16} style={{ color: "var(--primary)" }} />
-              Environmental Covariates (PAGASA Ingest)
+        <div className="section-card overflow-hidden">
+          <div className="px-6 py-4 border-b border-border bg-muted/40 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-foreground m-0 flex items-center gap-2">
+              <CloudRain size={16} className="text-primary" />
+              <span>Environmental Covariates (PAGASA Ingest)</span>
             </h3>
-            <span style={{ fontSize: "11.5px", color: "var(--mute)" }}>Station: Region 1 Synoptic</span>
+            <span className="text-xs text-muted-foreground">Region 1 Synoptic</span>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }}>
-            <div style={{ background: "rgba(255,255,255,0.02)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--mute)", fontSize: "12px", marginBottom: 4 }}>
-                <CloudRain size={14} style={{ color: "#38bdf8" }} />
-                <span>Cumulative Rainfall</span>
+          <div className="p-6">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-card p-3 rounded-lg border border-border">
+                <div className="flex items-center gap-1.5 text-muted-foreground text-xs mb-1">
+                  <CloudRain size={14} className="text-sky-400" />
+                  <span>Cumulative Rainfall</span>
+                </div>
+                <div className="text-lg font-bold font-mono text-foreground">{detail.covariates.cumulativeRainfallMm} mm</div>
+                <div className="text-[11px] text-muted-foreground">Past 14-day rolling sum</div>
               </div>
-              <div style={{ fontSize: "18px", fontWeight: 700 }}>{detail.covariates.cumulativeRainfallMm} mm</div>
-              <div style={{ fontSize: "11px", color: "var(--mute)" }}>Past 14-day rolling sum</div>
-            </div>
 
-            <div style={{ background: "rgba(255,255,255,0.02)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--mute)", fontSize: "12px", marginBottom: 4 }}>
-                <Thermometer size={14} style={{ color: "#f97316" }} />
-                <span>Avg Temperature</span>
+              <div className="bg-card p-3 rounded-lg border border-border">
+                <div className="flex items-center gap-1.5 text-muted-foreground text-xs mb-1">
+                  <Thermometer size={14} className="text-amber-500" />
+                  <span>Avg Temperature</span>
+                </div>
+                <div className="text-lg font-bold font-mono text-foreground">{detail.covariates.avgTemperatureC}°C</div>
+                <div className="text-[11px] text-muted-foreground">Heat index: {detail.covariates.heatIndexC}°C</div>
               </div>
-              <div style={{ fontSize: "18px", fontWeight: 700 }}>{detail.covariates.avgTemperatureC}°C</div>
-              <div style={{ fontSize: "11px", color: "var(--mute)" }}>Heat index: {detail.covariates.heatIndexC}°C</div>
-            </div>
 
-            <div style={{ background: "rgba(255,255,255,0.02)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--mute)", fontSize: "12px", marginBottom: 4 }}>
-                <Bug size={14} style={{ color: "#ec4899" }} />
-                <span>Larval Breteau Index</span>
+              <div className="bg-card p-3 rounded-lg border border-border">
+                <div className="flex items-center gap-1.5 text-muted-foreground text-xs mb-1">
+                  <Bug size={14} className="text-rose-500" />
+                  <span>Larval Breteau Index</span>
+                </div>
+                <div className="text-lg font-bold font-mono text-foreground">{detail.covariates.larvalBreteauIndex}</div>
+                <div className={`text-[11px] font-semibold ${detail.covariates.larvalBreteauIndex > 20 ? "text-destructive" : "text-emerald-500"}`}>
+                  {detail.covariates.larvalBreteauIndex > 20 ? "High Vector Density" : "Routine density"}
+                </div>
               </div>
-              <div style={{ fontSize: "18px", fontWeight: 700 }}>{detail.covariates.larvalBreteauIndex}</div>
-              <div style={{ fontSize: "11px", color: detail.covariates.larvalBreteauIndex > 20 ? "var(--red)" : "var(--emerald)", fontWeight: 600 }}>
-                {detail.covariates.larvalBreteauIndex > 20 ? "High Vector Density" : "Routine density"}
-              </div>
-            </div>
 
-            <div style={{ background: "rgba(255,255,255,0.02)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--mute)", fontSize: "12px", marginBottom: 4 }}>
-                <Droplets size={14} style={{ color: "#06b6d4" }} />
-                <span>Standing Water Sites</span>
+              <div className="bg-card p-3 rounded-lg border border-border">
+                <div className="flex items-center gap-1.5 text-muted-foreground text-xs mb-1">
+                  <Droplets size={14} className="text-cyan-500" />
+                  <span>Standing Water Sites</span>
+                </div>
+                <div className="text-lg font-bold font-mono text-foreground">{detail.covariates.standingWaterSites} sites</div>
+                <div className="text-[11px] text-muted-foreground">Sanitary inspection log</div>
               </div>
-              <div style={{ fontSize: "18px", fontWeight: 700 }}>{detail.covariates.standingWaterSites} sites</div>
-              <div style={{ fontSize: "11px", color: "var(--mute)" }}>Sanitary inspection log</div>
             </div>
           </div>
         </div>
 
         {/* Clinical Intake Feeds / Sentinel Surveillance */}
-        <div className="card" style={{ padding: "22px 24px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <h3 style={{ margin: 0, fontSize: "16px", display: "flex", alignItems: "center", gap: 8 }}>
-              <Radio size={16} style={{ color: "var(--emerald)" }} />
-              Live Clinical Intake Stream (PIDSR Feeds)
+        <div className="section-card overflow-hidden">
+          <div className="px-6 py-4 border-b border-border bg-muted/40 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-foreground m-0 flex items-center gap-2">
+              <Radio size={16} className="text-emerald-500" />
+              <span>Live Clinical Intake Stream (PIDSR Feeds)</span>
             </h3>
-            <span className="badge badge--emerald">3 Fresh Intakes</span>
+            <span className="inline-flex items-center px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-xs font-semibold">
+              3 Fresh Intakes
+            </span>
           </div>
 
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12.5px" }}>
-              <thead>
-                <tr style={{ borderBottom: "1px solid var(--border)", color: "var(--mute)", textAlign: "left" }}>
-                  <th style={{ padding: "8px 6px" }}>Case Ref</th>
-                  <th style={{ padding: "8px 6px" }}>Age/Sex</th>
-                  <th style={{ padding: "8px 6px" }}>Onset</th>
-                  <th style={{ padding: "8px 6px" }}>Classification</th>
-                  <th style={{ padding: "8px 6px" }}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {caseLogs.map((log) => (
-                  <tr key={log.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                    <td style={{ padding: "10px 6px", fontFamily: "var(--mono)", fontWeight: 600 }}>{log.caseHash}</td>
-                    <td style={{ padding: "10px 6px" }}>{log.age}y / {log.gender}</td>
-                    <td style={{ padding: "10px 6px" }}>{log.onsetDate}</td>
-                    <td style={{ padding: "10px 6px" }}>
-                      <span
-                        className={`badge ${
-                          log.classification === "Confirmed"
-                            ? "badge--red"
-                            : log.classification === "Probable"
-                            ? "badge--amber"
-                            : "badge--indigo"
-                        }`}
-                        style={{ fontSize: "11px" }}
-                      >
-                        {log.classification}
-                      </span>
-                    </td>
-                    <td style={{ padding: "10px 6px", color: "var(--emerald)", fontWeight: 600 }}>{log.status}</td>
+          <div className="p-6">
+            <div className="overflow-x-auto rounded-lg border border-border">
+              <table className="w-full text-xs text-left border-collapse">
+                <thead className="bg-muted/40 text-muted-foreground border-b border-border">
+                  <tr>
+                    <th className="px-3 py-2 font-semibold uppercase tracking-wider">Case Ref</th>
+                    <th className="px-3 py-2 font-semibold uppercase tracking-wider">Age/Sex</th>
+                    <th className="px-3 py-2 font-semibold uppercase tracking-wider">Onset</th>
+                    <th className="px-3 py-2 font-semibold uppercase tracking-wider">Classification</th>
+                    <th className="px-3 py-2 font-semibold uppercase tracking-wider">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div style={{ marginTop: 14, textAlign: "right" }}>
-            <Link
-              to="/clinical"
-              style={{ fontSize: "12px", color: "var(--primary)", textDecoration: "none", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}
-            >
-              <span>View Full Clinical Triage Records</span>
-              <ArrowRight size={13} />
-            </Link>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {caseLogs.map((log) => (
+                    <tr key={log.id} className="transition-colors hover:bg-muted/30">
+                      <td className="px-3 py-2.5 font-mono font-semibold text-foreground">{log.caseHash}</td>
+                      <td className="px-3 py-2.5 text-muted-foreground">{log.age}y / {log.gender}</td>
+                      <td className="px-3 py-2.5 font-mono text-muted-foreground">{log.onsetDate}</td>
+                      <td className="px-3 py-2.5">
+                        <span
+                          className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${
+                            log.classification === "Confirmed"
+                              ? "bg-destructive/10 text-destructive border-destructive/20"
+                              : log.classification === "Probable"
+                              ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                              : "bg-primary/10 text-primary border-primary/20"
+                          }`}
+                        >
+                          {log.classification}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2.5 text-emerald-500 font-semibold">{log.status}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-3.5 text-right">
+              <Link
+                to="/clinical"
+                className="text-xs text-primary font-semibold hover:underline inline-flex items-center gap-1"
+              >
+                <span>View Full Clinical Triage Records</span>
+                <ArrowRight size={13} />
+              </Link>
+            </div>
           </div>
         </div>
       </div>

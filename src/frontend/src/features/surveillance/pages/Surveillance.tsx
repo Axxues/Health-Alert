@@ -139,62 +139,59 @@ export function Surveillance() {
         </div>
       </div>
 
-      {/* Surveillance Feed Telemetry Metrics */}
-      <div className="stats">
-        <div className="stat stat--hero">
-          <div className="lbl">
-            <span>24h Ingested Records</span>
-            <Database size={18} strokeWidth={2.2} />
+      {/* Surveillance Feed Telemetry Metrics - Cellwego border-l-4 style */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-card border border-border border-l-4 border-l-blue-500 rounded-lg p-5 shadow-sm flex items-center justify-between">
+          <div>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">24h Ingested Records</span>
+            <div className="text-2xl font-bold tracking-tight text-foreground mt-1 font-mono">14,820</div>
+            <span className="text-xs text-muted-foreground mt-0.5 block">EDCS-IS, PAGASA, & Clinics</span>
           </div>
-          <p className="num tabular">14,820</p>
-          <div className="trend">
-            <span>EDCS-IS, PAGASA, & Clinics</span>
-          </div>
-        </div>
-
-        <div className="stat card--lift">
-          <div className="lbl">
-            <span>Monitored Sentinels</span>
-            <MapPin size={18} strokeWidth={2.2} style={{ color: "var(--primary)" }} />
-          </div>
-          <p className="num tabular">{locations.length}</p>
-          <div className="trend">
-            <span>Active clinical intake</span>
+          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+            <Database size={20} strokeWidth={2} />
           </div>
         </div>
 
-        <div className="stat card--lift">
-          <div className="lbl">
-            <span>Pipeline Ingest Latency</span>
-            <Zap size={18} strokeWidth={2.2} style={{ color: "var(--amber)" }} />
+        <div className="bg-card border border-border border-l-4 border-l-indigo-500 rounded-lg p-5 shadow-sm flex items-center justify-between">
+          <div>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Monitored Sentinels</span>
+            <div className="text-2xl font-bold tracking-tight text-foreground mt-1 font-mono">{locations.length}</div>
+            <span className="text-xs text-muted-foreground mt-0.5 block">Active clinical intake</span>
           </div>
-          <p className="num tabular">
-            380<span style={{ fontSize: 20 }}>ms</span>
-          </p>
-          <div className="trend">
-            <span>Sub-second streaming</span>
+          <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+            <MapPin size={20} strokeWidth={2} />
           </div>
         </div>
 
-        <div className="stat card--lift">
-          <div className="lbl">
-            <span>Active Pipelines</span>
-            <Radio size={18} strokeWidth={2.2} style={{ color: "var(--green)" }} />
+        <div className="bg-card border border-border border-l-4 border-l-amber-500 rounded-lg p-5 shadow-sm flex items-center justify-between">
+          <div>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Pipeline Latency</span>
+            <div className="text-2xl font-bold tracking-tight text-foreground mt-1 font-mono">380ms</div>
+            <span className="text-xs text-muted-foreground mt-0.5 block">Sub-second streaming</span>
           </div>
-          <p className="num tabular">{feeds.length || 10}</p>
-          <div className="trend">
-            <span>100% Ingestion Uptime</span>
+          <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
+            <Zap size={20} strokeWidth={2} />
+          </div>
+        </div>
+
+        <div className="bg-card border border-border border-l-4 border-l-emerald-500 rounded-lg p-5 shadow-sm flex items-center justify-between">
+          <div>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Active Pipelines</span>
+            <div className="text-2xl font-bold tracking-tight text-foreground mt-1 font-mono">{feeds.length || 10}</div>
+            <span className="text-xs text-muted-foreground mt-0.5 block">100% Ingestion Uptime</span>
+          </div>
+          <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+            <Radio size={20} strokeWidth={2} />
           </div>
         </div>
       </div>
 
       {/* Tabs Switcher: Sentinels Matrix vs. Ingestion Pipelines */}
-      <div style={{ display: "flex", gap: 10, borderBottom: "1px solid var(--hairline)", paddingBottom: 10 }}>
+      <div className="flex gap-2 border-b border-border pb-3">
         <button
           type="button"
           onClick={() => setActiveTab("locations")}
-          className={`btn-pill ${activeTab === "locations" ? "" : "btn-pill--ghost"}`}
-          style={{ fontSize: "13px" }}
+          className={`btn-pill text-xs px-3.5 py-1.5 gap-2 ${activeTab === "locations" ? "" : "btn-pill--ghost"}`}
         >
           <MapPin size={14} />
           <span>Monitored Sentinel Locations ({locations.length})</span>
@@ -202,8 +199,7 @@ export function Surveillance() {
         <button
           type="button"
           onClick={() => setActiveTab("pipelines")}
-          className={`btn-pill ${activeTab === "pipelines" ? "" : "btn-pill--ghost"}`}
-          style={{ fontSize: "13px" }}
+          className={`btn-pill text-xs px-3.5 py-1.5 gap-2 ${activeTab === "pipelines" ? "" : "btn-pill--ghost"}`}
         >
           <Radio size={14} />
           <span>Ingestion Pipelines ({feeds.length || 10})</span>
@@ -212,8 +208,7 @@ export function Surveillance() {
 
       {activeTab === "locations" ? (
         <div style={{ display: "grid", gap: 16 }}>
-          {/* Location Filters Bar */}
-          <div className="card" style={{ padding: "16px 20px" }}>
+          <div className="section-card p-4">
             <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center", justifyContent: "space-between" }}>
               {/* Search Bar */}
               <div style={{ flex: "1 1 260px", minWidth: 240, position: "relative" }}>
@@ -349,76 +344,55 @@ export function Surveillance() {
               </button>
             </div>
           ) : (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
-                gap: 16,
-              }}
-            >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {locations.map((loc) => {
-                const riskPillClass =
+                const borderAccent =
                   loc.riskLevel === "high"
-                    ? "pill--bad"
+                    ? "border-l-destructive"
                     : loc.riskLevel === "moderate"
-                    ? "pill--warn"
-                    : "pill--ok";
+                    ? "border-l-amber-500"
+                    : "border-l-emerald-500";
+
+                const riskBadge =
+                  loc.riskLevel === "high"
+                    ? "bg-destructive/10 text-destructive border-destructive/20"
+                    : loc.riskLevel === "moderate"
+                    ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                    : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
 
                 return (
                   <div
                     key={loc.id}
-                    className="card card--lift"
-                    style={{
-                      padding: "20px",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-between",
-                      gap: 14,
-                    }}
+                    className={`bg-card border border-border border-l-4 ${borderAccent} rounded-lg p-5 shadow-sm flex flex-col justify-between gap-4 transition-all hover:shadow-md`}
                   >
                     <div>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, marginBottom: 8 }}>
+                      <div className="flex justify-between items-start gap-2 mb-2">
                         <div>
-                          <span className={`pill ${riskPillClass}`} style={{ fontSize: "11px", marginBottom: 6 }}>
-                            {loc.riskLevel.toUpperCase()} WATCH
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${riskBadge}`}>
+                            {loc.riskLevel} Watch
                           </span>
-                          <h3 style={{ margin: "4px 0 2px", fontSize: "17px", fontWeight: 700 }}>
+                          <h3 className="text-base font-bold text-foreground mt-2 mb-0.5">
                             Brgy. {loc.barangay}
                           </h3>
-                          <p className="sub" style={{ fontSize: "12.5px", margin: 0 }}>
+                          <p className="text-xs text-muted-foreground m-0">
                             {loc.municipality}, {loc.province}
                           </p>
                         </div>
 
-                        <span className="pill pill--primary" style={{ fontSize: "11px" }}>
+                        <span className="px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded text-[11px] font-semibold capitalize">
                           {loc.diseaseName}
                         </span>
                       </div>
 
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "repeat(2, 1fr)",
-                          gap: 10,
-                          padding: "10px 12px",
-                          background: "var(--card-subtle)",
-                          borderRadius: "var(--radius-sm)",
-                          border: "1px solid var(--hairline)",
-                          marginTop: 10,
-                        }}
-                      >
+                      <div className="grid grid-cols-2 gap-3 p-3 bg-muted/30 rounded-md border border-border mt-3">
                         <div>
-                          <span style={{ fontSize: "11px", color: "var(--mute)", display: "block" }}>Active Cases</span>
-                          <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-                            <span className="tabular" style={{ fontSize: "18px", fontWeight: 800, color: "var(--ink)" }}>
+                          <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block">Active Cases</span>
+                          <div className="flex items-baseline gap-1.5 mt-0.5">
+                            <span className="font-mono text-lg font-bold text-foreground">
                               {loc.activeCases}
                             </span>
                             <span
-                              style={{
-                                fontSize: "11px",
-                                fontWeight: 700,
-                                color: loc.changePercent > 0 ? "var(--red)" : "var(--green)",
-                              }}
+                              className={`text-[11px] font-bold ${loc.changePercent > 0 ? "text-destructive" : "text-emerald-500"}`}
                             >
                               {loc.changePercent > 0 ? `+${loc.changePercent}%` : `${loc.changePercent}%`}
                             </span>
@@ -426,33 +400,26 @@ export function Surveillance() {
                         </div>
 
                         <div>
-                          <span style={{ fontSize: "11px", color: "var(--mute)", display: "block" }}>Sentinel Node</span>
-                          <div style={{ fontSize: "12.5px", fontWeight: 600, color: "var(--ink)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block">Sentinel Node</span>
+                          <div className="text-xs font-semibold text-foreground mt-1 truncate">
                             {loc.sentinelFacility}
                           </div>
                         </div>
                       </div>
 
-                      <div style={{ marginTop: 8, fontSize: "11.5px", color: "var(--mute)", display: "flex", alignItems: "center", gap: 5 }}>
-                        <CheckCircle2 size={13} style={{ color: "var(--green)" }} />
-                        <span>PIDSR Stream Live · Synced {loc.lastUpdated}</span>
+                      <div className="mt-2.5 text-xs text-muted-foreground flex items-center gap-1.5">
+                        <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+                        <span className="truncate">PIDSR Stream Live · Synced {loc.lastUpdated}</span>
                       </div>
                     </div>
 
-                    <div style={{ borderTop: "1px solid var(--hairline)", paddingTop: 12 }}>
+                    <div className="border-t border-border pt-3">
                       <Link
                         to={`/surveillance/${loc.id}?disease=${encodeURIComponent(loc.disease)}`}
-                        className="btn-pill"
-                        style={{
-                          width: "100%",
-                          justifyContent: "center",
-                          textDecoration: "none",
-                          fontSize: "13px",
-                          padding: "8px 14px",
-                        }}
+                        className="btn-pill w-full justify-center text-xs py-2 gap-1.5 no-underline"
                       >
                         <span>View Surveillance Stream</span>
-                        <ChevronRight size={15} />
+                        <ChevronRight size={14} />
                       </Link>
                     </div>
                   </div>
@@ -462,34 +429,28 @@ export function Surveillance() {
           )}
         </div>
       ) : (
-        /* Main Ingestion Feed Card */
-        <div className="card">
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+        /* Main Ingestion Feed Card - Cellwego section-card */
+        <div className="section-card overflow-hidden">
+          <div className="px-6 py-4 border-b border-border bg-muted/40 flex items-center justify-between">
             <div>
-              <h3 style={{ margin: 0, fontSize: 16 }}>Configured Ingest Pipelines</h3>
-              <p className="sub">Synchronized with DOH RA 11332 mandatory reporting standards.</p>
+              <h3 className="text-sm font-semibold text-foreground m-0">Configured Ingest Pipelines</h3>
+              <p className="text-xs text-muted-foreground m-0">Synchronized with DOH RA 11332 mandatory reporting standards.</p>
             </div>
-            <span className="pill pill--primary">{feeds.length || 10} Verified Sources</span>
+            <span className="px-2.5 py-1 rounded bg-primary/10 text-primary border border-primary/20 text-xs font-semibold">
+              {feeds.length || 10} Verified Sources
+            </span>
           </div>
 
-          {error ? (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                padding: "12px 16px",
-                background: "var(--red-bg)",
-                borderRadius: "var(--radius-md)",
-                color: "var(--red)",
-              }}
-            >
-              <AlertCircle size={16} strokeWidth={2.2} />
-              <span style={{ fontSize: 13, fontWeight: 600 }}>{error}</span>
-            </div>
-          ) : (
-            <FeedTable feeds={feeds} />
-          )}
+          <div className="p-6">
+            {error ? (
+              <div className="flex items-center gap-2 p-3 bg-destructive/10 text-destructive border border-destructive/20 rounded-md text-xs font-semibold">
+                <AlertCircle size={16} strokeWidth={2} />
+                <span>{error}</span>
+              </div>
+            ) : (
+              <FeedTable feeds={feeds} />
+            )}
+          </div>
         </div>
       )}
     </div>

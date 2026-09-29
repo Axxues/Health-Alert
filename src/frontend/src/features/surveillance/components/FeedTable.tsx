@@ -12,64 +12,64 @@ const FEED_META: Record<string, { category: string; cadence: string; format: str
 export function FeedTable({ feeds }: { feeds: SurveillanceFeed[] }) {
   if (feeds.length === 0) {
     return (
-      <div style={{ padding: "32px 16px", textAlign: "center", color: "var(--mute)" }}>
+      <div className="py-8 text-center text-xs text-muted-foreground">
         No surveillance data feeds configured in this health registry.
       </div>
     );
   }
 
   return (
-    <div className="table-wrap">
-      <table className="data-table">
-        <thead>
+    <div className="overflow-x-auto rounded-lg border border-border">
+      <table className="w-full text-xs text-left border-collapse">
+        <thead className="bg-muted/40 text-muted-foreground border-b border-border">
           <tr>
-            <th>Surveillance Feed Source</th>
-            <th>System Code</th>
-            <th>Domain Category</th>
-            <th>Ingestion Cadence</th>
-            <th>Telemetry Protocol</th>
-            <th>Pipeline Health</th>
+            <th className="px-4 py-3 font-semibold uppercase tracking-wider">Surveillance Feed Source</th>
+            <th className="px-4 py-3 font-semibold uppercase tracking-wider">System Code</th>
+            <th className="px-4 py-3 font-semibold uppercase tracking-wider">Domain Category</th>
+            <th className="px-4 py-3 font-semibold uppercase tracking-wider">Ingestion Cadence</th>
+            <th className="px-4 py-3 font-semibold uppercase tracking-wider">Telemetry Protocol</th>
+            <th className="px-4 py-3 font-semibold uppercase tracking-wider">Pipeline Health</th>
           </tr>
         </thead>
-        <tbody className="tabular">
+        <tbody className="divide-y divide-border">
           {feeds.map((f) => {
             const lowerCode = f.code.toLowerCase();
             const metaKey = Object.keys(FEED_META).find((k) => lowerCode.includes(k)) || "edcs";
             const meta = FEED_META[metaKey];
 
             return (
-              <tr key={f.id}>
-                <td>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div className="glyph" style={{ width: 32, height: 32, borderRadius: 8 }}>
-                      <Database size={15} strokeWidth={2.2} />
+              <tr key={f.id} className="transition-colors hover:bg-muted/30">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <Database size={15} strokeWidth={2} />
                     </div>
                     <div>
-                      <div style={{ fontWeight: 600, color: "var(--ink)" }}>{f.name}</div>
-                      <div style={{ fontSize: "11.5px", color: "var(--mute)" }}>ID #{f.id} · DOH / LGU Sentinel</div>
+                      <div className="font-semibold text-foreground">{f.name}</div>
+                      <div className="text-[11px] text-muted-foreground">ID #{f.id} · DOH / LGU Sentinel</div>
                     </div>
                   </div>
                 </td>
-                <td>
-                  <span className="kbd" style={{ fontSize: "12px", letterSpacing: "0.02em" }}>
+                <td className="px-4 py-3 font-mono">
+                  <span className="px-2 py-0.5 rounded bg-muted text-[11px] font-medium border border-border">
                     {f.code}
                   </span>
                 </td>
-                <td style={{ color: "var(--ink-secondary)" }}>
+                <td className="px-4 py-3 text-muted-foreground font-medium">
                   {meta.category}
                 </td>
-                <td style={{ color: "var(--mute)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                    <RefreshCw size={12} strokeWidth={2.2} />
+                <td className="px-4 py-3 text-muted-foreground">
+                  <div className="flex items-center gap-1.5">
+                    <RefreshCw size={12} strokeWidth={2} />
                     <span>{meta.cadence}</span>
                   </div>
                 </td>
-                <td>
-                  <span style={{ fontSize: "12px", color: "var(--mute)" }}>{meta.format}</span>
+                <td className="px-4 py-3 font-mono text-muted-foreground">
+                  {meta.format}
                 </td>
-                <td>
-                  <span className="pill pill--ok" style={{ fontSize: "11.5px" }}>
-                    <span className="dot dot--pulse" />
+                <td className="px-4 py-3">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[11px] font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     Live Active
                   </span>
                 </td>

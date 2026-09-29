@@ -112,102 +112,103 @@ export function PredictionGraph({ timeline, metrics, diseaseName }: PredictionGr
   }));
 
   return (
-    <div className="card" style={{ padding: "24px" }}>
-      {/* Accuracy & Model Performance Scorecard */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 14, marginBottom: 20 }}>
+    <div className="section-card overflow-hidden">
+      {/* Header bar */}
+      <div className="px-6 py-4 border-b border-border bg-muted/40 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <BrainCircuit size={18} strokeWidth={2.2} style={{ color: "var(--primary)" }} />
-            <h3 style={{ margin: 0, fontSize: "16px" }}>Dual-Horizon {diseaseName} Outbreak Prediction Trajectory</h3>
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+              <BrainCircuit size={16} strokeWidth={2.2} />
+            </div>
+            <h3 className="text-base font-semibold text-foreground tracking-tight m-0">
+              Dual-Horizon {diseaseName} Outbreak Prediction Trajectory
+            </h3>
           </div>
-          <p className="sub" style={{ fontSize: "13px" }}>
+          <p className="text-xs text-muted-foreground m-0">
             Bi-LSTM and ARGO neural forecasting with 8-week historical clinical observation and 4-week projected horizon.
           </p>
         </div>
 
         <button
           type="button"
-          className="btn-pill btn-pill--ghost"
+          className="btn-pill btn-pill--ghost text-xs px-3.5 py-1.5 gap-2"
           onClick={() => setShowTable(!showTable)}
-          style={{ fontSize: "12.5px", padding: "6px 14px", gap: 6 }}
         >
           {showTable ? <ChartIcon size={14} /> : <TableIcon size={14} />}
           <span>{showTable ? "View Chart Canvas" : "View Tabular Audit"}</span>
         </button>
       </div>
 
-      {/* Model Telemetry Metric Badges */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
-          gap: 12,
-          padding: "14px 18px",
-          background: "var(--card-subtle)",
-          border: "1px solid var(--hairline)",
-          borderRadius: "var(--radius-md)",
-          marginBottom: 20,
-        }}
-      >
-        <div>
-          <span style={{ fontSize: "11px", color: "var(--mute)", display: "flex", alignItems: "center", gap: 4 }}>
-            <Target size={13} style={{ color: "var(--green)" }} />
-            <span>Forecast Accuracy</span>
-          </span>
-          <div className="tabular" style={{ fontSize: "20px", fontWeight: 800, color: "var(--green)", marginTop: 2 }}>
-            {metrics.accuracyRate}%
+      <div className="p-6">
+        {/* Model Telemetry Metric Badges - Cellwego border-l-4 archetype */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="bg-card border border-border border-l-4 border-l-emerald-500 rounded-lg p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Forecast Accuracy</span>
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                <Target size={16} />
+              </div>
+            </div>
+            <div className="text-2xl font-bold tracking-tight text-foreground mt-2 font-mono">
+              {metrics.accuracyRate}%
+            </div>
+            <p className="text-xs text-muted-foreground mt-1 mb-0">Validated vs. PIDSR actuals</p>
           </div>
-          <small style={{ fontSize: "11px", color: "var(--mute)" }}>Valid vs. PIDSR actuals</small>
+
+          <div className="bg-card border border-border border-l-4 border-l-blue-500 rounded-lg p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Error Rate (MAPE)</span>
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                <TrendingUp size={16} />
+              </div>
+            </div>
+            <div className="text-2xl font-bold tracking-tight text-foreground mt-2 font-mono">
+              {metrics.mape}%
+            </div>
+            <p className="text-xs text-muted-foreground mt-1 mb-0">Mean absolute percentage error</p>
+          </div>
+
+          <div className="bg-card border border-border border-l-4 border-l-indigo-500 rounded-lg p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Goodness of Fit (R²)</span>
+              <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+                <ShieldCheck size={16} />
+              </div>
+            </div>
+            <div className="text-2xl font-bold tracking-tight text-foreground mt-2 font-mono">
+              {metrics.r2Score}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1 mb-0">Empirical correlation index</p>
+          </div>
+
+          <div className="bg-card border border-border border-l-4 border-l-purple-500 rounded-lg p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Architecture</span>
+              <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
+                <BrainCircuit size={16} />
+              </div>
+            </div>
+            <div className="text-sm font-bold text-foreground mt-2 leading-tight">
+              {metrics.modelName}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1 mb-0">{metrics.confidenceMethod}</p>
+          </div>
         </div>
 
-        <div>
-          <span style={{ fontSize: "11px", color: "var(--mute)", display: "flex", alignItems: "center", gap: 4 }}>
-            <TrendingUp size={13} style={{ color: "var(--primary)" }} />
-            <span>Error Rate (MAPE)</span>
-          </span>
-          <div className="tabular" style={{ fontSize: "20px", fontWeight: 800, color: "var(--ink)", marginTop: 2 }}>
-            {metrics.mape}%
-          </div>
-          <small style={{ fontSize: "11px", color: "var(--mute)" }}>Mean Abs % Error</small>
-        </div>
-
-        <div>
-          <span style={{ fontSize: "11px", color: "var(--mute)", display: "flex", alignItems: "center", gap: 4 }}>
-            <ShieldCheck size={13} style={{ color: "var(--cyan)" }} />
-            <span>Goodness of Fit (R²)</span>
-          </span>
-          <div className="tabular" style={{ fontSize: "20px", fontWeight: 800, color: "var(--ink)", marginTop: 2 }}>
-            {metrics.r2Score}
-          </div>
-          <small style={{ fontSize: "11px", color: "var(--mute)" }}>Correlation coefficient</small>
-        </div>
-
-        <div>
-          <span style={{ fontSize: "11px", color: "var(--mute)", display: "flex", alignItems: "center", gap: 4 }}>
-            <BrainCircuit size={13} style={{ color: "var(--purple)" }} />
-            <span>Architecture Engine</span>
-          </span>
-          <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--ink)", marginTop: 4, lineHeight: 1.2 }}>
-            {metrics.modelName}
-          </div>
-          <small style={{ fontSize: "11px", color: "var(--mute)" }}>{metrics.confidenceMethod}</small>
-        </div>
-      </div>
-
-      {!showTable ? (
-        <div style={{ position: "relative" }}>
-          {/* SVG Canvas */}
-          <div style={{ width: "100%", overflowX: "auto" }}>
-            <svg
-              viewBox={`0 0 ${scales.width} ${scales.height}`}
-              style={{ width: "100%", height: "auto", minWidth: "680px", display: "block" }}
-            >
-              <defs>
-                <linearGradient id="ciGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.22" />
-                  <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.04" />
-                </linearGradient>
-              </defs>
+        {!showTable ? (
+          <div className="relative">
+            {/* SVG Canvas */}
+            <div className="w-full overflow-x-auto">
+              <svg
+                viewBox={`0 0 ${scales.width} ${scales.height}`}
+                className="w-full h-auto min-w-[680px] block"
+              >
+                <defs>
+                  <linearGradient id="ciGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.14" />
+                    <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.02" />
+                  </linearGradient>
+                </defs>
 
               {/* Y Axis Grid Lines */}
               {yTicks.map((t) => (
@@ -340,100 +341,60 @@ export function PredictionGraph({ timeline, metrics, diseaseName }: PredictionGr
 
           {/* Active Tooltip Popover */}
           {activePoint && (
-            <div
-              style={{
-                position: "absolute",
-                top: 10,
-                right: 20,
-                background: "var(--card)",
-                border: "1px solid var(--hairline)",
-                borderRadius: "var(--radius-md)",
-                padding: "10px 14px",
-                boxShadow: "var(--shadow-md)",
-                fontSize: "12px",
-                lineHeight: 1.4,
-                zIndex: 10,
-              }}
-            >
-              <div style={{ fontWeight: 700, color: "var(--ink)", marginBottom: 4 }}>
+            <div className="absolute top-3 right-5 bg-card border border-border rounded-lg p-3 shadow-lg text-xs leading-normal z-10 pointer-events-none">
+              <div className="font-bold text-foreground mb-1">
                 {activePoint.week.weekLabel}
               </div>
               {activePoint.week.actualCases !== null ? (
-                <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--primary)" }}>
+                <div className="flex items-center gap-1.5 text-primary">
                   <span>Confirmed Actual Cases:</span>
-                  <b className="tabular" style={{ fontSize: "14px" }}>{activePoint.week.actualCases}</b>
+                  <b className="font-mono text-sm">{activePoint.week.actualCases}</b>
                 </div>
               ) : (
-                <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--amber)" }}>
+                <div className="flex items-center gap-1.5 text-amber-500">
                   <span>Projected Case Estimate:</span>
-                  <b className="tabular" style={{ fontSize: "14px" }}>{activePoint.week.predictedCases}</b>
+                  <b className="font-mono text-sm">{activePoint.week.predictedCases}</b>
                 </div>
               )}
-              <div style={{ color: "var(--mute)", marginTop: 2 }}>
-                95% CI Range: <span className="tabular">{activePoint.week.ciLower} – {activePoint.week.ciUpper}</span> cases
+              <div className="text-muted-foreground mt-0.5">
+                95% CI Range: <span className="font-mono">{activePoint.week.ciLower} – {activePoint.week.ciUpper}</span> cases
               </div>
             </div>
           )}
 
           {/* Chart Legend */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 24,
-              flexWrap: "wrap",
-              marginTop: 14,
-              paddingTop: 14,
-              borderTop: "1px solid var(--hairline)",
-              fontSize: "12px",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ width: 18, height: 3.5, background: "var(--primary)", borderRadius: 2 }} />
-              <span style={{ color: "var(--ink)" }}>Confirmed Weekly Actuals (PIDSR/ESU)</span>
+          <div className="flex items-center justify-center gap-6 flex-wrap mt-4 pt-4 border-t border-border text-xs text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <span className="w-4 h-1 bg-primary rounded" />
+              <span className="text-foreground">Confirmed Actuals (PIDSR/ESU)</span>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span
-                style={{
-                  width: 18,
-                  height: 3,
-                  borderTop: "3px dashed var(--amber)",
-                }}
-              />
-              <span style={{ color: "var(--ink)" }}>Bi-LSTM Forecast Trajectory</span>
+            <div className="flex items-center gap-2">
+              <span className="w-4 h-0 border-t-2 border-dashed border-amber-500" />
+              <span className="text-foreground">Bi-LSTM Forecast Trajectory</span>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span
-                style={{
-                  width: 16,
-                  height: 12,
-                  background: "rgba(82, 93, 249, 0.15)",
-                  border: "1px solid var(--primary-border)",
-                  borderRadius: 2,
-                }}
-              />
-              <span style={{ color: "var(--mute)" }}>95% Empirical Confidence Band</span>
+            <div className="flex items-center gap-2">
+              <span className="w-3.5 h-2.5 bg-blue-500/10 border border-blue-500/30 rounded-xs" />
+              <span>95% Empirical Confidence Band</span>
             </div>
           </div>
         </div>
       ) : (
         /* Tabular Audit Table */
-        <div style={{ overflowX: "auto" }}>
-          <table className="table" style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid var(--hairline)", textAlign: "left", color: "var(--mute)" }}>
-                <th style={{ padding: "10px 12px" }}>Epidemic Week</th>
-                <th style={{ padding: "10px 12px" }}>Phase</th>
-                <th style={{ padding: "10px 12px" }}>Confirmed Actuals</th>
-                <th style={{ padding: "10px 12px" }}>Model Predicted</th>
-                <th style={{ padding: "10px 12px" }}>95% Confidence Interval</th>
-                <th style={{ padding: "10px 12px" }}>Variance / Residual</th>
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <table className="w-full text-xs text-left border-collapse">
+            <thead className="bg-muted/40 text-muted-foreground border-b border-border">
+              <tr>
+                <th className="px-4 py-3 font-semibold uppercase tracking-wider">Epidemic Week</th>
+                <th className="px-4 py-3 font-semibold uppercase tracking-wider">Phase</th>
+                <th className="px-4 py-3 font-semibold uppercase tracking-wider">Confirmed Actuals</th>
+                <th className="px-4 py-3 font-semibold uppercase tracking-wider">Model Predicted</th>
+                <th className="px-4 py-3 font-semibold uppercase tracking-wider">95% Confidence Interval</th>
+                <th className="px-4 py-3 font-semibold uppercase tracking-wider">Variance / Residual</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-border">
               {timeline.map((w) => {
                 const diff =
                   w.actualCases !== null ? Math.round(w.actualCases - w.predictedCases) : null;
@@ -441,35 +402,32 @@ export function PredictionGraph({ timeline, metrics, diseaseName }: PredictionGr
                 return (
                   <tr
                     key={w.weekNumber}
-                    style={{
-                      borderBottom: "1px solid var(--hairline)",
-                      background: w.isFuture ? "var(--backdrop)" : "transparent",
-                    }}
+                    className={`transition-colors hover:bg-muted/30 ${w.isFuture ? "bg-muted/10" : ""}`}
                   >
-                    <td style={{ padding: "10px 12px", fontWeight: 700, color: "var(--ink)" }}>
+                    <td className="px-4 py-3 font-semibold text-foreground">
                       {w.weekLabel}
                     </td>
-                    <td style={{ padding: "10px 12px" }}>
-                      <span className={`pill ${w.isFuture ? "pill--warn" : "pill--ok"}`} style={{ fontSize: "11px" }}>
+                    <td className="px-4 py-3">
+                      <span className={`pill ${w.isFuture ? "pill--warn" : "pill--ok"} text-[10px]`}>
                         {w.isFuture ? "Forecast" : "Actual"}
                       </span>
                     </td>
-                    <td style={{ padding: "10px 12px", fontFamily: "monospace", fontWeight: 700 }}>
+                    <td className="px-4 py-3 font-mono font-bold text-foreground">
                       {w.actualCases !== null ? w.actualCases : "—"}
                     </td>
-                    <td style={{ padding: "10px 12px", fontFamily: "monospace", color: "var(--primary)" }}>
+                    <td className="px-4 py-3 font-mono text-primary font-medium">
                       {w.predictedCases}
                     </td>
-                    <td style={{ padding: "10px 12px", fontFamily: "monospace", color: "var(--mute)" }}>
+                    <td className="px-4 py-3 font-mono text-muted-foreground">
                       [{w.ciLower}, {w.ciUpper}]
                     </td>
-                    <td style={{ padding: "10px 12px", fontFamily: "monospace" }}>
+                    <td className="px-4 py-3 font-mono">
                       {diff !== null ? (
-                        <span style={{ color: Math.abs(diff) <= 3 ? "var(--green)" : "var(--amber)" }}>
+                        <span className={Math.abs(diff) <= 3 ? "text-emerald-500" : "text-amber-500"}>
                           {diff > 0 ? `+${diff}` : diff}
                         </span>
                       ) : (
-                        <span style={{ color: "var(--mute)" }}>Projected</span>
+                        <span className="text-muted-foreground">Projected</span>
                       )}
                     </td>
                   </tr>
@@ -479,6 +437,7 @@ export function PredictionGraph({ timeline, metrics, diseaseName }: PredictionGr
           </table>
         </div>
       )}
+      </div>
     </div>
   );
 }

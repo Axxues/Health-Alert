@@ -107,95 +107,92 @@ export function LocationForecastDetail() {
         </div>
       </div>
 
-      {/* Location Overview Header */}
-      <div className="card" style={{ padding: "24px 28px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
+      {/* Location Overview Header - Cellwego section-card */}
+      <div className={`section-card border-l-4 ${detail.riskLevel === "high" ? "border-l-destructive" : detail.riskLevel === "moderate" ? "border-l-amber-500" : "border-l-emerald-500"} p-6`}>
+        <div className="flex justify-between items-start flex-wrap gap-4">
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-              <span className={`pill ${detail.riskLevel === "high" ? "pill--bad" : detail.riskLevel === "moderate" ? "pill--warn" : "pill--ok"}`}>
-                {detail.riskLevel === "high" && <span className="dot dot--pulse" />}
-                <span style={{ textTransform: "uppercase" }}>{detail.riskLevel} Risk Zone</span>
+            <div className="flex items-center gap-2 mb-2">
+              <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${
+                detail.riskLevel === "high"
+                  ? "bg-destructive/10 text-destructive border-destructive/20"
+                  : detail.riskLevel === "moderate"
+                  ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                  : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+              }`}>
+                {detail.riskLevel === "high" && <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-ping" />}
+                {detail.riskLevel} Risk Zone
               </span>
-              <span className="pill pill--primary" style={{ fontSize: "11px" }}>
+              <span className="px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded text-[11px] font-semibold capitalize">
                 {detail.diseaseName}
               </span>
             </div>
-            <h1 style={{ margin: "0 0 6px", fontSize: "28px" }}>
-              {detail.barangay}, {detail.municipality}
+            <h1 className="text-2xl font-bold text-foreground m-0 mb-1">
+              Brgy. {detail.barangay}, {detail.municipality}
             </h1>
-            <p className="sub" style={{ fontSize: "14px" }}>
+            <p className="text-xs text-muted-foreground m-0">
               Province of {detail.province}, Region 1 (Ilocos Region) · Sentinel Node Telemetry
             </p>
           </div>
 
-          <div style={{ textAlign: "right" }}>
-            <span style={{ fontSize: "11px", color: "var(--mute)", display: "block" }}>Outbreak Surge Probability</span>
-            <span className="tabular" style={{ fontSize: "36px", fontWeight: 800, color: detail.riskLevel === "high" ? "var(--red)" : "var(--amber)", lineHeight: 1.1 }}>
+          <div className="text-right sm:text-right">
+            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block">Surge Probability</span>
+            <div className={`font-mono text-3xl font-extrabold leading-tight ${detail.riskLevel === "high" ? "text-destructive" : "text-amber-500"}`}>
               {Math.round(detail.outbreakProbability * 100)}%
-            </span>
-            <small style={{ fontSize: "11px", color: "var(--mute)", display: "block", marginTop: 2 }}>
+            </div>
+            <small className="text-[11px] text-muted-foreground block mt-0.5">
               Bi-LSTM Early Warning Confidence: High
             </small>
           </div>
         </div>
 
         {/* 4 Metric Telemetry Tiles */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: 16,
-            marginTop: 24,
-            paddingTop: 20,
-            borderTop: "1px solid var(--hairline)",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: "var(--radius-md)", background: "var(--primary-light)", color: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Activity size={20} strokeWidth={2.2} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 pt-5 border-t border-border">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Activity size={18} strokeWidth={2} />
             </div>
             <div>
-              <span style={{ fontSize: "11.5px", color: "var(--mute)", display: "block" }}>Current Weekly Cases</span>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                <span className="tabular" style={{ fontSize: "20px", fontWeight: 800, color: "var(--ink)" }}>{detail.activeCases}</span>
-                <span style={{ fontSize: "11.5px", fontWeight: 700, color: detail.changePercent > 0 ? "var(--red)" : "var(--green)" }}>
+              <span className="text-[11px] font-medium text-muted-foreground block">Weekly Cases</span>
+              <div className="flex items-baseline gap-2">
+                <span className="font-mono text-lg font-bold text-foreground">{detail.activeCases}</span>
+                <span className={`text-xs font-bold ${detail.changePercent > 0 ? "text-destructive" : "text-emerald-500"}`}>
                   {detail.changePercent > 0 ? `+${detail.changePercent}%` : `${detail.changePercent}%`}
                 </span>
               </div>
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: "var(--radius-md)", background: "var(--amber-bg)", color: "var(--amber)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Calendar size={20} strokeWidth={2.2} />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+              <Calendar size={18} strokeWidth={2} />
             </div>
             <div>
-              <span style={{ fontSize: "11.5px", color: "var(--mute)", display: "block" }}>Projected Outbreak Peak</span>
-              <span className="tabular" style={{ fontSize: "18px", fontWeight: 800, color: "var(--ink)" }}>
+              <span className="text-[11px] font-medium text-muted-foreground block">Projected Peak</span>
+              <span className="font-mono text-sm font-bold text-foreground block">
                 {peakWeek.weekLabel.split(" ")[0]} ({peakWeek.predictedCases} cases)
               </span>
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: "var(--radius-md)", background: "var(--backdrop)", color: "var(--ink)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Users size={20} strokeWidth={2.2} />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-muted text-muted-foreground flex items-center justify-center shrink-0">
+              <Users size={18} strokeWidth={2} />
             </div>
             <div>
-              <span style={{ fontSize: "11.5px", color: "var(--mute)", display: "block" }}>Population at Risk</span>
-              <span className="tabular" style={{ fontSize: "18px", fontWeight: 800, color: "var(--ink)" }}>
+              <span className="text-[11px] font-medium text-muted-foreground block">Population at Risk</span>
+              <span className="font-mono text-sm font-bold text-foreground block">
                 {detail.populationAtRisk.toLocaleString()} residents
               </span>
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: "var(--radius-md)", background: "var(--backdrop)", color: "var(--ink)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Building2 size={20} strokeWidth={2.2} />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-muted text-muted-foreground flex items-center justify-center shrink-0">
+              <Building2 size={18} strokeWidth={2} />
             </div>
             <div>
-              <span style={{ fontSize: "11.5px", color: "var(--mute)", display: "block" }}>Primary Sentinel Facility</span>
-              <span style={{ fontSize: "13px", fontWeight: 700, color: "var(--ink)", display: "block", lineHeight: 1.2 }}>
+              <span className="text-[11px] font-medium text-muted-foreground block">Sentinel Facility</span>
+              <span className="text-xs font-semibold text-foreground block truncate max-w-[180px]">
                 {detail.sentinelFacility}
               </span>
             </div>
@@ -211,116 +208,127 @@ export function LocationForecastDetail() {
       />
 
       {/* Environmental Covariates & SOP Playbook Recommendations */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Environmental & Clinical Covariates */}
-        <div className="card" style={{ padding: "22px 24px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <CloudRain size={18} strokeWidth={2.2} style={{ color: "var(--cyan)" }} />
-            <h3 style={{ margin: 0, fontSize: "16px" }}>Environmental & Clinical Covariates</h3>
+        <div className="section-card overflow-hidden">
+          <div className="px-6 py-4 border-b border-border bg-muted/40 flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-500">
+              <CloudRain size={16} strokeWidth={2} />
+            </div>
+            <h3 className="text-sm font-semibold text-foreground m-0">Environmental & Clinical Covariates</h3>
           </div>
-          <p className="sub" style={{ fontSize: "13px", marginBottom: 18 }}>
-            Real-time multi-source inputs driving Bi-LSTM & ARGO predictive weighting.
-          </p>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-            <div style={{ padding: "12px 14px", borderRadius: "var(--radius-md)", background: "var(--card-subtle)", border: "1px solid var(--hairline)" }}>
-              <span style={{ fontSize: "11.5px", color: "var(--mute)", display: "flex", alignItems: "center", gap: 5 }}>
-                <Droplets size={13} style={{ color: "var(--cyan)" }} />
-                <span>14-Day Cumulative Rain</span>
-              </span>
-              <div className="tabular" style={{ fontSize: "20px", fontWeight: 800, color: "var(--ink)", marginTop: 4 }}>
-                {detail.covariates.cumulativeRainfallMm} mm
-              </div>
-              <small style={{ fontSize: "11px", color: "var(--mute)" }}>PAGASA radar ingest</small>
-            </div>
+          <div className="p-6">
+            <p className="text-xs text-muted-foreground mb-4">
+              Real-time multi-source inputs driving Bi-LSTM & ARGO predictive weighting.
+            </p>
 
-            <div style={{ padding: "12px 14px", borderRadius: "var(--radius-md)", background: "var(--card-subtle)", border: "1px solid var(--hairline)" }}>
-              <span style={{ fontSize: "11.5px", color: "var(--mute)", display: "flex", alignItems: "center", gap: 5 }}>
-                <Thermometer size={13} style={{ color: "var(--amber)" }} />
-                <span>Average Temperature</span>
-              </span>
-              <div className="tabular" style={{ fontSize: "20px", fontWeight: 800, color: "var(--ink)", marginTop: 4 }}>
-                {detail.covariates.avgTemperatureC}°C
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3.5 rounded-lg bg-card border border-border">
+                <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Droplets size={13} className="text-cyan-500" />
+                  <span>14-Day Rain</span>
+                </span>
+                <div className="font-mono text-xl font-bold text-foreground mt-1">
+                  {detail.covariates.cumulativeRainfallMm} mm
+                </div>
+                <small className="text-[11px] text-muted-foreground">PAGASA radar ingest</small>
               </div>
-              <small style={{ fontSize: "11px", color: "var(--mute)" }}>Accelerates vector breeding</small>
-            </div>
 
-            <div style={{ padding: "12px 14px", borderRadius: "var(--radius-md)", background: "var(--card-subtle)", border: "1px solid var(--hairline)" }}>
-              <span style={{ fontSize: "11.5px", color: "var(--mute)", display: "flex", alignItems: "center", gap: 5 }}>
-                <Bug size={13} style={{ color: "var(--red)" }} />
-                <span>Breteau Larval Index</span>
-              </span>
-              <div className="tabular" style={{ fontSize: "20px", fontWeight: 800, color: detail.covariates.larvalBreteauIndex >= 20 ? "var(--red)" : "var(--ink)", marginTop: 4 }}>
-                {detail.covariates.larvalBreteauIndex}
+              <div className="p-3.5 rounded-lg bg-card border border-border">
+                <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Thermometer size={13} className="text-amber-500" />
+                  <span>Avg Temperature</span>
+                </span>
+                <div className="font-mono text-xl font-bold text-foreground mt-1">
+                  {detail.covariates.avgTemperatureC}°C
+                </div>
+                <small className="text-[11px] text-muted-foreground">Accelerates breeding</small>
               </div>
-              <small style={{ fontSize: "11px", color: detail.covariates.larvalBreteauIndex >= 20 ? "var(--red)" : "var(--mute)" }}>
-                {detail.covariates.larvalBreteauIndex >= 20 ? "Exceeds alert threshold (≥20)" : "Routine surveillance"}
-              </small>
-            </div>
 
-            <div style={{ padding: "12px 14px", borderRadius: "var(--radius-md)", background: "var(--card-subtle)", border: "1px solid var(--hairline)" }}>
-              <span style={{ fontSize: "11.5px", color: "var(--mute)", display: "flex", alignItems: "center", gap: 5 }}>
-                <Sun size={13} style={{ color: "var(--amber)" }} />
-                <span>Heat Index / AQI</span>
-              </span>
-              <div className="tabular" style={{ fontSize: "20px", fontWeight: 800, color: "var(--ink)", marginTop: 4 }}>
-                {detail.covariates.heatIndexC}°C / AQI {detail.covariates.aqiLevel}
+              <div className="p-3.5 rounded-lg bg-card border border-border">
+                <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Bug size={13} className="text-destructive" />
+                  <span>Breteau Larval Index</span>
+                </span>
+                <div className={`font-mono text-xl font-bold mt-1 ${detail.covariates.larvalBreteauIndex >= 20 ? "text-destructive" : "text-foreground"}`}>
+                  {detail.covariates.larvalBreteauIndex}
+                </div>
+                <small className={`text-[11px] ${detail.covariates.larvalBreteauIndex >= 20 ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                  {detail.covariates.larvalBreteauIndex >= 20 ? "Exceeds threshold (≥20)" : "Routine surveillance"}
+                </small>
               </div>
-              <small style={{ fontSize: "11px", color: "var(--mute)" }}>Rothfusz formula</small>
+
+              <div className="p-3.5 rounded-lg bg-card border border-border">
+                <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Sun size={13} className="text-amber-500" />
+                  <span>Heat Index / AQI</span>
+                </span>
+                <div className="font-mono text-xl font-bold text-foreground mt-1">
+                  {detail.covariates.heatIndexC}°C / AQI {detail.covariates.aqiLevel}
+                </div>
+                <small className="text-[11px] text-muted-foreground">Rothfusz formula</small>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Recommended SOP Response Playbooks */}
-        <div className="card" style={{ padding: "22px 24px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Workflow size={18} strokeWidth={2.2} style={{ color: "var(--primary)" }} />
-              <h3 style={{ margin: 0, fontSize: "16px" }}>Recommended Field SOP Playbooks</h3>
+        <div className="section-card overflow-hidden">
+          <div className="px-6 py-4 border-b border-border bg-muted/40 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                <Workflow size={16} strokeWidth={2} />
+              </div>
+              <h3 className="text-sm font-semibold text-foreground m-0">Recommended Field SOP Playbooks</h3>
             </div>
-            <Link to="/playbooks" style={{ fontSize: "12.5px", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}>
+            <Link to="/playbooks" className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
               <span>All SOPs</span>
               <ArrowRight size={13} />
             </Link>
           </div>
-          <p className="sub" style={{ fontSize: "13px", marginBottom: 18 }}>
-            DOH-authorized response protocols triggered based on predicted case velocity.
-          </p>
 
-          <ul className="rows">
-            {detail.recommendedPlaybooks.map((p) => {
-              const isDispatched = deployed.has(p.id);
-              return (
-                <li key={p.id} style={{ padding: "10px 0" }}>
-                  <div className="glyph" style={{ background: "var(--primary-light)", color: "var(--primary)" }}>
-                    <Shield size={16} strokeWidth={2.2} />
+          <div className="p-6">
+            <p className="text-xs text-muted-foreground mb-4">
+              DOH-authorized response protocols triggered based on predicted case velocity.
+            </p>
+
+            <div className="divide-y divide-border">
+              {detail.recommendedPlaybooks.map((p) => {
+                const isDispatched = deployed.has(p.id);
+                return (
+                  <div key={p.id} className="py-3 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                        <Shield size={16} strokeWidth={2} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-foreground m-0">{p.title}</p>
+                        <span className="text-[11px] font-mono text-muted-foreground uppercase">{p.code} · {p.urgency} priority</span>
+                      </div>
+                    </div>
+                    <div>
+                      {isDispatched ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-xs font-semibold">
+                          <CheckCircle2 size={12} strokeWidth={2.5} />
+                          <span>Dispatched</span>
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="btn-pill text-xs px-3 py-1 gap-1.5"
+                          onClick={() => handleDeploy(p.id)}
+                        >
+                          <Play size={11} strokeWidth={2.5} />
+                          <span>Deploy SOP</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <div className="meta">
-                    <p style={{ fontWeight: 600 }}>{p.title}</p>
-                    <small className="tabular">{p.code} · {p.urgency.toUpperCase()} PRIORITY</small>
-                  </div>
-                  <span className="tail">
-                    {isDispatched ? (
-                      <span className="pill pill--ok" style={{ fontSize: "11px", gap: 4 }}>
-                        <CheckCircle2 size={12} strokeWidth={2.5} />
-                        <span>Dispatched</span>
-                      </span>
-                    ) : (
-                      <button
-                        type="button"
-                        className="btn-pill"
-                        onClick={() => handleDeploy(p.id)}
-                        style={{ minHeight: 30, padding: "3px 12px", fontSize: "12px", gap: 5 }}
-                      >
-                        <Play size={11} strokeWidth={2.5} />
-                        <span>Deploy SOP</span>
-                      </button>
-                    )}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
     </div>
