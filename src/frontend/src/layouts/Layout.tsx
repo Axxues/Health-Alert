@@ -60,11 +60,6 @@ function Profile() {
           <div style={{ padding: "6px 12px 10px", borderBottom: "1px solid var(--hairline)", marginBottom: 6 }}>
             <div style={{ fontWeight: 700, fontSize: "13px", color: "var(--ink)" }}>Dr. Maria Santos</div>
             <div style={{ fontSize: "11.5px", color: "var(--mute)" }}>mho.sanfernando@doh.gov.ph</div>
-            <div style={{ marginTop: 6 }}>
-              <span className="pill pill--ok" style={{ fontSize: "10.5px", padding: "1px 8px" }}>
-                Active Session
-              </span>
-            </div>
           </div>
           <Link
             to="/users"
