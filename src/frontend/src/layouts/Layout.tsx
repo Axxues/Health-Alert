@@ -8,6 +8,9 @@ import {
   LogOut,
   ChevronDown,
   User,
+  Shield,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { menuItems } from "@/constants/layout/menu/menu";
@@ -38,7 +41,7 @@ function Profile() {
         aria-expanded={open}
       >
         <span className="avatar" aria-hidden="true">
-          HA
+          MS
         </span>
         <span className="profilemeta">
           <b>Dr. M. Santos</b>
@@ -57,16 +60,16 @@ function Profile() {
 
       {open && (
         <div className="card profilemenu anim" role="menu" style={{ "--i": 0 } as React.CSSProperties}>
-          <div style={{ padding: "6px 12px 10px", borderBottom: "1px solid var(--hairline)", marginBottom: 6 }}>
+          <div style={{ padding: "8px 12px 10px", borderBottom: "1px solid var(--hairline)", marginBottom: 6 }}>
             <div style={{ fontWeight: 700, fontSize: "13px", color: "var(--ink)" }}>Dr. Maria Santos</div>
-            <div style={{ fontSize: "11.5px", color: "var(--mute)" }}>mho.sanfernando@doh.gov.ph</div>
+            <div style={{ fontSize: "11.5px", color: "var(--mute)", marginTop: 2 }}>mho.sanfernando@doh.gov.ph</div>
           </div>
           <Link
             to="/users"
             onClick={() => setOpen(false)}
             role="menuitem"
           >
-            <User size={15} strokeWidth={2.2} />
+            <User size={14} strokeWidth={2} />
             <span>Account & Access</span>
           </Link>
           <button
@@ -77,7 +80,7 @@ function Profile() {
             }}
             style={{ color: "var(--red)" }}
           >
-            <LogOut size={15} strokeWidth={2.2} />
+            <LogOut size={14} strokeWidth={2} />
             <span>Sign Out</span>
           </button>
         </div>
@@ -88,6 +91,7 @@ function Profile() {
 
 export function Layout() {
   const [drawer, setDrawer] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const { pathname } = useLocation();
   const links = menuItems.filter((m) => !m.permission || hasPermission(m.permission));
   const close = () => setDrawer(false);
@@ -103,25 +107,75 @@ export function Layout() {
           <Menu size={18} strokeWidth={2.2} />
         </button>
 
-        <Link to="/" className="brandlink">
-          <img src="/Health-Nology_StartupLogo_PSC11_2.png" alt="Health Alert logo" />
-          <span>Health Alert</span>
-        </Link>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <Link to="/" className="brandlink">
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: "var(--radius-md)",
+                background: "hsl(var(--primary-raw) / 0.12)",
+                color: "var(--primary)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: "1px solid hsl(var(--primary-raw) / 0.25)",
+              }}
+            >
+              <Shield size={18} strokeWidth={2.5} />
+            </div>
+            <span>HealthAlert</span>
+          </Link>
+          <span
+            style={{
+              fontSize: "10px",
+              fontWeight: 800,
+              padding: "2px 6px",
+              borderRadius: "4px",
+              background: "var(--card-subtle)",
+              color: "var(--mute)",
+              border: "1px solid var(--hairline)",
+              letterSpacing: "0.04em",
+            }}
+          >
+            v1.0
+          </span>
+        </div>
 
         <label className="search">
-          <Search size={16} strokeWidth={2.2} style={{ color: "var(--mute)", flex: "none" }} />
+          <Search size={15} strokeWidth={2.2} style={{ color: "var(--mute)", flex: "none" }} />
           <input
-            placeholder="Search hotspots, barangays, diseases (⌘K)"
+            placeholder="Search hotspots, sentinel nodes, diseases..."
             aria-label="Search"
           />
           <span className="kbd">⌘K</span>
         </label>
 
         <div className="who">
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: "11px",
+              fontWeight: 700,
+              color: "var(--green)",
+              background: "hsl(var(--success-raw) / 0.1)",
+              border: "1px solid hsl(var(--success-raw) / 0.2)",
+              borderRadius: "var(--radius-pill)",
+              padding: "3px 10px",
+            }}
+          >
+            <span className="dot dot--pulse" />
+            <span>SENTINEL LIVE</span>
+          </div>
+
           <ThemeToggle />
+
           <Link to="/messaging" className="iconbtn" aria-label="Messages" title="Inter-agency Messaging">
-            <Mail size={17} strokeWidth={2.2} />
+            <Mail size={16} strokeWidth={2} />
           </Link>
+
           <Link
             to="/alerts"
             className="iconbtn"
@@ -129,7 +183,7 @@ export function Layout() {
             title="Active Outbreak Alerts"
             style={{ position: "relative" }}
           >
-            <Bell size={17} strokeWidth={2.2} />
+            <Bell size={16} strokeWidth={2} />
             <span
               className="dot dot--pulse"
               style={{
@@ -137,22 +191,52 @@ export function Layout() {
                 top: 7,
                 right: 7,
                 background: "var(--red)",
-                boxShadow: "0 0 8px var(--red)",
               }}
             />
           </Link>
+
           <Profile />
         </div>
       </header>
 
       <div className="below">
         {drawer && <div className="overlay" onClick={close} />}
-        <Sidebar items={links} />
+
+        <div style={{ position: "relative" }}>
+          <Sidebar items={links} collapsed={collapsed} />
+          <button
+            type="button"
+            onClick={() => setCollapsed(!collapsed)}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            style={{
+              position: "absolute",
+              top: 14,
+              right: -14,
+              zIndex: 30,
+              width: 28,
+              height: 28,
+              borderRadius: "50%",
+              border: "1px solid var(--hairline)",
+              background: "var(--card)",
+              color: "var(--mute)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              boxShadow: "var(--shadow-sm)",
+              transition: "all 0.15s ease",
+            }}
+          >
+            {collapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
+          </button>
+        </div>
+
         {drawer && (
           <div className="drawer">
-            <Sidebar items={links} onNavigate={close} />
+            <Sidebar items={links} onNavigate={close} collapsed={false} />
           </div>
         )}
+
         <main className="mainscroll">
           <div className="page" key={pathname}>
             <Outlet />
