@@ -17,7 +17,7 @@ export function StockpileCard({
             <Pill size={16} strokeWidth={2.2} />
           </div>
         </div>
-        <p className="mt-2 text-2xl font-bold tracking-tight text-foreground font-mono">
+        <p className="mt-2 text-2xl font-bold tracking-tight text-foreground tabular-nums">
           {totalItems}
         </p>
         <div className="mt-1 text-xs text-muted-foreground">
@@ -33,7 +33,7 @@ export function StockpileCard({
             <AlertTriangle size={16} strokeWidth={2.2} />
           </div>
         </div>
-        <p className={`mt-2 text-2xl font-bold tracking-tight font-mono ${lowStockCount > 0 ? "text-rose-600 dark:text-rose-400" : "text-foreground"}`}>
+        <p className={`mt-2 text-2xl font-bold tracking-tight tabular-nums ${lowStockCount > 0 ? "text-rose-600 dark:text-rose-400" : "text-foreground"}`}>
           {lowStockCount}
         </p>
         <div className="mt-1 text-xs text-muted-foreground">
@@ -49,7 +49,7 @@ export function StockpileCard({
             <ShieldCheck size={16} strokeWidth={2.2} />
           </div>
         </div>
-        <p className="mt-2 text-2xl font-bold tracking-tight text-foreground font-mono">
+        <p className="mt-2 text-2xl font-bold tracking-tight text-foreground tabular-nums">
           98.4<span className="text-base font-normal text-muted-foreground">%</span>
         </p>
         <div className="mt-1 text-xs text-muted-foreground">
@@ -65,7 +65,7 @@ export function StockpileCard({
             <Clock size={16} strokeWidth={2.2} />
           </div>
         </div>
-        <p className="mt-2 text-2xl font-bold tracking-tight text-foreground font-mono">
+        <p className="mt-2 text-2xl font-bold tracking-tight text-foreground tabular-nums">
           3<span className="text-base font-normal text-muted-foreground"> days</span>
         </p>
         <div className="mt-1 text-xs text-muted-foreground">

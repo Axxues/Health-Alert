@@ -46,7 +46,7 @@ export function PlaybookTable({
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs px-2 py-0.5 rounded bg-muted text-foreground border border-border">{p.code}</span>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-muted text-foreground border border-border">{p.code}</span>
                     <span className="px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 text-[10px] font-semibold">
                       Ready for Field Deployment
                     </span>

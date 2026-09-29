@@ -151,7 +151,7 @@ export function RiskMaps() {
                   <Compass size={14} />
                   Centroid
                 </span>
-                <span className="font-mono text-foreground">{selected.lat.toFixed(4)}° N, {selected.lng.toFixed(4)}° E</span>
+                <span className="text-foreground font-medium tabular-nums">{selected.lat.toFixed(4)}° N, {selected.lng.toFixed(4)}° E</span>
               </div>
               <div className="py-2.5 flex items-center justify-between">
                 <span className="text-muted-foreground flex items-center gap-1.5">

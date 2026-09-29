@@ -136,7 +136,7 @@ export function LocationForecastDetail() {
 
           <div className="text-right sm:text-right">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block">Surge Probability</span>
-            <div className={`font-mono text-3xl font-extrabold leading-tight ${detail.riskLevel === "high" ? "text-destructive" : "text-amber-500"}`}>
+            <div className={`text-3xl font-extrabold leading-tight tabular-nums ${detail.riskLevel === "high" ? "text-destructive" : "text-amber-500"}`}>
               {Math.round(detail.outbreakProbability * 100)}%
             </div>
             <small className="text-[11px] text-muted-foreground block mt-0.5">
@@ -154,7 +154,7 @@ export function LocationForecastDetail() {
             <div>
               <span className="text-[11px] font-medium text-muted-foreground block">Weekly Cases</span>
               <div className="flex items-baseline gap-2">
-                <span className="font-mono text-lg font-bold text-foreground">{detail.activeCases}</span>
+                <span className="text-lg font-bold text-foreground tabular-nums">{detail.activeCases}</span>
                 <span className={`text-xs font-bold ${detail.changePercent > 0 ? "text-destructive" : "text-emerald-500"}`}>
                   {detail.changePercent > 0 ? `+${detail.changePercent}%` : `${detail.changePercent}%`}
                 </span>
@@ -168,7 +168,7 @@ export function LocationForecastDetail() {
             </div>
             <div>
               <span className="text-[11px] font-medium text-muted-foreground block">Projected Peak</span>
-              <span className="font-mono text-sm font-bold text-foreground block">
+              <span className="text-sm font-bold text-foreground block tabular-nums">
                 {peakWeek.weekLabel.split(" ")[0]} ({peakWeek.predictedCases} cases)
               </span>
             </div>
@@ -180,7 +180,7 @@ export function LocationForecastDetail() {
             </div>
             <div>
               <span className="text-[11px] font-medium text-muted-foreground block">Population at Risk</span>
-              <span className="font-mono text-sm font-bold text-foreground block">
+              <span className="text-sm font-bold text-foreground block tabular-nums">
                 {detail.populationAtRisk.toLocaleString()} residents
               </span>
             </div>
@@ -229,7 +229,7 @@ export function LocationForecastDetail() {
                   <Droplets size={13} className="text-cyan-500" />
                   <span>14-Day Rain</span>
                 </span>
-                <div className="font-mono text-xl font-bold text-foreground mt-1">
+                <div className="text-xl font-bold text-foreground mt-1 tabular-nums">
                   {detail.covariates.cumulativeRainfallMm} mm
                 </div>
                 <small className="text-[11px] text-muted-foreground">PAGASA radar ingest</small>
@@ -240,7 +240,7 @@ export function LocationForecastDetail() {
                   <Thermometer size={13} className="text-amber-500" />
                   <span>Avg Temperature</span>
                 </span>
-                <div className="font-mono text-xl font-bold text-foreground mt-1">
+                <div className="text-xl font-bold text-foreground mt-1 tabular-nums">
                   {detail.covariates.avgTemperatureC}°C
                 </div>
                 <small className="text-[11px] text-muted-foreground">Accelerates breeding</small>
@@ -251,7 +251,7 @@ export function LocationForecastDetail() {
                   <Bug size={13} className="text-destructive" />
                   <span>Breteau Larval Index</span>
                 </span>
-                <div className={`font-mono text-xl font-bold mt-1 ${detail.covariates.larvalBreteauIndex >= 20 ? "text-destructive" : "text-foreground"}`}>
+                <div className={`text-xl font-bold mt-1 tabular-nums ${detail.covariates.larvalBreteauIndex >= 20 ? "text-destructive" : "text-foreground"}`}>
                   {detail.covariates.larvalBreteauIndex}
                 </div>
                 <small className={`text-[11px] ${detail.covariates.larvalBreteauIndex >= 20 ? "text-destructive font-medium" : "text-muted-foreground"}`}>
@@ -264,7 +264,7 @@ export function LocationForecastDetail() {
                   <Sun size={13} className="text-amber-500" />
                   <span>Heat Index / AQI</span>
                 </span>
-                <div className="font-mono text-xl font-bold text-foreground mt-1">
+                <div className="text-xl font-bold text-foreground mt-1 tabular-nums">
                   {detail.covariates.heatIndexC}°C / AQI {detail.covariates.aqiLevel}
                 </div>
                 <small className="text-[11px] text-muted-foreground">Rothfusz formula</small>
@@ -304,7 +304,7 @@ export function LocationForecastDetail() {
                       </div>
                       <div>
                         <p className="text-xs font-semibold text-foreground m-0">{p.title}</p>
-                        <span className="text-[11px] font-mono text-muted-foreground uppercase">{p.code} · {p.urgency} priority</span>
+                        <span className="text-[11px] text-muted-foreground uppercase font-semibold">{p.code} · {p.urgency} priority</span>
                       </div>
                     </div>
                     <div>

@@ -57,8 +57,8 @@ export function AlertTable({
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-3 font-mono">
-                  <span className="px-2 py-0.5 rounded bg-muted text-[11px] font-medium border border-border">
+                <td className="px-4 py-3">
+                  <span className="px-2 py-0.5 rounded bg-muted text-[11px] font-semibold border border-border">
                     {a.diseaseId ? `DISEASE-${a.diseaseId}` : "SYNDROMIC-CLUSTER"}
                   </span>
                 </td>

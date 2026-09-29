@@ -112,7 +112,7 @@ export function System() {
               <Database size={16} strokeWidth={2.2} />
             </div>
           </div>
-          <p className="mt-2 text-2xl font-bold tracking-tight text-foreground font-mono">
+          <p className="mt-2 text-2xl font-bold tracking-tight text-foreground tabular-nums">
             12<span className="text-base font-normal text-muted-foreground"> ms</span>
           </p>
           <div className="mt-1 text-xs text-muted-foreground">
@@ -166,7 +166,7 @@ export function System() {
                   <th className="px-4 py-3 font-semibold uppercase tracking-wider text-right">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border font-mono">
+              <tbody className="divide-y divide-border">
                 {AUDIT_LOGS.map((log) => (
                   <tr key={log.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3">

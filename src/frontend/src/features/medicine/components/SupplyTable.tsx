@@ -129,7 +129,7 @@ export function SupplyTable({
                     </div>
                     <div>
                       <div className="font-semibold text-foreground text-[13px]">{s.name}</div>
-                      <div className="text-[11px] text-muted-foreground font-mono">
+                      <div className="text-[11px] text-muted-foreground">
                         {s.id} · {s.category}
                       </div>
                     </div>
@@ -142,7 +142,7 @@ export function SupplyTable({
                 </td>
                 <td className="px-4 py-3 min-w-[150px]">
                   <div>
-                    <div className="flex justify-between text-[11px] mb-1 font-mono">
+                    <div className="flex justify-between text-[11px] mb-1 tabular-nums">
                       <span className="font-bold text-foreground">
                         {s.currentStock.toLocaleString()} {s.unit}
                       </span>
@@ -177,7 +177,7 @@ export function SupplyTable({
                     </span>
                   )}
                 </td>
-                <td className="px-4 py-3 font-mono text-[11px]">
+                <td className="px-4 py-3 text-[11px] tabular-nums">
                   <div className="font-medium text-foreground">{s.expiryDate}</div>
                   <div className="text-muted-foreground">{s.batchLot}</div>
                 </td>

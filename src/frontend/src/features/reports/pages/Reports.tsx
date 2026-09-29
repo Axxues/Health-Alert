@@ -113,7 +113,7 @@ export function Reports() {
               Sentinel disease incidence comparison against historic 5-year epidemic thresholds.
             </p>
           </div>
-          <span className="inline-flex items-center rounded-md bg-muted px-2.5 py-1 text-[11px] font-mono text-muted-foreground">
+          <span className="inline-flex items-center rounded-md bg-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
             Official DOH Registry
           </span>
         </div>
@@ -137,18 +137,18 @@ export function Reports() {
                     <td className="px-4 py-3 font-medium text-foreground text-[13px]">
                       {r.disease}
                     </td>
-                    <td className="px-4 py-3 font-mono font-bold text-sm">
+                    <td className="px-4 py-3 font-bold text-sm tabular-nums">
                       <span className={r.casesThisWeek > r.casesLastWeek ? "text-rose-600 dark:text-rose-400" : "text-foreground"}>
                         {r.casesThisWeek}
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-mono text-muted-foreground">
+                    <td className="px-4 py-3 text-muted-foreground tabular-nums">
                       {r.casesLastWeek}
                     </td>
-                    <td className="px-4 py-3 font-mono text-muted-foreground">
+                    <td className="px-4 py-3 text-muted-foreground tabular-nums">
                       {r.attackRate}
                     </td>
-                    <td className="px-4 py-3 font-mono text-muted-foreground">
+                    <td className="px-4 py-3 text-muted-foreground tabular-nums">
                       {r.cfr}
                     </td>
                     <td className="px-4 py-3 text-right">

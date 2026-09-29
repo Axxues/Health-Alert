@@ -122,12 +122,12 @@ export function Users() {
                   <tr key={u.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs font-mono">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">
                           {u.name.slice(0, 2).toUpperCase()}
                         </div>
                         <div>
                           <div className="font-semibold text-foreground text-[13px]">{u.name}</div>
-                          <div className="text-[11px] text-muted-foreground font-mono">{u.email}</div>
+                          <div className="text-[11px] text-muted-foreground">{u.email}</div>
                         </div>
                       </div>
                     </td>
@@ -146,7 +146,7 @@ export function Users() {
                         {u.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right font-mono text-[11px] text-muted-foreground">
+                    <td className="px-4 py-3 text-right text-[11px] text-muted-foreground">
                       {u.lastActive}
                     </td>
                   </tr>

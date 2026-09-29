@@ -60,7 +60,7 @@ export function Alerts() {
         <div className="bg-card border border-border border-l-4 border-l-destructive rounded-lg p-5 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Pending Alerts</span>
-            <div className={`text-2xl font-bold tracking-tight font-mono mt-1 ${activeCount > 0 ? "text-destructive" : "text-foreground"}`}>
+            <div className={`text-2xl font-bold tracking-tight tabular-nums mt-1 ${activeCount > 0 ? "text-destructive" : "text-foreground"}`}>
               {activeCount}
             </div>
             <span className="text-xs text-muted-foreground mt-0.5 block">Require officer action</span>
@@ -73,7 +73,7 @@ export function Alerts() {
         <div className="bg-card border border-border border-l-4 border-l-emerald-500 rounded-lg p-5 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Resolved / Acknowledged</span>
-            <div className="text-2xl font-bold tracking-tight text-foreground mt-1 font-mono">{ackedCount}</div>
+            <div className="text-2xl font-bold tracking-tight text-foreground mt-1 tabular-nums">{ackedCount}</div>
             <span className="text-xs text-muted-foreground mt-0.5 block">Contained or monitored</span>
           </div>
           <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
@@ -84,7 +84,7 @@ export function Alerts() {
         <div className="bg-card border border-border border-l-4 border-l-blue-500 rounded-lg p-5 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Total Logged Alerts</span>
-            <div className="text-2xl font-bold tracking-tight text-foreground mt-1 font-mono">{items.length}</div>
+            <div className="text-2xl font-bold tracking-tight text-foreground mt-1 tabular-nums">{items.length}</div>
             <span className="text-xs text-muted-foreground mt-0.5 block">Epidemiological period</span>
           </div>
           <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
@@ -95,11 +95,11 @@ export function Alerts() {
         <div className="bg-card border border-border border-l-4 border-l-purple-500 rounded-lg p-5 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Mean Response Time</span>
-            <div className="text-2xl font-bold tracking-tight text-emerald-500 mt-1 font-mono">&lt; 15m</div>
+            <div className="text-2xl font-bold tracking-tight text-emerald-500 mt-1 tabular-nums">&lt; 15m</div>
             <span className="text-xs text-muted-foreground mt-0.5 block">Within SLA standards</span>
           </div>
           <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
-            <span className="text-xs font-bold font-mono">SLA</span>
+            <span className="text-xs font-bold">SLA</span>
           </div>
         </div>
       </div>

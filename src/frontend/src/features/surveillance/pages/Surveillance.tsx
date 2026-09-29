@@ -145,7 +145,7 @@ export function Surveillance() {
         <div className="bg-card border border-border border-l-4 border-l-blue-500 rounded-xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">24h Ingested Records</span>
-            <div className="text-2xl font-bold tracking-tight text-foreground mt-1 font-mono">14,820</div>
+            <div className="text-2xl font-bold tracking-tight text-foreground mt-1 tabular-nums">14,820</div>
             <span className="text-xs text-muted-foreground mt-0.5 block">EDCS-IS, PAGASA, & Clinics</span>
           </div>
           <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
@@ -156,7 +156,7 @@ export function Surveillance() {
         <div className="bg-card border border-border border-l-4 border-l-indigo-500 rounded-xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Monitored Sentinels</span>
-            <div className="text-2xl font-bold tracking-tight text-foreground mt-1 font-mono">{locations.length}</div>
+            <div className="text-2xl font-bold tracking-tight text-foreground mt-1 tabular-nums">{locations.length}</div>
             <span className="text-xs text-muted-foreground mt-0.5 block">Active clinical intake</span>
           </div>
           <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500">
@@ -167,7 +167,7 @@ export function Surveillance() {
         <div className="bg-card border border-border border-l-4 border-l-amber-500 rounded-xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Pipeline Latency</span>
-            <div className="text-2xl font-bold tracking-tight text-foreground mt-1 font-mono">380ms</div>
+            <div className="text-2xl font-bold tracking-tight text-foreground mt-1 tabular-nums">380ms</div>
             <span className="text-xs text-muted-foreground mt-0.5 block">Sub-second streaming</span>
           </div>
           <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
@@ -178,7 +178,7 @@ export function Surveillance() {
         <div className="bg-card border border-border border-l-4 border-l-emerald-500 rounded-xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Active Pipelines</span>
-            <div className="text-2xl font-bold tracking-tight text-foreground mt-1 font-mono">{feeds.length || 10}</div>
+            <div className="text-2xl font-bold tracking-tight text-foreground mt-1 tabular-nums">{feeds.length || 10}</div>
             <span className="text-xs text-muted-foreground mt-0.5 block">100% Ingestion Uptime</span>
           </div>
           <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
@@ -369,7 +369,7 @@ export function Surveillance() {
                         <div>
                           <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block">Active Cases</span>
                           <div className="flex items-baseline gap-1.5 mt-0.5">
-                            <span className="font-mono text-lg font-bold text-foreground">
+                            <span className="text-lg font-bold text-foreground tabular-nums">
                               {loc.activeCases}
                             </span>
                             <span

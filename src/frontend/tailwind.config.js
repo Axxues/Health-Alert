@@ -62,6 +62,10 @@ export default {
         "sidebar-foreground": "hsl(var(--sidebar-foreground-raw) / <alpha-value>)",
         "card-hover": "hsl(var(--card-hover-raw) / <alpha-value>)",
       },
+      fontFamily: {
+        sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",

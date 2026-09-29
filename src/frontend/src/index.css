@@ -397,6 +397,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+code, kbd, samp, pre {
+  font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+}
+
 ::selection {
   background: var(--primary-light);
   color: var(--primary);

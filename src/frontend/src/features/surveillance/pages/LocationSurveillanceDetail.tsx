@@ -195,7 +195,7 @@ export function LocationSurveillanceDetail() {
           <div className="grid grid-cols-3 gap-3">
             <div className="bg-muted/40 p-3 rounded-lg border border-border">
               <div className="text-[10px] text-muted-foreground uppercase font-semibold">Active Cases</div>
-              <div className="text-xl font-bold text-foreground font-mono mt-0.5">{detail.activeCases}</div>
+              <div className="text-xl font-bold text-foreground mt-0.5 tabular-nums">{detail.activeCases}</div>
               <div className={`text-[11px] font-semibold ${detail.changePercent >= 0 ? "text-destructive" : "text-emerald-500"}`}>
                 {detail.changePercent >= 0 ? `+${detail.changePercent}%` : `${detail.changePercent}%`} vs W-1
               </div>
@@ -254,7 +254,7 @@ export function LocationSurveillanceDetail() {
                   <CloudRain size={14} className="text-sky-400" />
                   <span>Cumulative Rainfall</span>
                 </div>
-                <div className="text-lg font-bold font-mono text-foreground">{detail.covariates.cumulativeRainfallMm} mm</div>
+                <div className="text-lg font-bold text-foreground tabular-nums">{detail.covariates.cumulativeRainfallMm} mm</div>
                 <div className="text-[11px] text-muted-foreground">Past 14-day rolling sum</div>
               </div>
 
@@ -263,7 +263,7 @@ export function LocationSurveillanceDetail() {
                   <Thermometer size={14} className="text-amber-500" />
                   <span>Avg Temperature</span>
                 </div>
-                <div className="text-lg font-bold font-mono text-foreground">{detail.covariates.avgTemperatureC}°C</div>
+                <div className="text-lg font-bold text-foreground tabular-nums">{detail.covariates.avgTemperatureC}°C</div>
                 <div className="text-[11px] text-muted-foreground">Heat index: {detail.covariates.heatIndexC}°C</div>
               </div>
 
@@ -272,7 +272,7 @@ export function LocationSurveillanceDetail() {
                   <Bug size={14} className="text-rose-500" />
                   <span>Larval Breteau Index</span>
                 </div>
-                <div className="text-lg font-bold font-mono text-foreground">{detail.covariates.larvalBreteauIndex}</div>
+                <div className="text-lg font-bold text-foreground tabular-nums">{detail.covariates.larvalBreteauIndex}</div>
                 <div className={`text-[11px] font-semibold ${detail.covariates.larvalBreteauIndex > 20 ? "text-destructive" : "text-emerald-500"}`}>
                   {detail.covariates.larvalBreteauIndex > 20 ? "High Vector Density" : "Routine density"}
                 </div>
@@ -283,7 +283,7 @@ export function LocationSurveillanceDetail() {
                   <Droplets size={14} className="text-cyan-500" />
                   <span>Standing Water Sites</span>
                 </div>
-                <div className="text-lg font-bold font-mono text-foreground">{detail.covariates.standingWaterSites} sites</div>
+                <div className="text-lg font-bold text-foreground tabular-nums">{detail.covariates.standingWaterSites} sites</div>
                 <div className="text-[11px] text-muted-foreground">Sanitary inspection log</div>
               </div>
             </div>
@@ -317,9 +317,9 @@ export function LocationSurveillanceDetail() {
                 <tbody className="divide-y divide-border">
                   {caseLogs.map((log) => (
                     <tr key={log.id} className="transition-colors hover:bg-muted/30">
-                      <td className="px-3 py-2.5 font-mono font-semibold text-foreground">{log.caseHash}</td>
+                      <td className="px-3 py-2.5 font-semibold text-foreground">{log.caseHash}</td>
                       <td className="px-3 py-2.5 text-muted-foreground">{log.age}y / {log.gender}</td>
-                      <td className="px-3 py-2.5 font-mono text-muted-foreground">{log.onsetDate}</td>
+                      <td className="px-3 py-2.5 text-muted-foreground">{log.onsetDate}</td>
                       <td className="px-3 py-2.5">
                         <span
                           className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${

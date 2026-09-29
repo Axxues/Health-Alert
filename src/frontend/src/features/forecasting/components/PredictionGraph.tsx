@@ -149,7 +149,7 @@ export function PredictionGraph({ timeline, metrics, diseaseName }: PredictionGr
                 <Target size={16} />
               </div>
             </div>
-            <div className="text-2xl font-bold tracking-tight text-foreground mt-2 font-mono">
+            <div className="text-2xl font-bold tracking-tight text-foreground mt-2 tabular-nums">
               {metrics.accuracyRate}%
             </div>
             <p className="text-xs text-muted-foreground mt-1 mb-0">Validated vs. PIDSR actuals</p>
@@ -162,7 +162,7 @@ export function PredictionGraph({ timeline, metrics, diseaseName }: PredictionGr
                 <TrendingUp size={16} />
               </div>
             </div>
-            <div className="text-2xl font-bold tracking-tight text-foreground mt-2 font-mono">
+            <div className="text-2xl font-bold tracking-tight text-foreground mt-2 tabular-nums">
               {metrics.mape}%
             </div>
             <p className="text-xs text-muted-foreground mt-1 mb-0">Mean absolute percentage error</p>
@@ -175,7 +175,7 @@ export function PredictionGraph({ timeline, metrics, diseaseName }: PredictionGr
                 <ShieldCheck size={16} />
               </div>
             </div>
-            <div className="text-2xl font-bold tracking-tight text-foreground mt-2 font-mono">
+            <div className="text-2xl font-bold tracking-tight text-foreground mt-2 tabular-nums">
               {metrics.r2Score}
             </div>
             <p className="text-xs text-muted-foreground mt-1 mb-0">Empirical correlation index</p>
@@ -227,7 +227,6 @@ export function PredictionGraph({ timeline, metrics, diseaseName }: PredictionGr
                     fill="var(--mute)"
                     fontSize="11"
                     textAnchor="end"
-                    fontFamily="monospace"
                   >
                     {t.val}
                   </text>
@@ -348,16 +347,16 @@ export function PredictionGraph({ timeline, metrics, diseaseName }: PredictionGr
               {activePoint.week.actualCases !== null ? (
                 <div className="flex items-center gap-1.5 text-primary">
                   <span>Confirmed Actual Cases:</span>
-                  <b className="font-mono text-sm">{activePoint.week.actualCases}</b>
+                  <b className="text-sm tabular-nums">{activePoint.week.actualCases}</b>
                 </div>
               ) : (
                 <div className="flex items-center gap-1.5 text-amber-500">
                   <span>Projected Case Estimate:</span>
-                  <b className="font-mono text-sm">{activePoint.week.predictedCases}</b>
+                  <b className="text-sm tabular-nums">{activePoint.week.predictedCases}</b>
                 </div>
               )}
               <div className="text-muted-foreground mt-0.5">
-                95% CI Range: <span className="font-mono">{activePoint.week.ciLower} – {activePoint.week.ciUpper}</span> cases
+                95% CI Range: <span className="tabular-nums">{activePoint.week.ciLower} – {activePoint.week.ciUpper}</span> cases
               </div>
             </div>
           )}
@@ -412,16 +411,16 @@ export function PredictionGraph({ timeline, metrics, diseaseName }: PredictionGr
                         {w.isFuture ? "Forecast" : "Actual"}
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-mono font-bold text-foreground">
+                    <td className="px-4 py-3 font-bold text-foreground tabular-nums">
                       {w.actualCases !== null ? w.actualCases : "—"}
                     </td>
-                    <td className="px-4 py-3 font-mono text-primary font-medium">
+                    <td className="px-4 py-3 text-primary font-medium tabular-nums">
                       {w.predictedCases}
                     </td>
-                    <td className="px-4 py-3 font-mono text-muted-foreground">
+                    <td className="px-4 py-3 text-muted-foreground tabular-nums">
                       [{w.ciLower}, {w.ciUpper}]
                     </td>
-                    <td className="px-4 py-3 font-mono">
+                    <td className="px-4 py-3 tabular-nums">
                       {diff !== null ? (
                         <span className={Math.abs(diff) <= 3 ? "text-emerald-500" : "text-amber-500"}>
                           {diff > 0 ? `+${diff}` : diff}
