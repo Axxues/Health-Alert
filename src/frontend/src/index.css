@@ -6,53 +6,90 @@
    Health Alert — Cellwego Enterprise B2B SaaS Design System
    Architecture: Clean Slate Surface, Soft Status Tints & Linear Typography
    Reference: D:\cellwego\Frontend\Admin
-   ========================================================================== */
-
-:root {
-  /* Cellwego Core HSL Tokens (Light Mode) */
-  --background: 220 14% 97.5%;        /* #f8fafc */
-  --foreground: 222.2 84% 5%;          /* #020617 */
-  --card: 0 0% 100%;                  /* #ffffff */
-  --card-foreground: 222.2 84% 5%;
-  --card-hover: 220 14% 95%;          /* #f1f5f9 */
-  --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 5%;
-  --surface: 0 0% 100%;
+   ========================================================================== */:root {
+  /* Raw HSL channel values for Tailwind alpha opacity composition */
+  --background-raw: 220 14% 97.5%;        /* #f8fafc */
+  --foreground-raw: 222.2 84% 5%;          /* #020617 */
+  --card-raw: 0 0% 100%;                  /* #ffffff */
+  --card-foreground-raw: 222.2 84% 5%;
+  --card-hover-raw: 220 14% 95%;          /* #f1f5f9 */
+  --popover-raw: 0 0% 100%;
+  --popover-foreground-raw: 222.2 84% 5%;
+  --surface-raw: 0 0% 100%;
 
   /* Primary Brand - Precision Slate Blue */
-  --primary: 221 83% 55%;             /* #2563eb */
-  --primary-foreground: 210 40% 98%;
+  --primary-raw: 221 83% 55%;             /* #2563eb */
+  --primary-foreground-raw: 210 40% 98%;
 
   /* Neutral & Muted */
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
-  --muted: 210 40% 96.1%;             /* #f1f5f9 */
-  --muted-foreground: 215.4 16.3% 46.9%; /* #64748b */
+  --secondary-raw: 210 40% 96.1%;
+  --secondary-foreground-raw: 222.2 47.4% 11.2%;
+  --muted-raw: 210 40% 96.1%;             /* #f1f5f9 */
+  --muted-foreground-raw: 215.4 16.3% 46.9%; /* #64748b */
 
   /* Accent */
-  --accent: 210 40% 96.1%;
-  --accent-foreground: 222.2 47.4% 11.2%;
+  --accent-raw: 210 40% 96.1%;
+  --accent-foreground-raw: 222.2 47.4% 11.2%;
 
-  /* Soft Semantic Statuses (10% Pastels, No Neon Glare) */
-  --destructive: 0 84.2% 60.2%;       /* #dc2626 */
-  --destructive-foreground: 210 40% 98%;
-  --success: 142 71% 30%;             /* #15803d */
-  --success-foreground: 0 0% 100%;
-  --warning: 38 92% 50%;              /* #d97706 */
-  --warning-foreground: 0 0% 100%;
-  --info: 199 89% 48%;                /* #0284c7 */
-  --info-foreground: 0 0% 100%;
+  /* Soft Semantic Statuses */
+  --destructive-raw: 0 84.2% 60.2%;       /* #dc2626 */
+  --destructive-foreground-raw: 210 40% 98%;
+  --success-raw: 142 71% 30%;             /* #15803d */
+  --success-foreground-raw: 0 0% 100%;
+  --warning-raw: 38 92% 50%;              /* #d97706 */
+  --warning-foreground-raw: 0 0% 100%;
+  --info-raw: 199 89% 48%;                /* #0284c7 */
+  --info-foreground-raw: 0 0% 100%;
 
   /* Sidebar tokens */
-  --sidebar-bg: 0 0% 100%;
-  --sidebar-hover: 210 40% 96.1%;
-  --sidebar-active: 221 83% 55%;
-  --sidebar-foreground: 222.2 84% 5%;
+  --sidebar-bg-raw: 0 0% 100%;
+  --sidebar-hover-raw: 210 40% 96.1%;
+  --sidebar-active-raw: 221 83% 55%;
+  --sidebar-foreground-raw: 222.2 84% 5%;
 
   /* Subtle Crisp Borders */
-  --border: 214.3 31.8% 91.4%;        /* #e2e8f0 */
-  --input: 214.3 31.8% 91.4%;
-  --ring: 221 83% 55%;
+  --border-raw: 214.3 31.8% 91.4%;        /* #e2e8f0 */
+  --input-raw: 214.3 31.8% 91.4%;
+  --ring-raw: 221 83% 55%;
+
+  /* Resolved valid CSS color variables for direct CSS usage */
+  --background: hsl(var(--background-raw));
+  --foreground: hsl(var(--foreground-raw));
+  --card: hsl(var(--card-raw));
+  --card-foreground: hsl(var(--card-foreground-raw));
+  --card-hover: hsl(var(--card-hover-raw));
+  --popover: hsl(var(--popover-raw));
+  --popover-foreground: hsl(var(--popover-foreground-raw));
+  --surface: hsl(var(--surface-raw));
+
+  --primary: hsl(var(--primary-raw));
+  --primary-foreground: hsl(var(--primary-foreground-raw));
+
+  --secondary: hsl(var(--secondary-raw));
+  --secondary-foreground: hsl(var(--secondary-foreground-raw));
+  --muted: hsl(var(--muted-raw));
+  --muted-foreground: hsl(var(--muted-foreground-raw));
+
+  --accent: hsl(var(--accent-raw));
+  --accent-foreground: hsl(var(--accent-foreground-raw));
+
+  --destructive: hsl(var(--destructive-raw));
+  --destructive-foreground: hsl(var(--destructive-foreground-raw));
+  --success: hsl(var(--success-raw));
+  --success-foreground: hsl(var(--success-foreground-raw));
+  --warning: hsl(var(--warning-raw));
+  --warning-foreground: hsl(var(--warning-foreground-raw));
+  --info: hsl(var(--info-raw));
+  --info-foreground: hsl(var(--info-foreground-raw));
+
+  --sidebar-bg: hsl(var(--sidebar-bg-raw));
+  --sidebar-hover: hsl(var(--sidebar-hover-raw));
+  --sidebar-active: hsl(var(--sidebar-active-raw));
+  --sidebar-foreground: hsl(var(--sidebar-foreground-raw));
+
+  --border: hsl(var(--border-raw));
+  --input: hsl(var(--input-raw));
+  --ring: hsl(var(--ring-raw));
 
   /* Cellwego Radii Scale */
   --radius: 0.625rem;
@@ -69,114 +106,153 @@
   --shadow-lift: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -4px rgba(0, 0, 0, 0.07);
 
   /* Direct CSS Color Aliases for compatibility */
-  --canvas: hsl(var(--background));
-  --backdrop: hsl(var(--muted));
-  --card-subtle: hsl(var(--muted));
+  --canvas: hsl(var(--background-raw));
+  --backdrop: hsl(var(--muted-raw));
+  --card-subtle: hsl(var(--muted-raw));
   --card-glass: rgba(255, 255, 255, 0.9);
-  --ink: hsl(var(--foreground));
-  --ink-secondary: hsl(var(--muted-foreground));
-  --mute: hsl(var(--muted-foreground));
-  --hairline: hsl(var(--border));
-  --hairline-input: hsl(var(--input));
+  --ink: hsl(var(--foreground-raw));
+  --ink-secondary: hsl(var(--muted-foreground-raw));
+  --mute: hsl(var(--muted-foreground-raw));
+  --hairline: hsl(var(--border-raw));
+  --hairline-input: hsl(var(--input-raw));
 
-  --primary-hover: hsl(var(--primary) / 0.9);
+  --primary-hover: hsl(var(--primary-raw) / 0.9);
   --primary-deep: #1d4ed8;
-  --primary-light: hsl(var(--primary) / 0.1);
-  --primary-glow: hsl(var(--primary) / 0.15);
-  --primary-border: hsl(var(--primary) / 0.25);
+  --primary-light: hsl(var(--primary-raw) / 0.1);
+  --primary-glow: hsl(var(--primary-raw) / 0.15);
+  --primary-border: hsl(var(--primary-raw) / 0.25);
 
-  --green: hsl(var(--success));
-  --green-bg: hsl(var(--success) / 0.1);
-  --green-border: hsl(var(--success) / 0.25);
+  --green: hsl(var(--success-raw));
+  --green-bg: hsl(var(--success-raw) / 0.1);
+  --green-border: hsl(var(--success-raw) / 0.25);
 
-  --amber: hsl(var(--warning));
-  --amber-bg: hsl(var(--warning) / 0.1);
-  --amber-border: hsl(var(--warning) / 0.25);
+  --amber: hsl(var(--warning-raw));
+  --amber-bg: hsl(var(--warning-raw) / 0.1);
+  --amber-border: hsl(var(--warning-raw) / 0.25);
 
-  --red: hsl(var(--destructive));
-  --red-bg: hsl(var(--destructive) / 0.1);
-  --red-border: hsl(var(--destructive) / 0.25);
+  --red: hsl(var(--destructive-raw));
+  --red-bg: hsl(var(--destructive-raw) / 0.1);
+  --red-border: hsl(var(--destructive-raw) / 0.25);
 
-  --cyan: hsl(var(--info));
-  --cyan-bg: hsl(var(--info) / 0.1);
-  --cyan-border: hsl(var(--info) / 0.25);
+  --cyan: hsl(var(--info-raw));
+  --cyan-bg: hsl(var(--info-raw) / 0.1);
+  --cyan-border: hsl(var(--info-raw) / 0.25);
 
   --purple: #7c3aed;
   --purple-bg: rgba(124, 58, 237, 0.1);
 }
 
 [data-theme="dark"], .dark {
-  /* Cellwego Premium Deep Slate Dark Mode Tokens */
-  --background: 220 29% 10%;           /* #111726 */
-  --foreground: 210 40% 96%;           /* #f1f5f9 */
-  --card: 220 29% 12%;                 /* #151d30 */
-  --card-foreground: 210 40% 96%;
-  --card-hover: 217 19% 18%;           /* #1e293b */
-  --popover: 220 29% 12%;
-  --popover-foreground: 210 40% 96%;
-  --surface: 220 29% 14%;              /* #1b243b */
+  /* Raw HSL channel values for Tailwind alpha opacity composition (Dark) */
+  --background-raw: 220 29% 10%;           /* #111726 */
+  --foreground-raw: 210 40% 96%;           /* #f1f5f9 */
+  --card-raw: 220 29% 12%;                 /* #151d30 */
+  --card-foreground-raw: 210 40% 96%;
+  --card-hover-raw: 217 19% 18%;           /* #1e293b */
+  --popover-raw: 220 29% 12%;
+  --popover-foreground-raw: 210 40% 96%;
+  --surface-raw: 220 29% 14%;              /* #1b243b */
 
-  --primary: 217 91% 60%;              /* #3b82f6 */
-  --primary-foreground: 0 0% 100%;
+  --primary-raw: 217 91% 60%;              /* #3b82f6 */
+  --primary-foreground-raw: 0 0% 100%;
 
-  --secondary: 217.2 32.6% 17.5%;
-  --secondary-foreground: 210 40% 96%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20% 65%;     /* #94a3b8 */
+  --secondary-raw: 217.2 32.6% 17.5%;
+  --secondary-foreground-raw: 210 40% 96%;
+  --muted-raw: 217.2 32.6% 17.5%;
+  --muted-foreground-raw: 215 20% 65%;     /* #94a3b8 */
 
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 96%;
+  --accent-raw: 217.2 32.6% 17.5%;
+  --accent-foreground-raw: 210 40% 96%;
 
-  --destructive: 0 62.8% 50%;          /* #ef4444 */
-  --destructive-foreground: 210 40% 98%;
-  --success: 142 70% 38%;              /* #22c55e */
-  --success-foreground: 0 0% 100%;
-  --warning: 38 92% 50%;               /* #f59e0b */
-  --warning-foreground: 0 0% 100%;
-  --info: 199 89% 55%;                 /* #38bdf8 */
-  --info-foreground: 0 0% 100%;
+  --destructive-raw: 0 62.8% 50%;          /* #ef4444 */
+  --destructive-foreground-raw: 210 40% 98%;
+  --success-raw: 142 70% 38%;              /* #22c55e */
+  --success-foreground-raw: 0 0% 100%;
+  --warning-raw: 38 92% 50%;               /* #f59e0b */
+  --warning-foreground-raw: 0 0% 100%;
+  --info-raw: 199 89% 55%;                 /* #38bdf8 */
+  --info-foreground-raw: 0 0% 100%;
 
-  --sidebar-bg: 220 29% 10%;
-  --sidebar-hover: 217.2 32.6% 17.5%;
-  --sidebar-active: 217 91% 60%;
-  --sidebar-foreground: 210 40% 96%;
+  --sidebar-bg-raw: 220 29% 10%;
+  --sidebar-hover-raw: 217.2 32.6% 17.5%;
+  --sidebar-active-raw: 217 91% 60%;
+  --sidebar-foreground-raw: 210 40% 96%;
 
-  --border: 217 19% 20%;               /* #252f42 */
-  --input: 217 19% 20%;
-  --ring: 217 91% 60%;
+  --border-raw: 217 19% 20%;               /* #252f42 */
+  --input-raw: 217 19% 20%;
+  --ring-raw: 217 91% 60%;
+
+  /* Resolved valid CSS color variables for direct CSS usage (Dark) */
+  --background: hsl(var(--background-raw));
+  --foreground: hsl(var(--foreground-raw));
+  --card: hsl(var(--card-raw));
+  --card-foreground: hsl(var(--card-foreground-raw));
+  --card-hover: hsl(var(--card-hover-raw));
+  --popover: hsl(var(--popover-raw));
+  --popover-foreground: hsl(var(--popover-foreground-raw));
+  --surface: hsl(var(--surface-raw));
+
+  --primary: hsl(var(--primary-raw));
+  --primary-foreground: hsl(var(--primary-foreground-raw));
+
+  --secondary: hsl(var(--secondary-raw));
+  --secondary-foreground: hsl(var(--secondary-foreground-raw));
+  --muted: hsl(var(--muted-raw));
+  --muted-foreground: hsl(var(--muted-foreground-raw));
+
+  --accent: hsl(var(--accent-raw));
+  --accent-foreground: hsl(var(--accent-foreground-raw));
+
+  --destructive: hsl(var(--destructive-raw));
+  --destructive-foreground: hsl(var(--destructive-foreground-raw));
+  --success: hsl(var(--success-raw));
+  --success-foreground: hsl(var(--success-foreground-raw));
+  --warning: hsl(var(--warning-raw));
+  --warning-foreground: hsl(var(--warning-foreground-raw));
+  --info: hsl(var(--info-raw));
+  --info-foreground: hsl(var(--info-foreground-raw));
+
+  --sidebar-bg: hsl(var(--sidebar-bg-raw));
+  --sidebar-hover: hsl(var(--sidebar-hover-raw));
+  --sidebar-active: hsl(var(--sidebar-active-raw));
+  --sidebar-foreground: hsl(var(--sidebar-foreground-raw));
+
+  --border: hsl(var(--border-raw));
+  --input: hsl(var(--input-raw));
+  --ring: hsl(var(--ring-raw));
 
   /* Dark CSS Color Aliases */
-  --canvas: hsl(var(--background));
-  --backdrop: hsl(var(--muted));
-  --card-subtle: hsl(var(--surface));
+  --canvas: hsl(var(--background-raw));
+  --backdrop: hsl(var(--muted-raw));
+  --card-subtle: hsl(var(--surface-raw));
   --card-glass: rgba(21, 29, 48, 0.88);
-  --ink: hsl(var(--foreground));
-  --ink-secondary: hsl(var(--muted-foreground));
-  --mute: hsl(var(--muted-foreground));
-  --hairline: hsl(var(--border));
-  --hairline-input: hsl(var(--input));
+  --ink: hsl(var(--foreground-raw));
+  --ink-secondary: hsl(var(--muted-foreground-raw));
+  --mute: hsl(var(--muted-foreground-raw));
+  --hairline: hsl(var(--border-raw));
+  --hairline-input: hsl(var(--input-raw));
 
-  --primary-hover: hsl(var(--primary) / 0.9);
+  --primary-hover: hsl(var(--primary-raw) / 0.9);
   --primary-deep: #1e40af;
-  --primary-light: hsl(var(--primary) / 0.12);
-  --primary-glow: hsl(var(--primary) / 0.18);
-  --primary-border: hsl(var(--primary) / 0.3);
+  --primary-light: hsl(var(--primary-raw) / 0.12);
+  --primary-glow: hsl(var(--primary-raw) / 0.18);
+  --primary-border: hsl(var(--primary-raw) / 0.3);
 
-  --green: hsl(var(--success));
-  --green-bg: hsl(var(--success) / 0.12);
-  --green-border: hsl(var(--success) / 0.25);
+  --green: hsl(var(--success-raw));
+  --green-bg: hsl(var(--success-raw) / 0.12);
+  --green-border: hsl(var(--success-raw) / 0.3);
 
-  --amber: hsl(var(--warning));
-  --amber-bg: hsl(var(--warning) / 0.12);
-  --amber-border: hsl(var(--warning) / 0.25);
+  --amber: hsl(var(--warning-raw));
+  --amber-bg: hsl(var(--warning-raw) / 0.12);
+  --amber-border: hsl(var(--warning-raw) / 0.3);
 
-  --red: hsl(var(--destructive));
-  --red-bg: hsl(var(--destructive) / 0.12);
-  --red-border: hsl(var(--destructive) / 0.25);
+  --red: hsl(var(--destructive-raw));
+  --red-bg: hsl(var(--destructive-raw) / 0.12);
+  --red-border: hsl(var(--destructive-raw) / 0.3);
 
-  --cyan: hsl(var(--info));
-  --cyan-bg: hsl(var(--info) / 0.12);
-  --cyan-border: hsl(var(--info) / 0.25);
+  --cyan: hsl(var(--info-raw));
+  --cyan-bg: hsl(var(--info-raw) / 0.12);
+  --cyan-border: hsl(var(--info-raw) / 0.3);
 
   --purple: #a855f7;
   --purple-bg: rgba(168, 85, 247, 0.12);

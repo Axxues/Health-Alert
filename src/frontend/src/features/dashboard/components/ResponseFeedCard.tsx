@@ -27,46 +27,40 @@ export function ResponseFeedCard({
   return (
     <div className="section-card anim" style={{ "--i": 6 } as React.CSSProperties}>
       <div className="section-card-head" style={{ padding: "8px 12px" }}>
-        <div style={{ display: "flex", gap: 6 }}>
+        <div className="inline-flex items-center gap-1 p-1 bg-muted/70 rounded-lg border border-border/80">
           <button
             type="button"
-            className={`btn-pill ${tab === "alerts" ? "" : "btn-pill--ghost"}`}
-            style={{ fontSize: "12px", padding: "5px 12px", borderRadius: "var(--radius-md)" }}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+              tab === "alerts"
+                ? "bg-card text-foreground shadow-xs border border-border/60"
+                : "text-muted-foreground hover:text-foreground border border-transparent"
+            }`}
             onClick={() => setTab("alerts")}
           >
-            <Bell size={13} />
+            <Bell size={13} className={tab === "alerts" ? "text-primary" : "text-muted-foreground"} />
             <span>Active Alerts</span>
             <span
-              style={{
-                fontSize: "10.5px",
-                fontWeight: 700,
-                padding: "1px 6px",
-                borderRadius: "var(--radius-pill)",
-                background: openAlerts.length > 0 ? "hsl(var(--warning-raw) / 0.15)" : "var(--hairline)",
-                color: openAlerts.length > 0 ? "var(--amber)" : "var(--mute)",
-              }}
+              className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                openAlerts.length > 0
+                  ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                  : "bg-muted text-muted-foreground"
+              }`}
             >
               {openAlerts.length}
             </span>
           </button>
           <button
             type="button"
-            className={`btn-pill ${tab === "playbooks" ? "" : "btn-pill--ghost"}`}
-            style={{ fontSize: "12px", padding: "5px 12px", borderRadius: "var(--radius-md)" }}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+              tab === "playbooks"
+                ? "bg-card text-foreground shadow-xs border border-border/60"
+                : "text-muted-foreground hover:text-foreground border border-transparent"
+            }`}
             onClick={() => setTab("playbooks")}
           >
-            <Workflow size={13} />
+            <Workflow size={13} className={tab === "playbooks" ? "text-primary" : "text-muted-foreground"} />
             <span>Field Playbooks</span>
-            <span
-              style={{
-                fontSize: "10.5px",
-                fontWeight: 700,
-                padding: "1px 6px",
-                borderRadius: "var(--radius-pill)",
-                background: "var(--hairline)",
-                color: "var(--mute)",
-              }}
-            >
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
               {bookList.length}
             </span>
           </button>
