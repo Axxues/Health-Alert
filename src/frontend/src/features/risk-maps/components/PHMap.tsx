@@ -10,23 +10,35 @@ const DEFAULT_ZOOM = 9;
 
 type BasemapType = "auto" | "clean" | "dark" | "satellite";
 
-const TILE_SERVERS = {
+interface TileConfig {
+  base: string;
+  reference?: string;
+  attribution: string;
+  maxZoom: number;
+  maxNativeZoom?: number;
+}
+
+const TILE_SERVERS: Record<"clean" | "dark" | "satellite", TileConfig> = {
   clean: {
-    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-    attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap',
+    base: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+    reference: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+    attribution: "&copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors",
     maxZoom: 19,
-    subdomains: "abcd",
+    maxNativeZoom: 16,
   },
   dark: {
-    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-    attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap',
+    base: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+    reference: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+    attribution: "&copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors",
     maxZoom: 19,
-    subdomains: "abcd",
+    maxNativeZoom: 16,
   },
   satellite: {
-    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    base: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    reference: "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
     attribution: "&copy; Esri, Maxar, Earthstar Geographics, GIS Community",
-    maxZoom: 18,
+    maxZoom: 19,
+    maxNativeZoom: 18,
   },
 };
 
@@ -45,7 +57,7 @@ export function PHMap({
 }: PHMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
-  const tileLayerRef = useRef<L.TileLayer | null>(null);
+  const basemapGroupRef = useRef<L.LayerGroup | null>(null);
   const markersLayerRef = useRef<L.LayerGroup | null>(null);
   const densityLayerRef = useRef<L.LayerGroup | null>(null);
 
@@ -98,6 +110,7 @@ export function PHMap({
     return () => {
       map.remove();
       mapRef.current = null;
+      basemapGroupRef.current = null;
     };
   }, []);
 
@@ -111,18 +124,34 @@ export function PHMap({
 
     const config = TILE_SERVERS[activeMode];
 
-    if (tileLayerRef.current) {
-      map.removeLayer(tileLayerRef.current);
+    if (basemapGroupRef.current) {
+      map.removeLayer(basemapGroupRef.current);
     }
 
-    const newTile = L.tileLayer(config.url, {
+    const group = L.layerGroup();
+
+    // Base tiles
+    const baseLayer = L.tileLayer(config.base, {
       attribution: config.attribution,
       maxZoom: config.maxZoom,
-      subdomains: "subdomains" in config ? config.subdomains : "abc",
-    }).addTo(map);
+      maxNativeZoom: config.maxNativeZoom ?? config.maxZoom,
+    });
+    group.addLayer(baseLayer);
 
-    tileLayerRef.current = newTile;
-    newTile.bringToBack();
+    // Reference/Label tiles if present
+    if (config.reference) {
+      const refLayer = L.tileLayer(config.reference, {
+        maxZoom: config.maxZoom,
+        maxNativeZoom: config.maxNativeZoom ?? config.maxZoom,
+        opacity: 0.95,
+      });
+      group.addLayer(refLayer);
+    }
+
+    group.addTo(map);
+    basemapGroupRef.current = group;
+
+    baseLayer.bringToBack();
   }, [basemap, isSystemDark]);
 
   // Update Hotspot Markers & Density Circles
