@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { ZoomIn, ZoomOut, RotateCcw, MapPin } from "lucide-react";
+import { ZoomIn, ZoomOut, RotateCcw, MapPin, Building, Map as MapIcon } from "lucide-react";
 import type { Hotspot } from "@/services/riskmaps/types";
 
 // Region 1 Default Centroid (Pangasinan through Ilocos Norte corridor)
@@ -9,6 +9,7 @@ const REGION_1_CENTER: [number, number] = [16.85, 120.45];
 const DEFAULT_ZOOM = 8;
 
 type BasemapType = "auto" | "clean" | "dark" | "satellite";
+type GranularityLevel = "province" | "municipality" | "barangay";
 
 interface TileConfig {
   base: string;
@@ -42,6 +43,85 @@ const TILE_SERVERS: Record<"clean" | "dark" | "satellite", TileConfig> = {
   },
 };
 
+interface GeoGroup {
+  id: string;
+  name: string;
+  parentName?: string;
+  lat: number;
+  lng: number;
+  items: Hotspot[];
+  level: string;
+  diseaseSummary: string;
+  cases: number;
+}
+
+function groupByMunicipality(spots: Hotspot[]): GeoGroup[] {
+  const groups: Record<string, Hotspot[]> = {};
+
+  spots.forEach((spot) => {
+    const key = spot.municipality || spot.muni.split(",")[1]?.trim() || spot.muni;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(spot);
+  });
+
+  return Object.entries(groups).map(([muniName, items]) => {
+    const avgLat = items.reduce((acc, s) => acc + s.lat, 0) / items.length;
+    const avgLng = items.reduce((acc, s) => acc + s.lng, 0) / items.length;
+    const hasHigh = items.some((s) => /high/i.test(s.level));
+    const hasMed = items.some((s) => /med|moderate/i.test(s.level));
+    const level = hasHigh ? "high" : hasMed ? "medium" : "low";
+    const totalCases = items.reduce((acc, s) => acc + (s.cases || 0), 0);
+
+    const diseaseSet = Array.from(new Set(items.map((s) => s.disease)));
+    const diseaseSummary =
+      diseaseSet.length === 1
+        ? diseaseSet[0].toUpperCase()
+        : `${diseaseSet.length} Diseases`;
+
+    return {
+      id: `muni-${muniName.toLowerCase().replace(/\s+/g, "-")}`,
+      name: muniName,
+      parentName: items[0].province,
+      lat: avgLat,
+      lng: avgLng,
+      items,
+      level,
+      diseaseSummary,
+      cases: totalCases,
+    };
+  });
+}
+
+function groupByProvince(spots: Hotspot[]): GeoGroup[] {
+  const groups: Record<string, Hotspot[]> = {};
+
+  spots.forEach((spot) => {
+    const key = spot.province || "Region 1";
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(spot);
+  });
+
+  return Object.entries(groups).map(([provName, items]) => {
+    const avgLat = items.reduce((acc, s) => acc + s.lat, 0) / items.length;
+    const avgLng = items.reduce((acc, s) => acc + s.lng, 0) / items.length;
+    const hasHigh = items.some((s) => /high/i.test(s.level));
+    const hasMed = items.some((s) => /med|moderate/i.test(s.level));
+    const level = hasHigh ? "high" : hasMed ? "medium" : "low";
+    const totalCases = items.reduce((acc, s) => acc + (s.cases || 0), 0);
+
+    return {
+      id: `prov-${provName.toLowerCase().replace(/\s+/g, "-")}`,
+      name: provName,
+      lat: avgLat,
+      lng: avgLng,
+      items,
+      level,
+      diseaseSummary: `${items.length} Hotspots`,
+      cases: totalCases,
+    };
+  });
+}
+
 interface PHMapProps {
   spots: Hotspot[];
   selected: Hotspot | null;
@@ -62,12 +142,20 @@ export function PHMap({
   const densityLayerRef = useRef<L.LayerGroup | null>(null);
 
   const [basemap, setBasemap] = useState<BasemapType>("auto");
+  const [currentZoom, setCurrentZoom] = useState<number>(DEFAULT_ZOOM);
   const [isSystemDark, setIsSystemDark] = useState<boolean>(() => {
     return (
       document.documentElement.getAttribute("data-theme") === "dark" ||
       document.documentElement.classList.contains("dark")
     );
   });
+
+  // Determine hierarchical granularity based on current zoom
+  const granularity: GranularityLevel = useMemo(() => {
+    if (currentZoom <= 8.5) return "province";
+    if (currentZoom < 12) return "municipality";
+    return "barangay";
+  }, [currentZoom]);
 
   // Track theme changes on html element
   useEffect(() => {
@@ -105,9 +193,16 @@ export function PHMap({
     markersLayerRef.current = L.layerGroup().addTo(map);
     densityLayerRef.current = L.layerGroup().addTo(map);
 
+    // Track zoom updates to trigger automatic hierarchical aggregation
+    const onZoom = () => {
+      setCurrentZoom(map.getZoom());
+    };
+    map.on("zoomend", onZoom);
+
     mapRef.current = map;
 
     return () => {
+      map.off("zoomend", onZoom);
       map.remove();
       mapRef.current = null;
       basemapGroupRef.current = null;
@@ -154,7 +249,7 @@ export function PHMap({
     baseLayer.bringToBack();
   }, [basemap, isSystemDark]);
 
-  // Update Hotspot Markers & Density Circles
+  // Update Hotspot Markers & Density Circles based on dynamic zoom hierarchy
   useEffect(() => {
     const map = mapRef.current;
     const markersGroup = markersLayerRef.current;
@@ -164,12 +259,163 @@ export function PHMap({
     markersGroup.clearLayers();
     densityGroup.clearLayers();
 
+    // 1. PROVINCIAL GRANULARITY (Zoomed out: zoom <= 8.5)
+    if (granularity === "province") {
+      const provinces = groupByProvince(spots);
+
+      provinces.forEach((prov) => {
+        const isSelected = selected && prov.items.some((s) => s.id === selected.id);
+        const isHigh = /high/i.test(prov.level);
+        const isMed = /med|moderate/i.test(prov.level);
+        const colorHex = isHigh ? "#ef4444" : isMed ? "#f59e0b" : "#2563eb";
+
+        // Province Buffer Circle (regional envelope)
+        if (showDensity) {
+          const circle = L.circle([prov.lat, prov.lng], {
+            radius: 12000,
+            color: colorHex,
+            weight: 2,
+            opacity: 0.75,
+            fillColor: colorHex,
+            fillOpacity: isSelected ? 0.3 : 0.12,
+            dashArray: "6, 6",
+            className: "leaflet-density-circle",
+          });
+
+          circle.on("click", () => {
+            map.flyTo([prov.lat, prov.lng], 10, { duration: 1.0 });
+          });
+
+          densityGroup.addLayer(circle);
+        }
+
+        const iconHtml = `
+          <div class="gis-pulse-marker ${isHigh ? "gis-pulse--high" : isMed ? "gis-pulse--med" : "gis-pulse--baseline"} ${isSelected ? "gis-pulse--selected" : ""}">
+            <div class="gis-pulse-ring"></div>
+            <div class="gis-marker-badge" style="width: 32px; height: 32px;">
+              <span class="gis-badge-code" style="font-size: 11px;">${prov.items.length}</span>
+            </div>
+            <div class="gis-marker-label" style="top: 34px; font-weight: 800;">${prov.name} (${prov.items.length})</div>
+          </div>
+        `;
+
+        const customIcon = L.divIcon({
+          html: iconHtml,
+          className: "gis-custom-icon",
+          iconSize: [36, 36],
+          iconAnchor: [18, 18],
+        });
+
+        const marker = L.marker([prov.lat, prov.lng], { icon: customIcon });
+
+        marker.on("click", (e) => {
+          L.DomEvent.stopPropagation(e);
+          map.flyTo([prov.lat, prov.lng], 10, { duration: 1.0 });
+        });
+
+        marker.bindTooltip(
+          `<div class="p-1 font-sans text-xs">
+            <div class="font-bold text-foreground">${prov.name} Province</div>
+            <div class="text-muted-foreground">${prov.items.length} Monitored Hotspots · <span class="font-bold ${isHigh ? "text-destructive" : isMed ? "text-amber-500" : "text-primary"}">${prov.level.toUpperCase()} RISK</span></div>
+            <div class="text-[11px] font-semibold text-foreground mt-0.5">${prov.cases} Total Active Cases</div>
+            <div class="text-[10px] text-primary font-semibold mt-1">Click to zoom into municipalities &rarr;</div>
+          </div>`,
+          { direction: "top", offset: [0, -20], opacity: 0.95 }
+        );
+
+        markersGroup.addLayer(marker);
+      });
+      return;
+    }
+
+    // 2. MUNICIPALITY GRANULARITY (Mid Zoom: 8.5 < zoom < 12)
+    if (granularity === "municipality") {
+      const municipalities = groupByMunicipality(spots);
+
+      municipalities.forEach((muni) => {
+        const isSelected = selected && muni.items.some((s) => s.id === selected.id);
+        const isHigh = /high/i.test(muni.level);
+        const isMed = /med|moderate/i.test(muni.level);
+        const colorHex = isHigh ? "#ef4444" : isMed ? "#f59e0b" : "#2563eb";
+
+        // Municipality Buffer Circle (calibrated to municipal envelope)
+        if (showDensity) {
+          const radius = isHigh ? 2400 : isMed ? 1900 : 1500;
+          const circle = L.circle([muni.lat, muni.lng], {
+            radius,
+            color: colorHex,
+            weight: 2,
+            opacity: 0.8,
+            fillColor: colorHex,
+            fillOpacity: isSelected ? 0.35 : 0.16,
+            dashArray: isHigh ? "5, 4" : undefined,
+            className: "leaflet-density-circle",
+          });
+
+          circle.on("click", () => {
+            map.flyTo([muni.lat, muni.lng], 13, { duration: 1.0 });
+          });
+
+          densityGroup.addLayer(circle);
+        }
+
+        const badgeText =
+          muni.items.length === 1
+            ? (muni.items[0].disease === "asthma"
+                ? "AST"
+                : muni.items[0].disease === "leptospirosis"
+                ? "LEP"
+                : muni.items[0].disease === "ili"
+                ? "ILI"
+                : muni.items[0].disease.slice(0, 3).toUpperCase())
+            : `${muni.items.length}`;
+
+        const iconHtml = `
+          <div class="gis-pulse-marker ${isHigh ? "gis-pulse--high" : isMed ? "gis-pulse--med" : "gis-pulse--baseline"} ${isSelected ? "gis-pulse--selected" : ""}">
+            <div class="gis-pulse-ring"></div>
+            <div class="gis-marker-badge" style="width: 30px; height: 30px;">
+              <span class="gis-badge-code">${badgeText}</span>
+            </div>
+            <div class="gis-marker-label" style="top: 32px;">${muni.name}${muni.items.length > 1 ? ` (${muni.items.length})` : ""}</div>
+          </div>
+        `;
+
+        const customIcon = L.divIcon({
+          html: iconHtml,
+          className: "gis-custom-icon",
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+        });
+
+        const marker = L.marker([muni.lat, muni.lng], { icon: customIcon });
+
+        marker.on("click", (e) => {
+          L.DomEvent.stopPropagation(e);
+          map.flyTo([muni.lat, muni.lng], 13, { duration: 1.0 });
+          onSelect(muni.items[0]);
+        });
+
+        marker.bindTooltip(
+          `<div class="p-1 font-sans text-xs">
+            <div class="font-bold text-foreground">${muni.name}</div>
+            <div class="text-muted-foreground">${muni.parentName || "Region 1"} · ${muni.items.length} Hotspot${muni.items.length > 1 ? "s" : ""} · <span class="font-bold ${isHigh ? "text-destructive" : isMed ? "text-amber-500" : "text-primary"}">${muni.level.toUpperCase()}</span></div>
+            <div class="text-[11px] font-semibold text-foreground mt-0.5">${muni.cases} Active Cases (${muni.diseaseSummary})</div>
+            <div class="text-[10px] text-primary font-semibold mt-1">Click to zoom into barangays &rarr;</div>
+          </div>`,
+          { direction: "top", offset: [0, -18], opacity: 0.95 }
+        );
+
+        markersGroup.addLayer(marker);
+      });
+      return;
+    }
+
+    // 3. BARANGAY GRANULARITY (Zoomed in: zoom >= 12)
     spots.forEach((spot) => {
       const isSelected =
         selected?.muni === spot.muni && selected?.disease === spot.disease;
       const isHigh = /high/i.test(spot.level);
       const isMed = /med|moderate/i.test(spot.level);
-
       const colorHex = isHigh ? "#ef4444" : isMed ? "#f59e0b" : "#2563eb";
       const diseaseShort =
         spot.disease.toLowerCase() === "asthma"
@@ -180,9 +426,8 @@ export function PHMap({
           ? "ILI"
           : spot.disease.slice(0, 3).toUpperCase();
 
-      // 1. Transmission Density Buffer Circle (Calibrated to barangay footprint)
+      // Individual Barangay Density Circle (Calibrated to barangay footprint)
       if (showDensity) {
-        // Standard Philippine barangay jurisdiction radius (~380m to 650m)
         const radius = isHigh ? 650 : isMed ? 500 : 380;
         const circle = L.circle([spot.lat, spot.lng], {
           radius,
@@ -202,7 +447,7 @@ export function PHMap({
         densityGroup.addLayer(circle);
       }
 
-      // 2. Custom Animated Pulse Marker
+      // Animated Pulse Marker
       const labelText = spot.barangay || spot.muni.split(",")[0].replace(/^Brgy\.\s*/i, "");
       const iconHtml = `
         <div class="gis-pulse-marker ${isHigh ? "gis-pulse--high" : isMed ? "gis-pulse--med" : "gis-pulse--baseline"} ${isSelected ? "gis-pulse--selected" : ""}">
@@ -240,9 +485,9 @@ export function PHMap({
 
       markersGroup.addLayer(marker);
     });
-  }, [spots, selected, showDensity, onSelect]);
+  }, [spots, selected, showDensity, onSelect, granularity]);
 
-  // Fly to selected hotspot
+  // Fly to selected hotspot (auto-zooms to barangay level)
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !selected) return;
@@ -338,24 +583,71 @@ export function PHMap({
         </button>
       </div>
 
-      {/* Floating Status / Legend Bar (Bottom Left) */}
-      <div className="absolute bottom-3 left-3 z-[1000] p-2.5 px-3 bg-card/92 backdrop-blur-md rounded-lg border border-border shadow-md flex items-center gap-4 text-xs">
+      {/* Floating Status & Granularity Controls (Bottom Left) */}
+      <div className="absolute bottom-3 left-3 z-[1000] p-2 px-3 bg-card/92 backdrop-blur-md rounded-lg border border-border shadow-md flex items-center gap-3 text-xs flex-wrap">
         <div className="flex items-center gap-1.5 font-bold text-foreground">
           <MapPin size={14} className="text-primary" />
-          <span>{spots.length} Active Hotspots</span>
+          <span>{spots.length} Hotspots</span>
         </div>
+        
         <div className="h-3.5 w-px bg-border" />
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-destructive animate-pulse" />
+
+        {/* Dynamic Hierarchy Level Switcher / Indicator */}
+        <div className="flex items-center gap-1 bg-muted/80 p-0.5 rounded-md text-[11px]">
+          <button
+            type="button"
+            onClick={() => mapRef.current?.flyTo(REGION_1_CENTER, 8, { duration: 0.8 })}
+            className={`px-2 py-0.5 rounded font-semibold transition-all flex items-center gap-1 ${
+              granularity === "province"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            title="Switch to Province Level"
+          >
+            <MapIcon size={11} />
+            <span>Province</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => mapRef.current?.flyTo([16.6159, 120.3209], 10, { duration: 0.8 })}
+            className={`px-2 py-0.5 rounded font-semibold transition-all flex items-center gap-1 ${
+              granularity === "municipality"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            title="Switch to Municipality Level"
+          >
+            <Building size={11} />
+            <span>Municipality</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => mapRef.current?.flyTo([16.6159, 120.3209], 13, { duration: 0.8 })}
+            className={`px-2 py-0.5 rounded font-semibold transition-all flex items-center gap-1 ${
+              granularity === "barangay"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            title="Switch to Barangay Level"
+          >
+            <MapPin size={11} />
+            <span>Barangay</span>
+          </button>
+        </div>
+
+        <div className="h-3.5 w-px bg-border" />
+
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
             <span className="text-foreground font-medium">{highCount} High</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+          <div className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-amber-500" />
             <span className="text-muted-foreground">{medCount} Watch</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+          <div className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-blue-500" />
             <span className="text-muted-foreground">{lowCount} Baseline</span>
           </div>
         </div>
