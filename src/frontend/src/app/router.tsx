@@ -15,6 +15,10 @@ const Rag = lazy(() => import("@/features/rag/pages/Rag").then((m) => ({ default
 const Playbooks = lazy(() => import("@/features/playbooks/pages/Playbooks").then((m) => ({ default: m.Playbooks })));
 const Alerts = lazy(() => import("@/features/alerts/pages/Alerts").then((m) => ({ default: m.Alerts })));
 const Citizen = lazy(() => import("@/features/citizen/pages/Citizen").then((m) => ({ default: m.Citizen })));
+const Medicine = lazy(() => import("@/features/medicine/pages/Medicine").then((m) => ({ default: m.Medicine })));
+const Reports = lazy(() => import("@/features/reports/pages/Reports").then((m) => ({ default: m.Reports })));
+const Users = lazy(() => import("@/features/users/pages/Users").then((m) => ({ default: m.Users })));
+const System = lazy(() => import("@/features/system/pages/System").then((m) => ({ default: m.System })));
 
 function ProtectedRoute() {
   return isAuthenticated() ? <Outlet /> : <Navigate to="/login" replace />;
@@ -26,11 +30,11 @@ function PermissionRoute({ permission, children }: { permission: string; childre
 }
 
 const slice = (el: React.ReactNode) => (
-  <Suspense fallback={<p className="muted">Loading…</p>}>{el}</Suspense>
+  <Suspense fallback={<p className="muted" style={{ padding: "32px", textAlign: "center" }}>Loading surveillance telemetry…</p>}>{el}</Suspense>
 );
 
 const page = (title: string) => (
-  <Suspense fallback={<p className="muted">Loading…</p>}>
+  <Suspense fallback={<p className="muted" style={{ padding: "32px", textAlign: "center" }}>Loading surveillance telemetry…</p>}>
     <Placeholder title={title} />
   </Suspense>
 );
@@ -40,7 +44,6 @@ const guard = (permission: string, el: React.ReactNode) => ({
   children: [{ index: true, element: slice(el) }],
 });
 
-// ponytail: real slices for Task 6; reports/users/messaging/system stay placeholder until needed
 export const router = createBrowserRouter([
   { path: "/login", element: <Suspense fallback={null}><Login /></Suspense> },
   { path: "/unauthorized", element: <Suspense fallback={null}><Unauthorized /></Suspense> },
@@ -58,10 +61,11 @@ export const router = createBrowserRouter([
           { path: "playbooks", ...guard(PERMISSIONS.playbookView, <Playbooks />) },
           { path: "alerts", ...guard(PERMISSIONS.alertsView, <Alerts />) },
           { path: "citizen", ...guard(PERMISSIONS.citizenView, <Citizen />) },
-          { path: "reports", element: page("Reports") },
-          { path: "users", element: page("Users") },
+          { path: "medicine", element: slice(<Medicine />) },
+          { path: "reports", element: slice(<Reports />) },
+          { path: "users", element: slice(<Users />) },
           { path: "messaging", element: page("Messaging") },
-          { path: "system", element: page("System") },
+          { path: "system", element: slice(<System />) },
         ],
       },
     ],
