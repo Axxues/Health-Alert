@@ -180,17 +180,18 @@ export function PHMap({
           ? "ILI"
           : spot.disease.slice(0, 3).toUpperCase();
 
-      // 1. Transmission Density Buffer Circle
+      // 1. Transmission Density Buffer Circle (Calibrated to barangay footprint)
       if (showDensity) {
-        const radius = isHigh ? 6500 : isMed ? 4000 : 2500;
+        // Standard Philippine barangay jurisdiction radius (~380m to 650m)
+        const radius = isHigh ? 650 : isMed ? 500 : 380;
         const circle = L.circle([spot.lat, spot.lng], {
           radius,
           color: colorHex,
-          weight: 1.5,
-          opacity: 0.7,
+          weight: 2,
+          opacity: 0.85,
           fillColor: colorHex,
-          fillOpacity: isSelected ? 0.25 : 0.12,
-          dashArray: isHigh ? "6, 6" : undefined,
+          fillOpacity: isSelected ? 0.35 : 0.18,
+          dashArray: isHigh ? "5, 4" : undefined,
           className: "leaflet-density-circle",
         });
 
@@ -202,13 +203,14 @@ export function PHMap({
       }
 
       // 2. Custom Animated Pulse Marker
+      const labelText = spot.barangay || spot.muni.split(",")[0].replace(/^Brgy\.\s*/i, "");
       const iconHtml = `
         <div class="gis-pulse-marker ${isHigh ? "gis-pulse--high" : isMed ? "gis-pulse--med" : "gis-pulse--baseline"} ${isSelected ? "gis-pulse--selected" : ""}">
           <div class="gis-pulse-ring"></div>
           <div class="gis-marker-badge">
             <span class="gis-badge-code">${diseaseShort}</span>
           </div>
-          <div class="gis-marker-label">${spot.muni.split(",")[0]}</div>
+          <div class="gis-marker-label">${labelText}</div>
         </div>
       `;
 
