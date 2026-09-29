@@ -23,84 +23,60 @@ export function PlaybookTable({
 }) {
   if (items.length === 0) {
     return (
-      <div style={{ padding: "40px 16px", textAlign: "center", color: "var(--mute)" }}>
+      <div className="py-12 text-center text-xs text-muted-foreground">
         No outbreak playbooks registered in the response catalog.
       </div>
     );
   }
 
   return (
-    <div style={{ display: "grid", gap: 16 }}>
+    <div className="grid gap-4">
       {items.map((p) => {
         const details = PLAYBOOK_DETAILS.default;
 
         return (
           <div
             key={p.id}
-            className="card card--lift"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 14,
-              border: "1px solid var(--hairline)",
-            }}
+            className="section-card border-l-4 border-l-primary p-6 shadow-sm flex flex-col gap-4"
           >
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div className="glyph" style={{ width: 40, height: 40, borderRadius: 10 }}>
-                  <Workflow size={20} strokeWidth={2.2} />
+            <div className="flex items-start justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <Workflow size={20} strokeWidth={2} />
                 </div>
                 <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span className="kbd" style={{ fontSize: "11px" }}>{p.code}</span>
-                    <span className="pill pill--primary" style={{ fontSize: "11px" }}>Ready for Field Deployment</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs px-2 py-0.5 rounded bg-muted text-foreground border border-border">{p.code}</span>
+                    <span className="px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 text-[10px] font-semibold">
+                      Ready for Field Deployment
+                    </span>
                   </div>
-                  <h3 style={{ fontSize: 18, margin: "4px 0 0", color: "var(--ink)" }}>{p.title}</h3>
+                  <h3 className="text-base font-bold text-foreground mt-1 mb-0">{p.title}</h3>
                 </div>
               </div>
 
               <button
-                className="btn-pill"
+                className="btn-pill text-xs px-4 py-2 gap-1.5"
                 onClick={() => onExecute(p.id)}
-                style={{ minHeight: 38, padding: "8px 18px" }}
               >
-                <Play size={14} strokeWidth={2.5} />
+                <Play size={13} strokeWidth={2.5} />
                 <span>Execute Playbook</span>
               </button>
             </div>
 
-            <p className="sub" style={{ margin: 0 }}>
+            <p className="text-xs text-muted-foreground m-0">
               {details.desc}
             </p>
 
-            <div
-              style={{
-                background: "var(--card-subtle)",
-                border: "1px solid var(--hairline)",
-                borderRadius: "var(--radius-md)",
-                padding: "12px 16px",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  color: "var(--mute)",
-                  marginBottom: 8,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.04em",
-                }}
-              >
-                <ListChecks size={14} strokeWidth={2.2} />
+            <div className="bg-muted/30 border border-border rounded-lg p-4">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2.5">
+                <ListChecks size={14} strokeWidth={2} />
                 <span>Standard Operating Procedure (SOP) Action Checklist</span>
               </div>
-              <div style={{ display: "grid", gap: 6 }}>
+              <div className="grid gap-2">
                 {details.steps.map((st, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "13px", color: "var(--ink)" }}>
-                    <CheckCircle2 size={14} strokeWidth={2.2} style={{ color: "var(--green)", flex: "none" }} />
+                  <div key={i} className="flex items-center gap-2 text-xs text-foreground">
+                    <CheckCircle2 size={14} strokeWidth={2.2} className="text-emerald-500 shrink-0" />
                     <span>{st}</span>
                   </div>
                 ))}

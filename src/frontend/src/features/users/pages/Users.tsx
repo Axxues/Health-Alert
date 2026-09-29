@@ -53,118 +53,140 @@ export function Users() {
   }
 
   return (
-    <div style={{ display: "grid", gap: 20 }}>
+    <div className="space-y-6">
       {/* Header */}
-      <div className="dash-head" style={{ margin: "0 0 4px" }}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <span className="pill pill--primary" style={{ fontSize: "11px" }}>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/10 px-2.5 py-0.5 text-[11px] font-medium text-blue-600 dark:text-blue-400">
               <UserCheck size={13} strokeWidth={2.2} />
               Role-Based Access Control (RBAC)
             </span>
           </div>
-          <h1>Public Health Officers & Users</h1>
-          <p className="sub">
+          <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+            Public Health Officers & Users
+          </h1>
+          <p className="text-xs text-muted-foreground mt-1">
             Credentialed epidemiologists, municipal health officers, and field surveillance teams authorized under RA 10173.
           </p>
         </div>
 
-        <div className="dash-actions">
-          <button className="btn-pill" onClick={() => setModalOpen(true)}>
-            <UserPlus size={15} strokeWidth={2.2} />
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setModalOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors shadow-xs"
+          >
+            <UserPlus size={14} strokeWidth={2.2} />
             <span>Add Health Officer</span>
           </button>
         </div>
       </div>
 
       {/* Directory Table Card */}
-      <div className="card">
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 12 }}>
+      <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-6 py-4 border-b border-border bg-muted/40">
           <div>
-            <h3 style={{ margin: 0, fontSize: 16 }}>Authorized Field & Clinical Personnel</h3>
-            <p className="sub">{users.length} active officer accounts with verified credentials.</p>
+            <h3 className="text-sm font-semibold text-foreground">
+              Authorized Field & Clinical Personnel
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              {users.length} active officer accounts with verified credentials.
+            </p>
           </div>
 
-          <label className="search" style={{ maxWidth: 300, background: "var(--card-subtle)" }}>
-            <Search size={15} strokeWidth={2.2} style={{ color: "var(--mute)" }} />
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <input
               placeholder="Search officer name, role..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              className="w-full rounded-md border border-input bg-background pl-9 pr-4 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             />
-          </label>
+          </div>
         </div>
 
-        <div className="table-wrap">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Officer Identity</th>
-                <th>Role & Authorization</th>
-                <th>Assigned Station</th>
-                <th>Session Status</th>
-                <th>Last Telemetry Activity</th>
-              </tr>
-            </thead>
-            <tbody className="tabular">
-              {filtered.map((u) => (
-                <tr key={u.id}>
-                  <td>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <div className="avatar" style={{ width: 34, height: 34, fontSize: "12px" }}>
-                        {u.name.slice(0, 2).toUpperCase()}
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: 600, color: "var(--ink)" }}>{u.name}</div>
-                        <div style={{ fontSize: "11.5px", color: "var(--mute)" }}>{u.email}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="pill pill--primary" style={{ fontSize: "11.5px" }}>
-                      <Shield size={11} strokeWidth={2.2} />
-                      {u.role}
-                    </span>
-                  </td>
-                  <td>
-                    <span style={{ color: "var(--ink-secondary)" }}>{u.station}</span>
-                  </td>
-                  <td>
-                    <span className="pill pill--ok" style={{ fontSize: "11.5px" }}>
-                      <span className="dot dot--pulse" />
-                      {u.status}
-                    </span>
-                  </td>
-                  <td style={{ color: "var(--mute)" }}>{u.lastActive}</td>
+        <div className="p-5">
+          <div className="overflow-x-auto rounded-lg border border-border">
+            <table className="w-full text-xs text-left border-collapse">
+              <thead className="bg-muted/40 text-muted-foreground border-b border-border">
+                <tr>
+                  <th className="px-4 py-3 font-semibold uppercase tracking-wider">Officer Identity</th>
+                  <th className="px-4 py-3 font-semibold uppercase tracking-wider">Role & Authorization</th>
+                  <th className="px-4 py-3 font-semibold uppercase tracking-wider">Assigned Station</th>
+                  <th className="px-4 py-3 font-semibold uppercase tracking-wider">Session Status</th>
+                  <th className="px-4 py-3 font-semibold uppercase tracking-wider text-right">Last Telemetry</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filtered.map((u) => (
+                  <tr key={u.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs font-mono">
+                          {u.name.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-foreground text-[13px]">{u.name}</div>
+                          <div className="text-[11px] text-muted-foreground font-mono">{u.email}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-500/10 px-2 py-0.5 text-[11px] font-medium text-blue-600 dark:text-blue-400">
+                        <Shield size={11} strokeWidth={2.2} />
+                        {u.role}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {u.station}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        {u.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right font-mono text-[11px] text-muted-foreground">
+                      {u.lastActive}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
       {/* Add User Modal */}
       {modalOpen && (
-        <div className="overlay" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-          <div className="card anim" style={{ width: "100%", maxWidth: 480, position: "relative", zIndex: 40 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <UserPlus size={18} strokeWidth={2.2} style={{ color: "var(--primary)" }} />
-                <h3 style={{ margin: 0, fontSize: 17 }}>Authorize New Health Officer</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-xl animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-border pb-4 mb-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <UserPlus size={18} strokeWidth={2.2} />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-foreground">Authorize Health Officer</h3>
+                  <p className="text-xs text-muted-foreground">Register public health credentials</p>
+                </div>
               </div>
-              <button className="iconbtn" onClick={() => setModalOpen(false)} style={{ width: 32, height: 32 }} type="button">
+              <button
+                onClick={() => setModalOpen(false)}
+                type="button"
+                className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              >
                 <X size={16} strokeWidth={2.2} />
               </button>
             </div>
 
-            <form onSubmit={handleAdd} style={{ display: "grid", gap: 14 }}>
+            <form onSubmit={handleAdd} className="space-y-4">
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--mute)", marginBottom: 6 }}>
-                  FULL NAME & TITLE
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
+                  Full Name & Title
                 </label>
                 <input
-                  className="input"
-                  style={{ width: "100%" }}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   placeholder="e.g. Dr. Roberto Diaz or Juanita Cruz, RN"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
@@ -173,12 +195,11 @@ export function Users() {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--mute)", marginBottom: 6 }}>
-                  OFFICIAL DOH / LGU EMAIL
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
+                  Official DOH / LGU Email
                 </label>
                 <input
-                  className="input"
-                  style={{ width: "100%" }}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   type="email"
                   placeholder="name@doh.gov.ph"
                   value={newEmail}
@@ -188,12 +209,11 @@ export function Users() {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--mute)", marginBottom: 6 }}>
-                  SYSTEM ROLE PERMISSION
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
+                  System Role Permission
                 </label>
                 <select
-                  className="input"
-                  style={{ width: "100%" }}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   value={newRole}
                   onChange={(e) => setNewRole(e.target.value)}
                 >
@@ -204,12 +224,19 @@ export function Users() {
                 </select>
               </div>
 
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 10 }}>
-                <button className="btn-pill btn-pill--ghost" type="button" onClick={() => setModalOpen(false)}>
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => setModalOpen(false)}
+                  className="rounded-md border border-border px-3.5 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+                >
                   Cancel
                 </button>
-                <button className="btn-pill" type="submit">
-                  <UserCheck size={14} strokeWidth={2.2} />
+                <button
+                  type="submit"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors shadow-xs"
+                >
+                  <UserCheck size={13} strokeWidth={2.2} />
                   <span>Authorize Account</span>
                 </button>
               </div>

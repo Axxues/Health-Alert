@@ -28,72 +28,43 @@ export function Playbooks() {
   }
 
   return (
-    <div style={{ display: "grid", gap: 20 }}>
+    <div className="grid gap-5">
       {/* Header */}
-      <div className="dash-head" style={{ margin: "0 0 4px" }}>
+      <div className="dash-head m-0">
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <span className="pill pill--primary" style={{ fontSize: "11px" }}>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="px-2.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 text-xs font-semibold flex items-center gap-1.5">
               <Workflow size={13} strokeWidth={2.2} />
               Pre-approved Response Protocols
             </span>
           </div>
-          <h1>Outbreak Containment Playbooks</h1>
-          <p className="sub">
+          <h1 className="text-2xl font-bold text-foreground tracking-tight m-0">Outbreak Containment Playbooks</h1>
+          <p className="text-xs text-muted-foreground m-0 mt-0.5">
             Standard operating procedures for rapid field containment, therapeutics prepositioning, and risk communication.
           </p>
         </div>
       </div>
 
       {note && (
-        <div
-          className="card"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            background: "var(--green-bg)",
-            borderColor: "var(--green-border)",
-            color: "var(--green)",
-            padding: "14px 18px",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <CheckCircle2 size={18} strokeWidth={2.2} />
-            <span style={{ fontWeight: 600, fontSize: "13.5px" }}>{note}</span>
+        <div className="flex items-center justify-between p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-lg text-xs font-medium">
+          <div className="flex items-center gap-2.5">
+            <CheckCircle2 size={16} strokeWidth={2.2} />
+            <span>{note}</span>
           </div>
           <Link
             to="/alerts"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 4,
-              fontWeight: 700,
-              fontSize: "13px",
-              color: "var(--green)",
-            }}
+            className="font-semibold text-emerald-500 hover:underline flex items-center gap-1 shrink-0"
           >
             <span>Review generated alerts</span>
-            <ArrowRight size={14} strokeWidth={2.2} />
+            <ArrowRight size={13} strokeWidth={2} />
           </Link>
         </div>
       )}
 
       {error && (
-        <div
-          className="card"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            background: "var(--red-bg)",
-            borderColor: "var(--red-border)",
-            color: "var(--red)",
-            padding: "14px 18px",
-          }}
-        >
-          <AlertCircle size={18} strokeWidth={2.2} />
-          <span style={{ fontWeight: 600 }}>{error}</span>
+        <div className="flex items-center gap-2 p-3 bg-destructive/10 text-destructive border border-destructive/20 rounded-md text-xs font-semibold">
+          <AlertCircle size={16} strokeWidth={2.2} />
+          <span>{error}</span>
         </div>
       )}
 

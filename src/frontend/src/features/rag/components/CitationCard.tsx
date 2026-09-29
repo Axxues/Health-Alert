@@ -5,49 +5,28 @@ export function CitationCard({ citations }: { citations: RagCitation[] }) {
   if (citations.length === 0) return null;
 
   return (
-    <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--hairline)" }}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-          fontSize: "12px",
-          fontWeight: 700,
-          color: "var(--mute)",
-          textTransform: "uppercase",
-          letterSpacing: "0.04em",
-          marginBottom: 10,
-        }}
-      >
-        <BookOpen size={14} strokeWidth={2.2} />
+    <div className="mt-4 pt-4 border-t border-border">
+      <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2.5">
+        <BookOpen size={14} strokeWidth={2} />
         <span>Official Epidemiological Citations & Literature</span>
       </div>
 
-      <div style={{ display: "grid", gap: 8 }}>
+      <div className="grid gap-2">
         {citations.map((c, i) => (
           <div
             key={i}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "10px 14px",
-              background: "var(--backdrop)",
-              border: "1px solid var(--hairline)",
-              borderRadius: "var(--radius-md)",
-              fontSize: "13px",
-            }}
+            className="flex items-center gap-3 p-3 bg-card border border-border rounded-lg text-xs"
           >
-            <div className="glyph" style={{ width: 28, height: 28, borderRadius: 6 }}>
-              <FileText size={15} strokeWidth={2.2} />
+            <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <FileText size={14} strokeWidth={2} />
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ fontWeight: 600, color: "var(--ink)" }}>{c.doc}</span>
-              <span style={{ color: "var(--mute)", marginLeft: 6 }}>
+            <div className="flex-1 min-w-0">
+              <span className="font-semibold text-foreground">{c.doc}</span>
+              <span className="text-muted-foreground ml-1.5">
                 · {c.chapter} · Page {c.page}
               </span>
             </div>
-            <span className="pill pill--ok" style={{ fontSize: "11px" }}>
+            <span className="inline-flex items-center px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[10px] font-semibold">
               Verified Source
             </span>
           </div>

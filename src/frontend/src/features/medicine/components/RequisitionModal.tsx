@@ -28,50 +28,43 @@ export function RequisitionModal({
   }
 
   return (
-    <div className="overlay" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div
-        className="card anim"
-        style={{
-          width: "100%",
-          maxWidth: 520,
-          background: "var(--card)",
-          boxShadow: "var(--shadow-lift)",
-          position: "relative",
-          zIndex: 40,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div className="glyph" style={{ background: "var(--primary-light)", color: "var(--primary)" }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+      <div className="w-full max-w-lg rounded-xl border border-border bg-card p-6 shadow-xl animate-in zoom-in-95 duration-150">
+        <div className="flex items-center justify-between border-b border-border pb-4 mb-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <PackagePlus size={18} strokeWidth={2.2} />
             </div>
             <div>
-              <h3 style={{ margin: 0, fontSize: 17, color: "var(--ink)" }}>Emergency Stock Requisition</h3>
-              <p className="sub" style={{ fontSize: "12px" }}>Direct requisition request to Provincial Health Office (PHO)</p>
+              <h3 className="text-base font-semibold text-foreground">Emergency Stock Requisition</h3>
+              <p className="text-xs text-muted-foreground">Direct supply dispatch to Provincial Health Office (PHO)</p>
             </div>
           </div>
-          <button className="iconbtn" onClick={onClose} style={{ width: 32, height: 32 }} type="button">
+          <button
+            onClick={onClose}
+            type="button"
+            className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
             <X size={16} strokeWidth={2.2} />
           </button>
         </div>
 
         {submitted ? (
-          <div style={{ padding: "32px 16px", textAlign: "center", color: "var(--green)" }}>
-            <CheckCircle2 size={44} strokeWidth={2} style={{ marginBottom: 12 }} />
-            <h4 style={{ margin: "0 0 6px", fontSize: 18, color: "var(--ink)" }}>Requisition Dispatched</h4>
-            <p className="sub" style={{ margin: 0 }}>
-              Order transmitted to Provincial Logistics Command. Batch ETA: 24–48 hours.
+          <div className="py-8 text-center text-emerald-600 dark:text-emerald-400">
+            <CheckCircle2 size={40} strokeWidth={2} className="mx-auto mb-3" />
+            <h4 className="text-base font-bold text-foreground">Requisition Dispatched</h4>
+            <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+              Order successfully transmitted to Provincial Logistics Command. Expected arrival within 24–48 hours.
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} style={{ display: "grid", gap: 14 }}>
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--mute)", marginBottom: 6 }}>
-                MEDICAL ITEM / THERAPEUTIC
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
+                Medical Item / Therapeutic
               </label>
               <input
-                className="input"
-                style={{ width: "100%" }}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                 value={item}
                 onChange={(e) => setItem(e.target.value)}
                 placeholder="e.g. Oral Rehydration Salts (ORS) or Doxycycline 100mg"
@@ -79,14 +72,13 @@ export function RequisitionModal({
               />
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--mute)", marginBottom: 6 }}>
-                  REQUEST QUANTITY
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
+                  Request Quantity
                 </label>
                 <input
-                  className="input tabular"
-                  style={{ width: "100%" }}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   type="number"
                   value={qty}
                   onChange={(e) => setQty(e.target.value)}
@@ -95,12 +87,11 @@ export function RequisitionModal({
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--mute)", marginBottom: 6 }}>
-                  DESTINATION FACILITY
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
+                  Destination Facility
                 </label>
                 <input
-                  className="input"
-                  style={{ width: "100%" }}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   value={facility}
                   onChange={(e) => setFacility(e.target.value)}
                   required
@@ -109,24 +100,30 @@ export function RequisitionModal({
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "var(--mute)", marginBottom: 6 }}>
-                EPIDEMIOLOGICAL JUSTIFICATION
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
+                Epidemiological Justification
               </label>
               <textarea
-                className="input"
-                style={{ width: "100%", minHeight: 70, resize: "vertical" }}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary min-h-[70px] resize-y"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 required
               />
             </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 8 }}>
-              <button className="btn-pill btn-pill--ghost" type="button" onClick={onClose}>
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-md border border-border px-3.5 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+              >
                 Cancel
               </button>
-              <button className="btn-pill" type="submit">
-                <Send size={14} strokeWidth={2.2} />
+              <button
+                type="submit"
+                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors shadow-xs"
+              >
+                <Send size={13} strokeWidth={2.2} />
                 <span>Submit to PHO</span>
               </button>
             </div>

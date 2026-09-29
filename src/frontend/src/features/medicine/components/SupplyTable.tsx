@@ -96,92 +96,101 @@ export function SupplyTable({
   onRequest: (itemName: string) => void;
 }) {
   return (
-    <div className="table-wrap">
-      <table className="data-table">
-        <thead>
+    <div className="overflow-x-auto rounded-lg border border-border">
+      <table className="w-full text-xs text-left border-collapse">
+        <thead className="bg-muted/40 text-muted-foreground border-b border-border">
           <tr>
-            <th>Item & Formulation</th>
-            <th>Target Outbreak Protocol</th>
-            <th>Stock Health</th>
-            <th>Days Remaining (Burn Rate)</th>
-            <th>Batch / Expiry</th>
-            <th style={{ textAlign: "right" }}>Requisition</th>
+            <th className="px-4 py-3 font-semibold uppercase tracking-wider">Item & Formulation</th>
+            <th className="px-4 py-3 font-semibold uppercase tracking-wider">Target Outbreak Protocol</th>
+            <th className="px-4 py-3 font-semibold uppercase tracking-wider">Stock Level</th>
+            <th className="px-4 py-3 font-semibold uppercase tracking-wider">Days Reserve (Burn Rate)</th>
+            <th className="px-4 py-3 font-semibold uppercase tracking-wider">Batch / Expiry</th>
+            <th className="px-4 py-3 font-semibold uppercase tracking-wider text-right">Requisition</th>
           </tr>
         </thead>
-        <tbody className="tabular">
+        <tbody className="divide-y divide-border">
           {supplies.map((s) => {
             const daysLeft = Math.floor(s.currentStock / Math.max(1, s.burnRatePerDay));
             const isCritical = daysLeft <= 7;
             const pct = Math.min(100, Math.round((s.currentStock / s.targetStock) * 100));
 
             return (
-              <tr key={s.id}>
-                <td>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <tr key={s.id} className="hover:bg-muted/30 transition-colors">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-3">
                     <div
-                      className="glyph"
-                      style={{
-                        background: isCritical ? "var(--red-bg)" : "var(--primary-light)",
-                        color: isCritical ? "var(--red)" : "var(--primary)",
-                      }}
+                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${
+                        isCritical
+                          ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                          : "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                      }`}
                     >
-                      <Pill size={16} strokeWidth={2.2} />
+                      <Pill size={15} strokeWidth={2.2} />
                     </div>
                     <div>
-                      <div style={{ fontWeight: 600, color: "var(--ink)", fontSize: "13.5px" }}>{s.name}</div>
-                      <div style={{ fontSize: "11.5px", color: "var(--mute)" }}>{s.id} · {s.category}</div>
+                      <div className="font-semibold text-foreground text-[13px]">{s.name}</div>
+                      <div className="text-[11px] text-muted-foreground font-mono">
+                        {s.id} · {s.category}
+                      </div>
                     </div>
                   </div>
                 </td>
-                <td>
-                  <span className="pill pill--primary" style={{ fontSize: "11.5px" }}>
+                <td className="px-4 py-3">
+                  <span className="inline-flex items-center rounded-md bg-blue-500/10 px-2 py-0.5 text-[11px] font-medium text-blue-600 dark:text-blue-400">
                     {s.targetDisease}
                   </span>
                 </td>
-                <td>
+                <td className="px-4 py-3 min-w-[150px]">
                   <div>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: 3 }}>
-                      <b>{s.currentStock.toLocaleString()} {s.unit}</b>
-                      <span className="muted">Target: {s.targetStock.toLocaleString()}</span>
+                    <div className="flex justify-between text-[11px] mb-1 font-mono">
+                      <span className="font-bold text-foreground">
+                        {s.currentStock.toLocaleString()} {s.unit}
+                      </span>
+                      <span className="text-muted-foreground">
+                        Target: {s.targetStock.toLocaleString()}
+                      </span>
                     </div>
-                    <div style={{ height: 6, width: 140, background: "var(--backdrop)", borderRadius: 3, overflow: "hidden" }}>
+                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                       <div
-                        style={{
-                          height: "100%",
-                          width: `${pct}%`,
-                          background: isCritical ? "var(--red)" : pct < 60 ? "var(--amber)" : "var(--green)",
-                          borderRadius: 3,
-                        }}
+                        className={`h-full rounded-full transition-all ${
+                          isCritical
+                            ? "bg-rose-500"
+                            : pct < 60
+                            ? "bg-amber-500"
+                            : "bg-emerald-500"
+                        }`}
+                        style={{ width: `${pct}%` }}
                       />
                     </div>
                   </div>
                 </td>
-                <td>
+                <td className="px-4 py-3">
                   {isCritical ? (
-                    <span className="pill pill--bad">
-                      <AlertTriangle size={12} strokeWidth={2.5} />
-                      {daysLeft} days ({s.burnRatePerDay}/day)
+                    <span className="inline-flex items-center gap-1 rounded-md bg-rose-500/10 px-2.5 py-1 text-[11px] font-medium text-rose-600 dark:text-rose-400">
+                      <AlertTriangle size={12} strokeWidth={2.2} />
+                      <span>{daysLeft} days ({s.burnRatePerDay}/d)</span>
                     </span>
                   ) : (
-                    <span className="pill pill--ok">
-                      <ShieldCheck size={12} strokeWidth={2.5} />
-                      {daysLeft} days reserve
+                    <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                      <ShieldCheck size={12} strokeWidth={2.2} />
+                      <span>{daysLeft} days reserve</span>
                     </span>
                   )}
                 </td>
-                <td>
-                  <div style={{ fontSize: "12px" }}>
-                    <div style={{ fontWeight: 600, color: "var(--ink)" }}>{s.expiryDate}</div>
-                    <div style={{ color: "var(--mute)", fontSize: "11px" }}>{s.batchLot}</div>
-                  </div>
+                <td className="px-4 py-3 font-mono text-[11px]">
+                  <div className="font-medium text-foreground">{s.expiryDate}</div>
+                  <div className="text-muted-foreground">{s.batchLot}</div>
                 </td>
-                <td style={{ textAlign: "right" }}>
+                <td className="px-4 py-3 text-right">
                   <button
-                    className={`btn-pill ${isCritical ? "" : "btn-pill--ghost"}`}
                     onClick={() => onRequest(s.name)}
-                    style={{ minHeight: 32, padding: "4px 12px", fontSize: "12px", gap: 4 }}
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                      isCritical
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+                        : "border border-border text-foreground hover:bg-muted"
+                    }`}
                   >
-                    <Plus size={13} strokeWidth={2.5} />
+                    <Plus size={13} strokeWidth={2.2} />
                     <span>Restock</span>
                   </button>
                 </td>

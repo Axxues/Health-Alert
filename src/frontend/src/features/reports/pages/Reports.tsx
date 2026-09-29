@@ -37,122 +37,137 @@ export function Reports() {
   }
 
   return (
-    <div style={{ display: "grid", gap: 20 }}>
+    <div className="space-y-6">
       {/* Header */}
-      <div className="dash-head" style={{ margin: "0 0 4px" }}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <span className="pill pill--primary" style={{ fontSize: "11px" }}>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/10 px-2.5 py-0.5 text-[11px] font-medium text-blue-600 dark:text-blue-400">
               <FileBarChart size={13} strokeWidth={2.2} />
               DOH Epidemiological Surveillance Reports
             </span>
           </div>
-          <h1>Surveillance Bulletins & Reporting</h1>
-          <p className="sub">
-            Automated Weekly Epidemiological Surveillance Report (WESR) compliant with DOH EB & RA 11332 data standards.
+          <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+            Surveillance Bulletins & Reporting
+          </h1>
+          <p className="text-xs text-muted-foreground mt-1">
+            Automated Weekly Epidemiological Surveillance Report (WESR) compliant with DOH EB & RA 11332 standards.
           </p>
         </div>
 
-        <div className="dash-actions">
-          <button className="btn-pill" onClick={() => handleDownload("PDF")} disabled={downloading}>
-            <Download size={15} strokeWidth={2.2} />
-            <span>{downloading ? "Compiling PDF..." : "Export WESR Bulletin (PDF)"}</span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => handleDownload("PDF")}
+            disabled={downloading}
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors shadow-xs disabled:opacity-50"
+          >
+            <Download size={14} strokeWidth={2.2} />
+            <span>{downloading ? "Compiling..." : "Export WESR (PDF)"}</span>
           </button>
-          <button className="btn-pill btn-pill--ghost" onClick={() => handleDownload("CSV")} disabled={downloading}>
-            <Table size={15} strokeWidth={2.2} />
+          <button
+            onClick={() => handleDownload("CSV")}
+            disabled={downloading}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50"
+          >
+            <Table size={14} strokeWidth={2.2} />
             <span>Export Linelist (CSV)</span>
           </button>
         </div>
       </div>
 
       {downloaded && (
-        <div
-          className="card anim"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            background: "var(--green-bg)",
-            borderColor: "var(--green-border)",
-            color: "var(--green)",
-            padding: "12px 18px",
-          }}
-        >
-          <CheckCircle2 size={18} strokeWidth={2.2} />
-          <span style={{ fontWeight: 600, fontSize: "13.5px" }}>
-            Official Epidemiological Bulletin generated successfully. File downloaded to local system.
-          </span>
+        <div className="flex items-center gap-3 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
+          <CheckCircle2 size={16} strokeWidth={2.2} className="shrink-0" />
+          <span>Official Epidemiological Bulletin generated successfully. File downloaded to local system.</span>
         </div>
       )}
 
-      {/* Executive Briefing Summary */}
-      <div className="card" style={{ borderLeft: "4px solid var(--primary)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-          <FileText size={17} strokeWidth={2.2} style={{ color: "var(--primary)" }} />
-          <h3 style={{ margin: 0, fontSize: 16 }}>Executive Surveillance Brief — Epi Week 40</h3>
+      {/* Executive Briefing Summary Card */}
+      <div className="rounded-xl border border-border border-l-4 border-l-blue-500 bg-card p-5 shadow-sm space-y-3">
+        <div className="flex items-center gap-2">
+          <FileText size={16} strokeWidth={2.2} className="text-blue-500" />
+          <h3 className="text-sm font-semibold text-foreground">
+            Executive Surveillance Brief — Epi Week 40
+          </h3>
         </div>
-        <p style={{ margin: "0 0 12px", fontSize: "14px", lineHeight: 1.6, color: "var(--ink)" }}>
-          <b>Summary for Municipal Mayor & Local Health Board:</b> A statistically significant increase in Dengue
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          <strong className="text-foreground">Summary for Municipal Health Board:</strong> A statistically significant increase in Dengue
           cases (+54.8% week-over-week) was observed across 3 barangays, driven by recent continuous precipitation
           and standing water pooling. Prepositioning of ORS and Doxycycline is 92% complete across RHU sentinel stations.
         </p>
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", fontSize: "12.5px", color: "var(--mute)" }}>
-          <span><b>Period:</b> Epi Week 40 (Oct 1–7)</span>
-          <span><b>Reporting RHU:</b> San Fernando Main Sentinel Unit</span>
-          <span><b>Surveillance Officer:</b> Dr. M. Santos (MHO)</span>
+        <div className="flex flex-wrap gap-4 pt-1 text-[11px] text-muted-foreground border-t border-border/50">
+          <span><strong className="text-foreground">Period:</strong> Epi Week 40 (Oct 1–7)</span>
+          <span><strong className="text-foreground">Reporting RHU:</strong> San Fernando Main Sentinel</span>
+          <span><strong className="text-foreground">Surveillance Officer:</strong> Dr. M. Santos (MHO)</span>
         </div>
       </div>
 
       {/* Morbidity & Mortality Table */}
-      <div className="card">
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+      <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-6 py-4 border-b border-border bg-muted/40">
           <div>
-            <h3 style={{ margin: 0, fontSize: 16 }}>Weekly Morbidity & Outbreak Threshold Indicators</h3>
-            <p className="sub">Sentinel disease incidence comparison against historic 5-year epidemic thresholds.</p>
+            <h3 className="text-sm font-semibold text-foreground">
+              Weekly Morbidity & Outbreak Threshold Indicators
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Sentinel disease incidence comparison against historic 5-year epidemic thresholds.
+            </p>
           </div>
-          <span className="pill pill--primary">Official DOH Registry</span>
+          <span className="inline-flex items-center rounded-md bg-muted px-2.5 py-1 text-[11px] font-mono text-muted-foreground">
+            Official DOH Registry
+          </span>
         </div>
 
-        <div className="table-wrap">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Monitored Syndrome / Disease</th>
-                <th>Epi Week 40 Cases</th>
-                <th>Epi Week 39 Cases</th>
-                <th>Incidence / Attack Rate</th>
-                <th>Case Fatality (CFR)</th>
-                <th style={{ textAlign: "right" }}>Threshold Status</th>
-              </tr>
-            </thead>
-            <tbody className="tabular">
-              {REPORT_DATA.map((r, i) => (
-                <tr key={i}>
-                  <td>
-                    <div style={{ fontWeight: 600, color: "var(--ink)" }}>{r.disease}</div>
-                  </td>
-                  <td>
-                    <b style={{ fontSize: "15px", color: r.casesThisWeek > r.casesLastWeek ? "var(--red)" : "var(--ink)" }}>
-                      {r.casesThisWeek}
-                    </b>
-                  </td>
-                  <td style={{ color: "var(--mute)" }}>{r.casesLastWeek}</td>
-                  <td>{r.attackRate}</td>
-                  <td>{r.cfr}</td>
-                  <td style={{ textAlign: "right" }}>
-                    {r.thresholdStatus === "Alert" ? (
-                      <span className="pill pill--bad">
-                        <span className="dot dot--pulse" />
-                        Alert Threshold
-                      </span>
-                    ) : (
-                      <span className="pill pill--ok">Normal Baseline</span>
-                    )}
-                  </td>
+        <div className="p-5">
+          <div className="overflow-x-auto rounded-lg border border-border">
+            <table className="w-full text-xs text-left border-collapse">
+              <thead className="bg-muted/40 text-muted-foreground border-b border-border">
+                <tr>
+                  <th className="px-4 py-3 font-semibold uppercase tracking-wider">Monitored Syndrome / Disease</th>
+                  <th className="px-4 py-3 font-semibold uppercase tracking-wider">Epi W40 Cases</th>
+                  <th className="px-4 py-3 font-semibold uppercase tracking-wider">Epi W39 Cases</th>
+                  <th className="px-4 py-3 font-semibold uppercase tracking-wider">Attack Rate</th>
+                  <th className="px-4 py-3 font-semibold uppercase tracking-wider">CFR</th>
+                  <th className="px-4 py-3 font-semibold uppercase tracking-wider text-right">Threshold Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {REPORT_DATA.map((r, i) => (
+                  <tr key={i} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-4 py-3 font-medium text-foreground text-[13px]">
+                      {r.disease}
+                    </td>
+                    <td className="px-4 py-3 font-mono font-bold text-sm">
+                      <span className={r.casesThisWeek > r.casesLastWeek ? "text-rose-600 dark:text-rose-400" : "text-foreground"}>
+                        {r.casesThisWeek}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 font-mono text-muted-foreground">
+                      {r.casesLastWeek}
+                    </td>
+                    <td className="px-4 py-3 font-mono text-muted-foreground">
+                      {r.attackRate}
+                    </td>
+                    <td className="px-4 py-3 font-mono text-muted-foreground">
+                      {r.cfr}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {r.thresholdStatus === "Alert" ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-md bg-rose-500/10 px-2.5 py-1 text-[11px] font-medium text-rose-600 dark:text-rose-400">
+                          <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
+                          Alert Threshold
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-md bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                          Normal Baseline
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

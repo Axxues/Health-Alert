@@ -36,33 +36,32 @@ export function Rag() {
   }
 
   return (
-    <div style={{ display: "grid", gap: 20 }}>
+    <div className="grid gap-5 max-w-5xl mx-auto w-full">
       {/* Header */}
-      <div className="dash-head" style={{ margin: "0 0 4px" }}>
+      <div className="dash-head m-0">
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <span className="pill pill--primary" style={{ fontSize: "11px" }}>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="px-2.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 text-xs font-semibold flex items-center gap-1.5">
               <Sparkles size={13} strokeWidth={2.2} />
               AI Literature & Guidelines Assistant (RAG)
             </span>
           </div>
-          <h1>Ask the Epidemiology Library</h1>
-          <p className="sub">
+          <h1 className="text-2xl font-bold text-foreground tracking-tight m-0">Ask the Epidemiology Library</h1>
+          <p className="text-xs text-muted-foreground m-0 mt-0.5">
             Grounded intelligence on DOH Clinical Practice Guidelines, WHO Outbreak Manuals, and LGU SOPs.
           </p>
         </div>
       </div>
 
       {/* Suggested Questions */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-        <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--mute)", textTransform: "uppercase" }}>
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider shrink-0">
           Suggested:
         </span>
         {SUGGESTED_QUERIES.map((sq, i) => (
           <button
             key={i}
-            className="tab-btn"
-            style={{ fontSize: "12px", padding: "5px 12px", background: "var(--card)" }}
+            className="btn-pill btn-pill--ghost text-xs px-3 py-1 hover:border-primary/40 transition-colors"
             onClick={() => {
               setQ(sq);
               void handleAsk(sq);
@@ -75,71 +74,48 @@ export function Rag() {
       </div>
 
       {/* Search Input Box */}
-      <form onSubmit={onSubmit} style={{ display: "flex", gap: 10 }}>
+      <form onSubmit={onSubmit} className="flex gap-2">
         <input
-          className="input"
-          style={{ flex: 1, padding: "12px 18px", fontSize: "14px" }}
+          className="flex-1 px-4 py-2.5 bg-background border border-input rounded-lg text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring shadow-sm"
           placeholder="Ask about clinical guidelines, dosage protocols, case definitions, or outbreak response..."
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
         <button
-          className="btn-pill"
+          className="btn-pill text-xs px-5 py-2.5 gap-1.5 shrink-0"
           type="submit"
           disabled={loading || !q.trim()}
-          style={{ minHeight: 46, padding: "0 22px" }}
         >
-          <Send size={15} strokeWidth={2.2} />
+          <Send size={14} strokeWidth={2} />
           <span>{loading ? "Searching..." : "Ask Assistant"}</span>
         </button>
       </form>
 
       {error && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "12px 16px",
-            background: "var(--red-bg)",
-            borderRadius: "var(--radius-md)",
-            color: "var(--red)",
-          }}
-        >
-          <AlertCircle size={18} strokeWidth={2.2} />
+        <div className="flex items-center gap-2 p-3 bg-destructive/10 text-destructive border border-destructive/20 rounded-md text-xs font-semibold">
+          <AlertCircle size={16} strokeWidth={2} />
           <span>{error}</span>
         </div>
       )}
 
       {/* AI Answer & Verified Citations Card */}
       {result && (
-        <div className="card anim" style={{ borderLeft: "4px solid var(--primary)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-            <div className="glyph" style={{ width: 32, height: 32, borderRadius: 8 }}>
-              <Bot size={17} strokeWidth={2.2} />
+        <div className="section-card border-l-4 border-l-primary p-6 shadow-md">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Bot size={17} strokeWidth={2} />
             </div>
             <div>
-              <div style={{ fontWeight: 700, fontSize: "14px", color: "var(--ink)" }}>
+              <div className="font-bold text-sm text-foreground">
                 Epidemiological Assistant Response
               </div>
-              <div style={{ fontSize: "11.5px", color: "var(--mute)" }}>
+              <div className="text-xs text-muted-foreground">
                 Grounded strictly in indexed Philippine DOH and WHO guidelines
               </div>
             </div>
           </div>
 
-          <div
-            style={{
-              fontSize: "14.5px",
-              lineHeight: 1.65,
-              color: "var(--ink)",
-              margin: "12px 0 16px",
-              padding: "14px 18px",
-              background: "var(--card-subtle)",
-              borderRadius: "var(--radius-md)",
-              border: "1px solid var(--hairline)",
-            }}
-          >
+          <div className="text-sm leading-relaxed text-foreground p-4 bg-muted/30 rounded-lg border border-border">
             {result.answer}
           </div>
 
