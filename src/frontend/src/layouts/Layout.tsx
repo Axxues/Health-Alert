@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
+import {
+  Menu,
+  Search,
+  Bell,
+  Mail,
+  LogOut,
+  ChevronDown,
+  User,
+} from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { menuItems } from "@/constants/layout/menu/menu";
 import { clearSession, getRole, hasPermission } from "@/utils/auth";
@@ -18,20 +27,63 @@ function Profile() {
     return () => document.removeEventListener("mousedown", close);
   }, []);
 
+  const role = getRole() || "Surveillance Officer";
+
   return (
     <div ref={ref} style={{ position: "relative" }}>
-      <button className="profilebtn" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open}>
-        <span className="avatar" aria-hidden>HA</span>
-        <span className="profilemeta"><b>Field team</b><small>{getRole() || "Health worker"}</small></span>
-        <span aria-hidden style={{ color: "var(--mute)" }}>▾</span>
+      <button
+        className="profilebtn"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        <span className="avatar" aria-hidden="true">
+          HA
+        </span>
+        <span className="profilemeta">
+          <b>Dr. M. Santos</b>
+          <small>{role}</small>
+        </span>
+        <ChevronDown
+          size={14}
+          strokeWidth={2.2}
+          style={{
+            color: "var(--mute)",
+            transition: "transform 0.2s ease",
+            transform: open ? "rotate(180deg)" : "none",
+          }}
+        />
       </button>
+
       {open && (
         <div className="card profilemenu anim" role="menu" style={{ "--i": 0 } as React.CSSProperties}>
+          <div style={{ padding: "6px 12px 10px", borderBottom: "1px solid var(--hairline)", marginBottom: 6 }}>
+            <div style={{ fontWeight: 700, fontSize: "13px", color: "var(--ink)" }}>Dr. Maria Santos</div>
+            <div style={{ fontSize: "11.5px", color: "var(--mute)" }}>mho.sanfernando@doh.gov.ph</div>
+            <div style={{ marginTop: 6 }}>
+              <span className="pill pill--ok" style={{ fontSize: "10.5px", padding: "1px 8px" }}>
+                Active Session
+              </span>
+            </div>
+          </div>
+          <Link
+            to="/users"
+            onClick={() => setOpen(false)}
+            role="menuitem"
+          >
+            <User size={15} strokeWidth={2.2} />
+            <span>Account & Access</span>
+          </Link>
           <button
             role="menuitem"
-            onClick={() => { clearSession(); navigate("/login"); }}
+            onClick={() => {
+              clearSession();
+              navigate("/login");
+            }}
+            style={{ color: "var(--red)" }}
           >
-            ⏻&nbsp;&nbsp;Sign out
+            <LogOut size={15} strokeWidth={2.2} />
+            <span>Sign Out</span>
           </button>
         </div>
       )}
@@ -48,21 +100,56 @@ export function Layout() {
   return (
     <div className="app">
       <header className="topbar">
-        <button className="iconbtn drawerbtn" onClick={() => setDrawer(true)} aria-label="Open navigation">☰</button>
+        <button
+          className="iconbtn drawerbtn"
+          onClick={() => setDrawer(true)}
+          aria-label="Open navigation"
+        >
+          <Menu size={18} strokeWidth={2.2} />
+        </button>
+
         <Link to="/" className="brandlink">
-          <img src="/Health-Nology_StartupLogo_PSC11_2.png" alt="Health Alert logo" /> Health Alert
+          <img src="/Health-Nology_StartupLogo_PSC11_2.png" alt="Health Alert logo" />
+          <span>Health Alert</span>
+          <span className="live-badge" title="Live multi-syndromic telemetry stream connected">
+            <span className="dot dot--pulse" />
+            LIVE SYNC
+          </span>
         </Link>
+
         <label className="search">
-          <span aria-hidden>⌕</span>
-          <input placeholder="Search hotspots, places, diseases" aria-label="Search" />
-          <span className="muted" style={{ fontSize: 12 }}>⌘F</span>
+          <Search size={16} strokeWidth={2.2} style={{ color: "var(--mute)", flex: "none" }} />
+          <input
+            placeholder="Search hotspots, barangays, diseases (⌘K)"
+            aria-label="Search"
+          />
+          <span className="kbd">⌘K</span>
         </label>
+
         <div className="who">
           <ThemeToggle />
-          <button className="iconbtn" aria-label="Messages">✉</button>
-          <button className="iconbtn" aria-label="Notifications">
-            ♪<span className="dot dot--pulse" style={{ position: "absolute", marginLeft: 18, marginTop: -16, color: "var(--red)" }} />
-          </button>
+          <Link to="/messaging" className="iconbtn" aria-label="Messages" title="Inter-agency Messaging">
+            <Mail size={17} strokeWidth={2.2} />
+          </Link>
+          <Link
+            to="/alerts"
+            className="iconbtn"
+            aria-label="Outbreak Alerts"
+            title="Active Outbreak Alerts"
+            style={{ position: "relative" }}
+          >
+            <Bell size={17} strokeWidth={2.2} />
+            <span
+              className="dot dot--pulse"
+              style={{
+                position: "absolute",
+                top: 7,
+                right: 7,
+                background: "var(--red)",
+                boxShadow: "0 0 8px var(--red)",
+              }}
+            />
+          </Link>
           <Profile />
         </div>
       </header>
@@ -71,7 +158,7 @@ export function Layout() {
         {drawer && <div className="overlay" onClick={close} />}
         <Sidebar items={links} />
         {drawer && (
-          <div className="drawer anim">
+          <div className="drawer">
             <Sidebar items={links} onNavigate={close} />
           </div>
         )}
