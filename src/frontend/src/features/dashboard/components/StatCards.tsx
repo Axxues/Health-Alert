@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
+import { AlertTriangle, Activity, ShieldCheck, TrendingUp, ArrowUpRight } from "lucide-react";
 
-export interface Stat { label: string; value: number; note: string; hero?: boolean }
+export interface Stat {
+  label: string;
+  value: number;
+  note: string;
+  hero?: boolean;
+}
 
-// ponytail: co-located, single use — promote to hooks/ if a second counter appears
-function useCountUp(target: number, ms = 900) {
+function useCountUp(target: number, ms = 800) {
   const [n, setN] = useState(0);
   useEffect(() => {
     let raf = 0;
@@ -19,13 +24,29 @@ function useCountUp(target: number, ms = 900) {
   return n;
 }
 
+const icons = [
+  <Activity size={18} strokeWidth={2.2} key="0" />,
+  <AlertTriangle size={18} strokeWidth={2.2} key="1" />,
+  <TrendingUp size={18} strokeWidth={2.2} key="2" />,
+  <ShieldCheck size={18} strokeWidth={2.2} key="3" />,
+];
+
 function StatCard({ s, i }: { s: Stat; i: number }) {
   const n = useCountUp(s.value);
   return (
-    <div className={`stat anim${s.hero ? " stat--hero" : " card--lift"}`} style={{ "--i": i } as React.CSSProperties}>
-      <p className="lbl">{s.label} <span className="arrowchip" aria-hidden>↗</span></p>
+    <div
+      className={`stat anim${s.hero ? " stat--hero" : ""}`}
+      style={{ "--i": i } as React.CSSProperties}
+    >
+      <div className="lbl">
+        <span>{s.label}</span>
+        <span style={{ opacity: 0.85 }}>{icons[i % icons.length]}</span>
+      </div>
       <p className="num tabular">{n}</p>
-      <p className="trend">{s.note}</p>
+      <div className="trend">
+        <ArrowUpRight size={14} strokeWidth={2.2} style={{ flex: "none" }} />
+        <span>{s.note}</span>
+      </div>
     </div>
   );
 }
@@ -33,7 +54,9 @@ function StatCard({ s, i }: { s: Stat; i: number }) {
 export function StatCards({ stats }: { stats: Stat[] }) {
   return (
     <div className="stats">
-      {stats.map((s, i) => <StatCard key={s.label} s={s} i={i} />)}
+      {stats.map((s, i) => (
+        <StatCard key={s.label} s={s} i={i} />
+      ))}
     </div>
   );
 }
