@@ -4,9 +4,9 @@ import "leaflet/dist/leaflet.css";
 import { ZoomIn, ZoomOut, RotateCcw, MapPin } from "lucide-react";
 import type { Hotspot } from "@/services/riskmaps/types";
 
-// Region 1 Default Centroid (La Union / Pangasinan corridor)
-const REGION_1_CENTER: [number, number] = [16.6159, 120.3209];
-const DEFAULT_ZOOM = 9;
+// Region 1 Default Centroid (Pangasinan through Ilocos Norte corridor)
+const REGION_1_CENTER: [number, number] = [16.85, 120.45];
+const DEFAULT_ZOOM = 8;
 
 type BasemapType = "auto" | "clean" | "dark" | "satellite";
 
@@ -171,7 +171,14 @@ export function PHMap({
       const isMed = /med|moderate/i.test(spot.level);
 
       const colorHex = isHigh ? "#ef4444" : isMed ? "#f59e0b" : "#2563eb";
-      const diseaseShort = spot.disease.slice(0, 3).toUpperCase();
+      const diseaseShort =
+        spot.disease.toLowerCase() === "asthma"
+          ? "AST"
+          : spot.disease.toLowerCase() === "leptospirosis"
+          ? "LEP"
+          : spot.disease.toLowerCase() === "ili"
+          ? "ILI"
+          : spot.disease.slice(0, 3).toUpperCase();
 
       // 1. Transmission Density Buffer Circle
       if (showDensity) {
@@ -223,7 +230,8 @@ export function PHMap({
       marker.bindTooltip(
         `<div class="p-1 font-sans text-xs">
           <div class="font-bold text-foreground">${spot.muni}</div>
-          <div class="capitalize text-muted-foreground">${spot.disease} · <span class="font-bold ${isHigh ? "text-destructive" : isMed ? "text-amber-500" : "text-primary"}">${spot.level} risk</span></div>
+          <div class="capitalize text-muted-foreground">${spot.diseaseName || spot.disease} · <span class="font-bold ${isHigh ? "text-destructive" : isMed ? "text-amber-500" : "text-primary"}">${spot.level} risk</span></div>
+          ${spot.cases !== undefined ? `<div class="text-[11px] font-semibold text-foreground mt-0.5">${spot.cases} Active Cases (${Math.round((spot.probability ?? 0) * 100)}% Surge Prob.)</div>` : ""}
         </div>`,
         { direction: "top", offset: [0, -18], opacity: 0.95 }
       );
@@ -252,6 +260,7 @@ export function PHMap({
 
   const highCount = spots.filter((s) => /high/i.test(s.level)).length;
   const medCount = spots.filter((s) => /med|moderate/i.test(s.level)).length;
+  const lowCount = spots.filter((s) => /low|routine|baseline/i.test(s.level)).length;
 
   return (
     <div className="relative w-full h-full min-h-[520px] rounded-xl overflow-hidden border border-border bg-card">
@@ -345,7 +354,7 @@ export function PHMap({
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-            <span className="text-muted-foreground">Baseline</span>
+            <span className="text-muted-foreground">{lowCount} Baseline</span>
           </div>
         </div>
       </div>
