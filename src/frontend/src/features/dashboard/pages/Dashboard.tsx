@@ -5,7 +5,6 @@ import {
   TrendingUp,
   Layers,
   ArrowRight,
-  Radio,
 } from "lucide-react";
 import { listHotspots } from "@/services/riskmaps/api";
 import type { Hotspot } from "@/services/riskmaps/types";
@@ -87,12 +86,6 @@ export function Dashboard() {
       {/* Executive Command Header */}
       <div className="dash-head anim" style={{ "--i": 0, marginBottom: 20 } as React.CSSProperties}>
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-            <span className="badge badge--primary" style={{ padding: "3px 10px", fontSize: "11px" }}>
-              <Radio size={12} strokeWidth={2.5} />
-              <span>Sentinel Surveillance Grid · Live Telemetry</span>
-            </span>
-          </div>
           <h1 style={{ margin: "4px 0 6px", fontSize: "26px", fontWeight: 800 }}>
             Epidemiological Surveillance Command Center
           </h1>
