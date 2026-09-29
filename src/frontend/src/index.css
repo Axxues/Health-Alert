@@ -265,7 +265,7 @@ a:hover {
   margin-left: auto;
 }
 
-.drawerbtn { display: none; }
+.drawerbtn { display: none !important; }
 
 .avatar {
   width: 36px;
@@ -388,8 +388,15 @@ a:hover {
   border-right: 1px solid var(--hairline);
   padding: 18px 12px;
   overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   display: flex;
   flex-direction: column;
+}
+.sidebar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .navsec {
@@ -1025,5 +1032,5 @@ a:hover {
 @media (max-width: 1023px) {
   .sidebar { display: none; }
   .drawer .sidebar { display: flex; width: 270px; border-right: 0; }
-  .drawerbtn { display: inline-flex; }
+  .drawerbtn { display: inline-flex !important; }
 }
