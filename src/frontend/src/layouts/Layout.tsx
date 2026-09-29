@@ -107,7 +107,7 @@ export function Layout() {
           <Menu size={18} strokeWidth={2.2} />
         </button>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div className="flex items-center gap-2.5">
           <Link to="/" className="brandlink">
             <div
               style={{
@@ -126,20 +126,6 @@ export function Layout() {
             </div>
             <span>HealthAlert</span>
           </Link>
-          <span
-            style={{
-              fontSize: "10px",
-              fontWeight: 800,
-              padding: "2px 6px",
-              borderRadius: "4px",
-              background: "var(--card-subtle)",
-              color: "var(--mute)",
-              border: "1px solid var(--hairline)",
-              letterSpacing: "0.04em",
-            }}
-          >
-            v1.0
-          </span>
         </div>
 
         <label className="search">
@@ -152,24 +138,6 @@ export function Layout() {
         </label>
 
         <div className="who">
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              fontSize: "11px",
-              fontWeight: 700,
-              color: "var(--green)",
-              background: "hsl(var(--success-raw) / 0.1)",
-              border: "1px solid hsl(var(--success-raw) / 0.2)",
-              borderRadius: "var(--radius-pill)",
-              padding: "3px 10px",
-            }}
-          >
-            <span className="dot dot--pulse" />
-            <span>SENTINEL LIVE</span>
-          </div>
-
           <ThemeToggle />
 
           <Link to="/messaging" className="iconbtn" aria-label="Messages" title="Inter-agency Messaging">
