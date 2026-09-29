@@ -111,10 +111,6 @@ export function Layout() {
         <Link to="/" className="brandlink">
           <img src="/Health-Nology_StartupLogo_PSC11_2.png" alt="Health Alert logo" />
           <span>Health Alert</span>
-          <span className="live-badge" title="Live multi-syndromic telemetry stream connected">
-            <span className="dot dot--pulse" />
-            LIVE SYNC
-          </span>
         </Link>
 
         <label className="search">
