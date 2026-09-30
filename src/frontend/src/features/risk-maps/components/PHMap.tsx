@@ -43,6 +43,27 @@ const TILE_SERVERS: Record<"clean" | "dark" | "satellite", TileConfig> = {
   },
 };
 
+export function getProvinceForSpot(spot: Hotspot): string {
+  if (spot.province && spot.province.trim()) return spot.province.trim();
+  // Geolocation inference based on latitude and longitude coordinates
+  if (spot.lat < 14.95 && spot.lng > 120.8 && spot.lng < 121.4) return "Metro Manila (NCR)";
+  if (spot.lat < 15.2) return "CALABARZON";
+  if (spot.lat < 15.8) return "Central Luzon";
+  if (spot.lat < 16.25) return "Pangasinan";
+  if (spot.lat < 16.9) return "La Union";
+  if (spot.lat < 17.8) return "Ilocos Sur";
+  return "Ilocos Norte";
+}
+
+export function getMunicipalityForSpot(spot: Hotspot): string {
+  if (spot.municipality && spot.municipality.trim()) return spot.municipality.trim();
+  const parts = spot.muni.split(",");
+  if (parts.length > 1) {
+    return parts[1].trim();
+  }
+  return spot.muni.replace(/^Brgy\.\s*/i, "").trim();
+}
+
 interface GeoGroup {
   id: string;
   name: string;
@@ -59,12 +80,15 @@ function groupByMunicipality(spots: Hotspot[]): GeoGroup[] {
   const groups: Record<string, Hotspot[]> = {};
 
   spots.forEach((spot) => {
-    const key = spot.municipality || spot.muni.split(",")[1]?.trim() || spot.muni;
+    const muni = getMunicipalityForSpot(spot);
+    const prov = getProvinceForSpot(spot);
+    const key = `${muni}__${prov}`;
     if (!groups[key]) groups[key] = [];
     groups[key].push(spot);
   });
 
-  return Object.entries(groups).map(([muniName, items]) => {
+  return Object.entries(groups).map(([key, items]) => {
+    const [muniName, provName] = key.split("__");
     const avgLat = items.reduce((acc, s) => acc + s.lat, 0) / items.length;
     const avgLng = items.reduce((acc, s) => acc + s.lng, 0) / items.length;
     const hasHigh = items.some((s) => /high/i.test(s.level));
@@ -79,9 +103,9 @@ function groupByMunicipality(spots: Hotspot[]): GeoGroup[] {
         : `${diseaseSet.length} Diseases`;
 
     return {
-      id: `muni-${muniName.toLowerCase().replace(/\s+/g, "-")}`,
+      id: `muni-${muniName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
       name: muniName,
-      parentName: items[0].province,
+      parentName: provName,
       lat: avgLat,
       lng: avgLng,
       items,
@@ -96,9 +120,9 @@ function groupByProvince(spots: Hotspot[]): GeoGroup[] {
   const groups: Record<string, Hotspot[]> = {};
 
   spots.forEach((spot) => {
-    const key = spot.province || "Region 1";
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(spot);
+    const prov = getProvinceForSpot(spot);
+    if (!groups[prov]) groups[prov] = [];
+    groups[prov].push(spot);
   });
 
   return Object.entries(groups).map(([provName, items]) => {
@@ -110,7 +134,7 @@ function groupByProvince(spots: Hotspot[]): GeoGroup[] {
     const totalCases = items.reduce((acc, s) => acc + (s.cases || 0), 0);
 
     return {
-      id: `prov-${provName.toLowerCase().replace(/\s+/g, "-")}`,
+      id: `prov-${provName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
       name: provName,
       lat: avgLat,
       lng: avgLng,
@@ -150,7 +174,7 @@ export function PHMap({
     );
   });
 
-  // Determine hierarchical granularity based on current zoom
+  // Dynamic granularity level based on zoom
   const granularity: GranularityLevel = useMemo(() => {
     if (currentZoom <= 8.5) return "province";
     if (currentZoom < 12) return "municipality";
@@ -193,7 +217,7 @@ export function PHMap({
     markersLayerRef.current = L.layerGroup().addTo(map);
     densityLayerRef.current = L.layerGroup().addTo(map);
 
-    // Track zoom updates to trigger automatic hierarchical aggregation
+    // Track zoom updates
     const onZoom = () => {
       setCurrentZoom(map.getZoom());
     };
@@ -254,7 +278,7 @@ export function PHMap({
     const map = mapRef.current;
     const markersGroup = markersLayerRef.current;
     const densityGroup = densityLayerRef.current;
-    if (!map || !markersGroup || !densityGroup) return;
+    if (!map || !markersGroup || !densityGroup || spots.length === 0) return;
 
     markersGroup.clearLayers();
     densityGroup.clearLayers();
@@ -264,7 +288,7 @@ export function PHMap({
       const provinces = groupByProvince(spots);
 
       provinces.forEach((prov) => {
-        const isSelected = selected && prov.items.some((s) => s.id === selected.id);
+        const isSelected = selected && prov.items.some((s) => s.muni === selected.muni && s.disease === selected.disease);
         const isHigh = /high/i.test(prov.level);
         const isMed = /med|moderate/i.test(prov.level);
         const colorHex = isHigh ? "#ef4444" : isMed ? "#f59e0b" : "#2563eb";
@@ -315,7 +339,7 @@ export function PHMap({
 
         marker.bindTooltip(
           `<div class="p-1 font-sans text-xs">
-            <div class="font-bold text-foreground">${prov.name} Province</div>
+            <div class="font-bold text-foreground">${prov.name}</div>
             <div class="text-muted-foreground">${prov.items.length} Monitored Hotspots · <span class="font-bold ${isHigh ? "text-destructive" : isMed ? "text-amber-500" : "text-primary"}">${prov.level.toUpperCase()} RISK</span></div>
             <div class="text-[11px] font-semibold text-foreground mt-0.5">${prov.cases} Total Active Cases</div>
             <div class="text-[10px] text-primary font-semibold mt-1">Click to zoom into municipalities &rarr;</div>
@@ -333,7 +357,7 @@ export function PHMap({
       const municipalities = groupByMunicipality(spots);
 
       municipalities.forEach((muni) => {
-        const isSelected = selected && muni.items.some((s) => s.id === selected.id);
+        const isSelected = selected && muni.items.some((s) => s.muni === selected.muni && s.disease === selected.disease);
         const isHigh = /high/i.test(muni.level);
         const isMed = /med|moderate/i.test(muni.level);
         const colorHex = isHigh ? "#ef4444" : isMed ? "#f59e0b" : "#2563eb";
@@ -502,7 +526,14 @@ export function PHMap({
   const handleZoomOut = () => mapRef.current?.zoomOut();
   const handleReset = () => {
     onSelect(null);
-    mapRef.current?.flyTo(REGION_1_CENTER, DEFAULT_ZOOM, { duration: 1 });
+    const map = mapRef.current;
+    if (!map) return;
+    if (spots.length > 0) {
+      const bounds = L.latLngBounds(spots.map((s) => [s.lat, s.lng]));
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 9 });
+    } else {
+      map.flyTo(REGION_1_CENTER, DEFAULT_ZOOM, { duration: 1 });
+    }
   };
 
   const highCount = spots.filter((s) => /high/i.test(s.level)).length;
