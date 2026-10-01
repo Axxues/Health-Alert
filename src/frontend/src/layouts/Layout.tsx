@@ -3,19 +3,18 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import {
   Menu,
   Search,
-  Bell,
-  Mail,
   LogOut,
   ChevronDown,
-  User,
   Shield,
   PanelLeftClose,
   PanelLeftOpen,
+  BookOpenCheck,
 } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { menuItems } from "@/constants/layout/menu/menu";
 import { clearSession, getRole, hasPermission } from "@/utils/auth";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
+import { GuidelinesPanel } from "@/features/rag/components/GuidelinesPanel";
 
 function Profile() {
   const [open, setOpen] = useState(false);
@@ -64,14 +63,6 @@ function Profile() {
             <div style={{ fontWeight: 700, fontSize: "13px", color: "var(--ink)" }}>Dr. Maria Santos</div>
             <div style={{ fontSize: "11.5px", color: "var(--mute)", marginTop: 2 }}>mho.sanfernando@doh.gov.ph</div>
           </div>
-          <Link
-            to="/users"
-            onClick={() => setOpen(false)}
-            role="menuitem"
-          >
-            <User size={14} strokeWidth={2} />
-            <span>Account & Access</span>
-          </Link>
           <button
             role="menuitem"
             onClick={() => {
@@ -92,9 +83,40 @@ function Profile() {
 export function Layout() {
   const [drawer, setDrawer] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [guideShown, setGuideShown] = useState(false);
+  const guideTimer = useRef<number | null>(null);
   const { pathname } = useLocation();
-  const links = menuItems.filter((m) => !m.permission || hasPermission(m.permission));
+  const links = menuItems.filter(
+    (m) => (!m.permission || hasPermission(m.permission)) && (m.path !== "/users" || getRole() === "Admin")
+  );
   const close = () => setDrawer(false);
+
+  // ponytail: two-phase open/close so the drawer animates both ways; unmount lags 220ms.
+  function openGuide() {
+    if (guideTimer.current) window.clearTimeout(guideTimer.current);
+    setGuideOpen(true);
+    requestAnimationFrame(() => requestAnimationFrame(() => setGuideShown(true)));
+  }
+
+  function closeGuide() {
+    setGuideShown(false);
+    if (guideTimer.current) window.clearTimeout(guideTimer.current);
+    guideTimer.current = window.setTimeout(() => setGuideOpen(false), 220);
+  }
+
+  useEffect(() => () => {
+    if (guideTimer.current) window.clearTimeout(guideTimer.current);
+  }, []);
+
+  useEffect(() => {
+    if (!guideOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeGuide();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [guideOpen]);
 
   return (
     <div className="app">
@@ -140,29 +162,6 @@ export function Layout() {
         <div className="who">
           <ThemeToggle />
 
-          <Link to="/messaging" className="iconbtn" aria-label="Messages" title="Inter-agency Messaging">
-            <Mail size={16} strokeWidth={2} />
-          </Link>
-
-          <Link
-            to="/alerts"
-            className="iconbtn"
-            aria-label="Outbreak Alerts"
-            title="Active Outbreak Alerts"
-            style={{ position: "relative" }}
-          >
-            <Bell size={16} strokeWidth={2} />
-            <span
-              className="dot dot--pulse"
-              style={{
-                position: "absolute",
-                top: 7,
-                right: 7,
-                background: "var(--red)",
-              }}
-            />
-          </Link>
-
           <Profile />
         </div>
       </header>
@@ -170,7 +169,7 @@ export function Layout() {
       <div className="below">
         {drawer && <div className="overlay" onClick={close} />}
 
-        <div style={{ position: "relative" }}>
+        <div style={{ position: "relative", display: "flex", alignSelf: "stretch" }}>
           <Sidebar items={links} collapsed={collapsed} />
           <button
             type="button"
@@ -211,6 +210,70 @@ export function Layout() {
           </div>
         </main>
       </div>
+
+      {/* Guidelines assistant: floating button + right drawer */}
+      <button
+        type="button"
+        onClick={openGuide}
+        aria-label="Ask the Guidelines"
+        title="Ask the Guidelines"
+        style={{
+          position: "fixed",
+          right: 22,
+          bottom: 22,
+          zIndex: 40,
+          width: 52,
+          height: 52,
+          borderRadius: "50%",
+          border: "none",
+          background: "var(--primary)",
+          color: "#fff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer",
+          boxShadow: "var(--shadow-lift)",
+        }}
+      >
+        <BookOpenCheck size={22} strokeWidth={2.2} />
+      </button>
+
+      {guideOpen && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 50 }}>
+          {/* ponytail: plain dim, no backdrop blur — blur made the whole app unreadable */}
+          <div
+            onClick={closeGuide}
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "rgba(13, 37, 61, 0.35)",
+              opacity: guideShown ? 1 : 0,
+              transition: "opacity 0.2s ease",
+            }}
+          />
+          <aside
+            role="dialog"
+            aria-label="Guidelines assistant"
+            style={{
+              position: "absolute",
+              top: 0,
+              right: 0,
+              bottom: 0,
+              width: "min(430px, 100vw)",
+              background: "var(--card)",
+              borderLeft: "1px solid var(--hairline)",
+              boxShadow: "var(--shadow-lift)",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+              transform: guideShown ? "translateX(0)" : "translateX(100%)",
+              transition: "transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)",
+            }}
+          >
+            <GuidelinesPanel onClose={closeGuide} />
+          </aside>
+        </div>
+      )}
     </div>
   );
 }

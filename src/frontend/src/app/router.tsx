@@ -1,6 +1,6 @@
 import { Suspense, lazy } from "react";
 import { Navigate, Outlet, createBrowserRouter } from "react-router";
-import { hasPermission, isAuthenticated } from "@/utils/auth";
+import { hasPermission, getRole, isAuthenticated } from "@/utils/auth";
 import { PERMISSIONS } from "@/constants/permissions";
 
 const Layout = lazy(() => import("@/layouts/Layout").then((m) => ({ default: m.Layout })));
@@ -14,6 +14,7 @@ const LocationDetail = lazy(() =>
 const RiskMaps = lazy(() => import("@/features/risk-maps/pages/RiskMaps").then((m) => ({ default: m.RiskMaps })));
 const Alerts = lazy(() => import("@/features/alerts/pages/Alerts").then((m) => ({ default: m.Alerts })));
 const Reports = lazy(() => import("@/features/reports/pages/Reports").then((m) => ({ default: m.Reports })));
+const Users = lazy(() => import("@/features/users/pages/Users").then((m) => ({ default: m.Users })));
 
 function ProtectedRoute() {
   return isAuthenticated() ? <Outlet /> : <Navigate to="/login" replace />;
@@ -21,6 +22,11 @@ function ProtectedRoute() {
 
 function PermissionRoute({ permission, children }: { permission: string; children?: React.ReactNode }) {
   if (!hasPermission(permission)) return <Navigate to="/unauthorized" replace />;
+  return children ?? <Outlet />;
+}
+
+function AdminRoute({ children }: { children?: React.ReactNode }) {
+  if (getRole() !== "Admin") return <Navigate to="/unauthorized" replace />;
   return children ?? <Outlet />;
 }
 
@@ -76,6 +82,11 @@ export const router = createBrowserRouter([
           { path: "risk-maps", ...guard(PERMISSIONS.riskmapsView, <RiskMaps />) },
           { path: "alerts", ...guard(PERMISSIONS.alertsView, <Alerts />) },
           { path: "reports", element: slice(<Reports />) },
+          {
+            path: "users",
+            element: <AdminRoute />,
+            children: [{ index: true, element: slice(<Users />) }],
+          },
         ],
       },
     ],

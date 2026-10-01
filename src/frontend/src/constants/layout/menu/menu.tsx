@@ -14,4 +14,5 @@ export const menuItems: MenuItem[] = [
   { name: "Risk maps", path: "/risk-maps", permission: PERMISSIONS.riskmapsView, section: "Epidemiology" },
   { name: "Alerts", path: "/alerts", permission: PERMISSIONS.alertsView, section: "Epidemiology" },
   { name: "Reports", path: "/reports", section: "Epidemiology" },
+  { name: "Users", path: "/users", section: "Epidemiology" },
 ];
