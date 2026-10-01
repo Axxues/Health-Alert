@@ -27,6 +27,7 @@ builder.Services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSch
     });
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
+builder.Services.AddMemoryCache();
 builder.Services.AddDbContext<HealthAlertDbContext>(o =>
 {
     o.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
