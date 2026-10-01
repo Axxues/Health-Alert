@@ -8,17 +8,38 @@ namespace HealthAlert.Tests;
 
 file sealed class FakeRainHandler : HttpMessageHandler
 {
-    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage req, CancellationToken ct) =>
-        Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage req, CancellationToken ct)
+    {
+        var host = req.RequestUri?.Host ?? "";
+        var json = host.Contains("air-quality-api") ? "{\"hourly\":{\"us_aqi\":[38,42]}}"
+            : host.Contains("wikimedia") ? "{\"items\":[{\"views\":100},{\"views\":80}]}"
+            : "{\"daily\":{\"precipitation_sum\":[9.5],\"temperature_2m_max\":[30.5]}}";
+        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
         {
-            Content = new StringContent("{\"daily\":{\"precipitation_sum\":[9.5],\"temperature_2m_max\":[30.5]}}", Encoding.UTF8, "application/json")
+            Content = new StringContent(json, Encoding.UTF8, "application/json")
         });
+    }
 }
 
 file sealed class ThrowHandler : HttpMessageHandler
 {
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage req, CancellationToken ct) =>
         throw new HttpRequestException("network down");
+}
+
+file sealed class AllProvidersHandler : HttpMessageHandler
+{
+    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage req, CancellationToken ct)
+    {
+        var uri = req.RequestUri!;
+        string json = uri.Host.Contains("air-quality-api") ? "{\"hourly\":{\"us_aqi\":[38,42]}}"
+            : uri.Host.Contains("wikimedia") ? "{\"items\":[{\"views\":100},{\"views\":80}]}"
+            : "{\"daily\":{\"precipitation_sum\":[9.5],\"temperature_2m_max\":[30.5]}}";
+        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(json, Encoding.UTF8, "application/json")
+        });
+    }
 }
 
 public class CovariateFeedTest
@@ -42,5 +63,18 @@ public class CovariateFeedTest
         var svc = new CovariateFeedService(ctx, new HttpClient(new ThrowHandler()));
         await svc.RefreshDailyAsync(CancellationToken.None);
         Assert.Equal(1, await ctx.CovariateReadings.CountAsync());
+    }
+
+    [Fact]
+    public async Task Refresh_writes_aq_and_pageview_rows()
+    {
+        var ctx = TestDb.Create();
+        var svc = new CovariateFeedService(ctx, new HttpClient(new AllProvidersHandler()));
+        await svc.RefreshDailyAsync(CancellationToken.None);
+        Assert.Equal(CovariateFeedService.Places.Count, await ctx.CovariateReadings.CountAsync(c => c.Source == "open-meteo-aq"));
+        Assert.Equal(4, await ctx.CovariateReadings.CountAsync(c => c.Source == "wiki-pageviews"));
+        await svc.RefreshDailyAsync(CancellationToken.None);
+        Assert.Equal(CovariateFeedService.Places.Count + 4 + CovariateFeedService.Places.Count,
+            await ctx.CovariateReadings.CountAsync(c => c.Source != "seed-fallback"));
     }
 }
