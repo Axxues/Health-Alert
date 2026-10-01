@@ -28,7 +28,10 @@ builder.Services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSch
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
 builder.Services.AddDbContext<HealthAlertDbContext>(o =>
-    o.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+{
+    o.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
+    o.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+});
 builder.Services.AddScoped<SurveillanceGetTools>();
 builder.Services.AddScoped<SurveillanceEditTools>();
 builder.Services.AddScoped<ForecastGetTools>();
@@ -46,6 +49,7 @@ builder.Services.AddScoped<SystemUserGetTools>();
 builder.Services.AddScoped<SystemUserEditTools>();
 builder.Services.AddScoped<MessagingGetTools>();
 builder.Services.AddScoped<SystemGetTools>();
+builder.Services.AddHttpClient<CovariateFeedService>();
 builder.Services.AddHostedService<IngestTickerService>();
 var app = builder.Build();
 
