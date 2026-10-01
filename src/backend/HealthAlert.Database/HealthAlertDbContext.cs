@@ -10,10 +10,11 @@ public class TblForecastRun { public long Id { get; set; } public long? DiseaseI
 public class TblAlert { public long Id { get; set; } public long? DiseaseId { get; set; } public string? Message { get; set; } public string? Status { get; set; } }
 public class TblPlaybook { public long Id { get; set; } public string? Code { get; set; } public string? Title { get; set; } }
 public class TblPlaybookExecution { public long Id { get; set; } public long? PlaybookId { get; set; } public string? Status { get; set; } public string? Log { get; set; } }
-public class TblRagDoc { public long Id { get; set; } public string? Doc { get; set; } public string? Chapter { get; set; } public string? Page { get; set; } public string? Content { get; set; } }
+public class TblRagDoc { public long Id { get; set; } public string? Doc { get; set; } public string? Chapter { get; set; } public string? Page { get; set; } public string? Content { get; set; } public string? Source { get; set; } } // ponytail: Source gates answers to DOH/WHO guidelines only
 public class TblUser { public long Id { get; set; } public string? Username { get; set; } public string? Role { get; set; } }
 public class TblAuditTrail { public long Id { get; set; } public string? Action { get; set; } public DateTime? CreatedAt { get; set; } }
 public class TblOutbox { public long Id { get; set; } public string? IdempotencyKey { get; set; } public string? Payload { get; set; } }
+public class TblCovariateReading { public long Id { get; set; } public string? Place { get; set; } public DateTime? Date { get; set; } public string? Source { get; set; } public string? Payload { get; set; } }
 
 public class HealthAlertDbContext(DbContextOptions<HealthAlertDbContext> o) : DbContext(o)
 {
@@ -28,6 +29,7 @@ public class HealthAlertDbContext(DbContextOptions<HealthAlertDbContext> o) : Db
     public DbSet<TblUser> Users => Set<TblUser>();
     public DbSet<TblAuditTrail> AuditTrail => Set<TblAuditTrail>();
     public DbSet<TblOutbox> Outbox => Set<TblOutbox>();
+    public DbSet<TblCovariateReading> CovariateReadings => Set<TblCovariateReading>();
 
     protected override void OnModelCreating(ModelBuilder m)
     {
@@ -43,6 +45,7 @@ public class HealthAlertDbContext(DbContextOptions<HealthAlertDbContext> o) : Db
         m.Entity<TblUser>().ToTable("tblUsers");
         m.Entity<TblAuditTrail>().ToTable("tblAuditTrail");
         m.Entity<TblOutbox>().ToTable("tblOutbox");
+        m.Entity<TblCovariateReading>().ToTable("tblCovariateReadings");
     }
 }
 
@@ -61,6 +64,24 @@ public static class Seed
         if (!await c.Feeds.AnyAsync())
         {
             for (int i = 1; i <= 10; i++) c.Feeds.Add(new TblFeed { Code = $"feed-{i}", Name = $"feed-{i}" });
+        }
+        if (!await c.RagDocs.AnyAsync())
+        {
+            // ponytail: curated DOH/WHO action-guideline excerpts for the 4 tracked diseases; re-seed (not append) when guidance changes
+            c.RagDocs.AddRange(
+                new TblRagDoc { Source = "DOH", Doc = "DOH Clinical Practice Guidelines on Dengue", Chapter = "Warning Signs and Triage", Page = "CPG Dengue", Content = "Refer dengue patients with warning signs (abdominal pain, persistent vomiting, fluid accumulation, mucosal bleeding, lethargy, liver enlargement, rising hematocrit with falling platelets) to a facility with inpatient capacity the same day. Start oral rehydration early for Group A outpatients." },
+                new TblRagDoc { Source = "WHO", Doc = "WHO Dengue Guidelines for Diagnosis, Treatment, Prevention and Control", Chapter = "Vector Control", Page = "Ch.4", Content = "Apply targeted larval control (temephos/Bti) to non-removable water containers and destroy disposable breeding sites within 100m of index households; repeat entomological survey after 7 days." },
+                new TblRagDoc { Source = "DOH", Doc = "DOH Leptospirosis Prevention and Control Guidelines", Chapter = "Chemoprophylaxis", Page = "Lepto CPG", Content = "Give doxycycline 200mg single dose as chemoprophylaxis to high-risk flood-exposed individuals per DOH protocol; treat suspected leptospirosis early and do not wait for confirmatory serology." },
+                new TblRagDoc { Source = "WHO", Doc = "WHO Human Leptospirosis Guidance for Diagnosis, Surveillance and Control", Chapter = "Outbreak Response", Page = "Ch.6", Content = "After flooding, conduct active case finding for acute febrile illness with myalgia or conjunctival suffusion, ensure safe water, and clear drainage and refuse that shelter rodents." },
+                new TblRagDoc { Source = "DOH", Doc = "DOH PIDSR Manual (RA 11332)", Chapter = "Category I Reporting", Page = "PIDSR Ch.3", Content = "Report Category I notifiable diseases (including dengue and leptospirosis) through EDCS-IS within 24 hours of detection; weekly morbidity reports consolidate facility data every Monday." },
+                new TblRagDoc { Source = "WHO", Doc = "WHO ILI/SARI Surveillance Guidance", Chapter = "Case Definitions", Page = "ILI", Content = "Define influenza-like illness as acute respiratory infection with measured fever >=38C and cough with onset within 10 days; sample sentinel ILI cases for virologic confirmation." },
+                new TblRagDoc { Source = "DOH", Doc = "DOH Asthma Clinical Practice Guidelines", Chapter = "Acute Exacerbation", Page = "Asthma CPG", Content = "Treat acute asthma exacerbation with repeated inhaled short-acting beta-agonists, add ipratropium for severe attacks, and give systemic corticosteroids early; step up controller therapy at follow-up." },
+                new TblRagDoc { Source = "WHO", Doc = "WHO Air Quality Guidelines", Chapter = "Particulate Matter", Page = "AQG 2021", Content = "Keep PM2.5 exposure below WHO guideline levels; advise sensitive groups including asthmatics to limit outdoor exertion when AQI exceeds 100." });
+        }
+        if (!await c.CovariateReadings.AnyAsync())
+        {
+            // ponytail: offline fallback so models and pages work before the first feed pull
+            c.CovariateReadings.Add(new TblCovariateReading { Place = "San Fernando City", Date = new DateTime(2026, 9, 27), Source = "seed-fallback", Payload = "{\"rainMm\":112.5,\"tempC\":31.4,\"aqi\":42,\"pageviews\":180}" });
         }
         await c.SaveChangesAsync();
     }
