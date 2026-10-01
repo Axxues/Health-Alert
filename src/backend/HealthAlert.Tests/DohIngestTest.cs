@@ -43,12 +43,60 @@ public class DohIngestTest
         Assert.Equal(3, await ctx.Cases.CountAsync(c => c.SourceKey!.Contains("|HDX-")));
     }
 
+    private const string FixtureHtml =
+        "<html><body>" +
+        "<a href=\"/health-statistics/surveillance-week38\">WDSR Week 38 report</a>" +
+        "<a href=\"https://doh.gov.ph/weekly-update-38\">Weekly update</a>" +
+        "<a href=\"/about/contact\">Contact</a>" +
+        "<table><tr><th>Province</th><th>Dengue</th></tr>" +
+        "<tr><td>CEBU</td><td>12</td></tr>" +
+        "<tr><td>ALBAY</td><td>7</td></tr></table>" +
+        "</body></html>";
+
+    [Fact]
+    public void ParseWdsrListings_extracts_surveillance_links()
+    {
+        var findings = DohIngestTools.ParseWdsrListings(FixtureHtml, "https://doh.gov.ph/health-statistics/weekly-disease-surveillance-report");
+        Assert.Equal(2, findings.Count);
+        Assert.Equal("https://doh.gov.ph/health-statistics/surveillance-week38", findings[0].Url);
+        Assert.Equal("https://doh.gov.ph/weekly-update-38", findings[1].Url);
+    }
+
+    [Fact]
+    public async Task ScrapeWdsr_returns_findings_and_ingests_table_rows()
+    {
+        var ctx = TestDb.Create();
+        await Seed.RunAsync(ctx);
+        var http = new HttpClient(new FakeHtmlHandler(FixtureHtml));
+        var findings = await DohIngestTools.ScrapeWdsrAsync(http, CancellationToken.None);
+        Assert.Equal(2, findings.Count);
+        var rows = DohIngestTools.ParseWdsrTables(FixtureHtml);
+        Assert.Equal(2, rows.Count);
+        Assert.Equal("CEBU", rows[0].Province);
+        Assert.Equal("dengue", rows[0].Disease);
+        Assert.Equal(12, rows[0].Cases);
+        var written = await DohIngestTools.IngestWdsrTablesAsync(ctx, FixtureHtml, CancellationToken.None);
+        Assert.Equal(2, written);
+        Assert.Equal(2, await ctx.Cases.CountAsync(c => c.SourceKey!.Contains("|WDSR-")));
+        var again = await DohIngestTools.IngestWdsrTablesAsync(ctx, FixtureHtml, CancellationToken.None);
+        Assert.Equal(0, again);
+    }
+
     private sealed class FakeCsvHandler(string csv) : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct) =>
             Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK)
             {
                 Content = new StringContent(csv)
+            });
+    }
+
+    private sealed class FakeHtmlHandler(string html) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct) =>
+            Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent(html)
             });
     }
 }
