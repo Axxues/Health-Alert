@@ -1,36 +1,18 @@
 import { NavLink } from "react-router";
 import {
   LayoutDashboard,
-  TrendingUp,
-  Radio,
+  Activity,
   MapPin,
-  BookOpenCheck,
-  Workflow,
-  BellRing,
-  UsersRound,
-  Pill,
-  FileBarChart,
-  MessageSquare,
-  UserCheck,
-  Cpu,
+  Bell,
   Shield,
 } from "lucide-react";
 import { menuItems } from "@/constants/layout/menu/menu";
 
 const iconMap: Record<string, React.ReactNode> = {
   Dashboard: <LayoutDashboard size={18} strokeWidth={2} />,
-  Forecast: <TrendingUp size={18} strokeWidth={2} />,
-  Surveillance: <Radio size={18} strokeWidth={2} />,
+  Intelligence: <Activity size={18} strokeWidth={2} />,
   "Risk maps": <MapPin size={18} strokeWidth={2} />,
-  "Ask the library": <BookOpenCheck size={18} strokeWidth={2} />,
-  Playbooks: <Workflow size={18} strokeWidth={2} />,
-  Alerts: <BellRing size={18} strokeWidth={2} />,
-  Citizen: <UsersRound size={18} strokeWidth={2} />,
-  "Medicine & Supplies": <Pill size={18} strokeWidth={2} />,
-  Reports: <FileBarChart size={18} strokeWidth={2} />,
-  Messaging: <MessageSquare size={18} strokeWidth={2} />,
-  Users: <UserCheck size={18} strokeWidth={2} />,
-  System: <Cpu size={18} strokeWidth={2} />,
+  Alerts: <Bell size={18} strokeWidth={2} />,
 };
 
 export function Sidebar({
@@ -49,11 +31,14 @@ export function Sidebar({
       style={{
         width: collapsed ? 68 : 240,
         minWidth: collapsed ? 68 : 240,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
         transition: "width 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
       }}
     >
-      <div style={{ flex: 1 }}>
-        {(["Epidemiology", "Outbreak Response", "Administration"] as const).map((sec) => {
+      <div style={{ flex: 1, overflowY: "auto" }}>
+        {(["Epidemiology"] as const).map((sec) => {
           const list = items.filter((m) => m.section === sec);
           if (list.length === 0) return null;
           return (
@@ -115,6 +100,9 @@ export function Sidebar({
       <div
         style={{
           marginTop: "auto",
+          flexShrink: 0,
+          position: "sticky",
+          bottom: 0,
           padding: collapsed ? "10px 4px" : "12px 14px",
           background: "var(--card-subtle)",
           border: "1px solid var(--hairline)",
@@ -134,7 +122,7 @@ export function Sidebar({
               <span className="dot" style={{ color: "var(--green)" }} />
               <span>LGU Sentinel Unit</span>
             </div>
-            <div style={{ color: "var(--mute)", fontSize: "11px" }}>Region 1 Multi-Syndromic</div>
+            <div style={{ color: "var(--mute)", fontSize: "11px" }}>Philippine National Multi-Syndromic</div>
           </>
         )}
       </div>
