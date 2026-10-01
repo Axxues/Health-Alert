@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HealthAlert.Database;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,13 +34,43 @@ public class ArgoForecaster : IForecaster
 
 public record ForecastOutlook(double Probability, string Band, string[] Drivers, string? Muni = null);
 
-public class ForecastGetTools(HealthAlertDbContext ctx)
+public class ForecastGetTools(HealthAlertDbContext ctx, ModelRegistryTools reg)
 {
     public async Task<ForecastOutlook> OutlookAsync(string? disease, string? muni)
     {
         var o = Build(disease);
+        if (disease is not null)
+        {
+            var deployed = await reg.DeployedAsync(disease);
+            if (deployed is not null)
+            {
+                var did = await ctx.Diseases.Where(d => d.Code == disease).Select(d => d.Id).FirstOrDefaultAsync();
+                var lags = await ctx.Cases.Where(c => c.DiseaseId == did).OrderByDescending(c => c.ReportedAt).Take(2).Select(c => c.Count ?? 0).ToListAsync();
+                var cov = await ctx.CovariateReadings.OrderBy(c => c.Date).ToListAsync();
+                var newest = cov.Count > 0 ? cov[^1] : null;
+                var prev = cov.Count > 1 ? cov[^2] : null;
+                double[] feat = [1.0,
+                    lags.Count > 0 ? lags[0] : 0.0,
+                    lags.Count > 1 ? lags[1] : 0.0,
+                    Val(newest, "rainMm"), Val(prev, "rainMm"), Val(newest, "tempC"), Val(newest, "aqi"),
+                    Val(newest, "pageviews") - Val(prev, "pageviews")];
+                var prob = Math.Min(0.97, ModelRegistryTools.Predict(deployed, feat) / 50);
+                return o with { Probability = prob, Muni = muni, Drivers = ["fitted-model", .. o.Drivers.Take(2)] };
+            }
+        }
         var n = await ctx.Cases.CountAsync(); // ponytail: count shifts probability; real covariates if accuracy matters
         return o with { Probability = Math.Min(0.97, o.Probability + n * 0.01), Muni = muni };
+    }
+
+    private static double Val(TblCovariateReading? r, string key)
+    {
+        if (r?.Payload is null) return 0.0;
+        try
+        {
+            using var d = JsonDocument.Parse(r.Payload);
+            return d.RootElement.TryGetProperty(key, out var v) && v.ValueKind == JsonValueKind.Number && v.TryGetDouble(out var x) ? x : 0.0;
+        }
+        catch (JsonException) { return 0.0; }
     }
 
     internal static ForecastOutlook Build(string? disease) => disease switch

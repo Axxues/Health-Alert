@@ -38,12 +38,12 @@ public class IngestVerificationTest
     {
         var ctx = TestDb.Create();
         await Seed.RunAsync(ctx);
-        var before = await new ForecastGetTools(ctx).OutlookAsync("dengue", "San Roque");
+        var before = await new ForecastGetTools(ctx, new ModelRegistryTools(ctx)).OutlookAsync("dengue", "San Roque");
         var fixture = await File.ReadAllTextAsync("../../../../../../seed/bulletins/pidsr-dengue-sample.json");
         // ponytail: fallback inline payload when run from a different CWD
         if (!fixture.Contains("sourceKey")) fixture = "{\"sourceKey\":\"pidsr-2026w38-sanroque\",\"disease\":\"dengue\",\"count\":42}";
         await new SurveillanceEditTools(ctx).IngestAsync("pidsr", Json(fixture));
-        var after = await new ForecastGetTools(ctx).OutlookAsync("dengue", "San Roque");
+        var after = await new ForecastGetTools(ctx, new ModelRegistryTools(ctx)).OutlookAsync("dengue", "San Roque");
         Assert.True(after.Probability > before.Probability);
         Assert.NotEmpty(after.Drivers);
     }

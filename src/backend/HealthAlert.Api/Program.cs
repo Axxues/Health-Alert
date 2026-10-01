@@ -36,6 +36,7 @@ builder.Services.AddScoped<SurveillanceGetTools>();
 builder.Services.AddScoped<SurveillanceEditTools>();
 builder.Services.AddScoped<ForecastGetTools>();
 builder.Services.AddScoped<ForecastEditTools>();
+builder.Services.AddScoped<ModelRegistryTools>();
 builder.Services.AddScoped<RagGetTools>();
 builder.Services.AddScoped<RagEditTools>();
 builder.Services.AddScoped<PlaybookGetTools>();
