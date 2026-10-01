@@ -6,5 +6,5 @@ namespace HealthAlert.Tools;
 public class SystemUserGetTools(HealthAlertDbContext ctx)
 {
     public async Task<List<TblUser>> ListAsync() =>
-        await ctx.Users.OrderBy(u => u.Id).ToListAsync();
+        await ctx.Users.Where(u => u.IsActive).OrderBy(u => u.Id).ToListAsync();
 }

@@ -11,7 +11,7 @@ public class TblAlert { public long Id { get; set; } public long? DiseaseId { ge
 public class TblPlaybook { public long Id { get; set; } public string? Code { get; set; } public string? Title { get; set; } }
 public class TblPlaybookExecution { public long Id { get; set; } public long? PlaybookId { get; set; } public string? Status { get; set; } public string? Log { get; set; } }
 public class TblRagDoc { public long Id { get; set; } public string? Doc { get; set; } public string? Chapter { get; set; } public string? Page { get; set; } public string? Content { get; set; } public string? Source { get; set; } } // ponytail: Source gates answers to DOH/WHO guidelines only
-public class TblUser { public long Id { get; set; } public string? Username { get; set; } public string? Role { get; set; } }
+public class TblUser { public long Id { get; set; } public string? Username { get; set; } public string? Role { get; set; } public bool IsActive { get; set; } = true; }
 public class TblAuditTrail { public long Id { get; set; } public string? Action { get; set; } public DateTime? CreatedAt { get; set; } }
 public class TblOutbox { public long Id { get; set; } public string? IdempotencyKey { get; set; } public string? Payload { get; set; } }
 public class TblCovariateReading { public long Id { get; set; } public string? Place { get; set; } public DateTime? Date { get; set; } public string? Source { get; set; } public string? Payload { get; set; } }
