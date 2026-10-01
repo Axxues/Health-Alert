@@ -22,6 +22,15 @@ public class IngestTickerService(ILogger<IngestTickerService> log, IServiceProvi
                     await scope.ServiceProvider.GetRequiredService<CovariateFeedService>().RefreshDailyAsync(ct);
                 }
                 catch (Exception ex) { log.LogWarning(ex, "covariate refresh failed; last good readings stand"); }
+                try
+                {
+                    using var scope = services.CreateScope();
+                    var maps = scope.ServiceProvider.GetRequiredService<RiskMapsGetTools>();
+                    var spots = await maps.Hotspots();
+                    var ctx = scope.ServiceProvider.GetRequiredService<HealthAlert.Database.HealthAlertDbContext>();
+                    await new AlertEngineTools(ctx).EvaluateAsync(spots.Select(s => (s.Muni, s.Disease, s.Level)).ToList());
+                }
+                catch (Exception ex) { log.LogWarning(ex, "alert evaluation failed; existing alerts stand"); }
             }
             await Task.Delay(TimeSpan.FromHours(1), ct);
         }
