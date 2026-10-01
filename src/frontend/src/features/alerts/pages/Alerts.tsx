@@ -1,148 +1,177 @@
-import { useEffect, useState } from "react";
-import { BellRing, ShieldAlert, CheckCircle2, AlertCircle } from "lucide-react";
-import { ackAlert, listAlerts } from "@/services/alerts/api";
-import type { HealthAlert } from "@/services/alerts/types";
-import { AlertTable } from "../components/AlertTable";
+import { useEffect, useMemo, useState } from "react";
+import { ackAlert, broadcastAlert, listAlerts } from "@/services/alerts/api/alerts.api";
+import type { Alert } from "@/services/alerts/types/alerts.types";
+import { getRole } from "@/utils/auth";
+
+const MUNIS = ["San Fernando City", "Agoo", "Bauang", "Bacnotan", "San Juan"];
 
 export function Alerts() {
-  const [items, setItems] = useState<HealthAlert[]>([]);
-  const [filter, setFilter] = useState<"all" | "active" | "acked">("all");
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [kind, setKind] = useState("all");
+  const [status, setStatus] = useState("all");
+  const [muni, setMuni] = useState(MUNIS[0]);
+  const [message, setMessage] = useState("");
+  const [playbookCode, setPlaybookCode] = useState("");
+  const [sending, setSending] = useState(false);
 
-  useEffect(() => {
+  const isAdmin = getRole() === "Admin";
+
+  const refresh = () => {
+    setLoading(true);
+    setError("");
     listAlerts()
-      .then(setItems)
-      .catch(() => setError("Unable to load incident alerts. Check network connection."));
-  }, []);
+      .then(setAlerts)
+      .catch(() => setError("Failed to retrieve alert ledger."))
+      .finally(() => setLoading(false));
+  };
 
-  async function onAck(id: number) {
-    try {
-      const updated = await ackAlert(id);
-      if (updated) {
-        setItems((prev) => prev.map((a) => (a.id === id ? updated : a)));
-      } else {
-        setItems((prev) => prev.map((a) => (a.id === id ? { ...a, status: "acked" } : a)));
-      }
-    } catch {
-      setError("Failed to acknowledge alert. Please try again.");
-    }
-  }
+  useEffect(refresh, []);
 
-  const activeCount = items.filter((a) => a.status !== "acked").length;
-  const ackedCount = items.filter((a) => a.status === "acked").length;
+  const filtered = useMemo(
+    () =>
+      alerts.filter(
+        (a) =>
+          (kind === "all" || a.kind.toLowerCase() === kind) &&
+          (status === "all" || a.status.toLowerCase() === status)
+      ),
+    [alerts, kind, status]
+  );
 
-  const filteredItems = items.filter((a) => {
-    if (filter === "active") return a.status !== "acked";
-    if (filter === "acked") return a.status === "acked";
-    return true;
-  });
+  const openAuto = alerts.filter((a) => a.kind.toLowerCase() === "auto" && a.status.toLowerCase() === "new").length;
+  const openManual = alerts.filter((a) => a.kind.toLowerCase() === "manual" && a.status.toLowerCase() === "new").length;
+
+  const handleAck = async (id: number) => {
+    await ackAlert(id).catch(() => setError("Failed to acknowledge alert."));
+    refresh();
+  };
+
+  const handleSend = async () => {
+    if (!message.trim()) return;
+    setSending(true);
+    await broadcastAlert({ muni, message: message.trim(), playbookCode: playbookCode.trim() || null })
+      .then(() => {
+        setMessage("");
+        setPlaybookCode("");
+        refresh();
+      })
+      .catch(() => setError("Failed to broadcast alert."))
+      .finally(() => setSending(false));
+  };
+
+  const selectClass =
+    "bg-transparent border border-input rounded-md text-xs text-foreground focus:outline-none cursor-pointer px-2.5 py-2 shadow-xs";
 
   return (
-    <div className="grid gap-5">
-      {/* Header */}
-      <div className="dash-head m-0">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 text-xs font-semibold flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              Automated Triage Stream Active
-            </span>
-          </div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight m-0">Public Health Alert Center</h1>
-          <p className="text-xs text-muted-foreground m-0 mt-0.5">
-            Real-time threshold breaches, rapid response triggers, and multi-agency containment notifications.
-          </p>
-        </div>
+    <div className="page-doc" style={{ display: "grid", gap: 20 }}>
+      <div>
+        <h1 style={{ margin: "0 0 4px", fontSize: "24px", fontWeight: 800, letterSpacing: "-0.02em" }}>
+          Alerts
+        </h1>
+        <p style={{ margin: 0, fontSize: "13px", color: "var(--mute)" }}>
+          {alerts.length} alerts, {openAuto} open auto, {openManual} open manual
+        </p>
       </div>
 
-      {/* KPI Cards - Cellwego border-l-4 archetype */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-card border border-border border-l-4 border-l-destructive rounded-lg p-5 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Pending Alerts</span>
-            <div className={`text-2xl font-bold tracking-tight tabular-nums mt-1 ${activeCount > 0 ? "text-destructive" : "text-foreground"}`}>
-              {activeCount}
-            </div>
-            <span className="text-xs text-muted-foreground mt-0.5 block">Require officer action</span>
-          </div>
-          <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center text-destructive">
-            <BellRing size={20} strokeWidth={2} />
-          </div>
-        </div>
-
-        <div className="bg-card border border-border border-l-4 border-l-emerald-500 rounded-lg p-5 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Resolved / Acknowledged</span>
-            <div className="text-2xl font-bold tracking-tight text-foreground mt-1 tabular-nums">{ackedCount}</div>
-            <span className="text-xs text-muted-foreground mt-0.5 block">Contained or monitored</span>
-          </div>
-          <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-            <CheckCircle2 size={20} strokeWidth={2} />
-          </div>
-        </div>
-
-        <div className="bg-card border border-border border-l-4 border-l-blue-500 rounded-lg p-5 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Total Logged Alerts</span>
-            <div className="text-2xl font-bold tracking-tight text-foreground mt-1 tabular-nums">{items.length}</div>
-            <span className="text-xs text-muted-foreground mt-0.5 block">Epidemiological period</span>
-          </div>
-          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-            <ShieldAlert size={20} strokeWidth={2} />
-          </div>
-        </div>
-
-        <div className="bg-card border border-border border-l-4 border-l-purple-500 rounded-lg p-5 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Mean Response Time</span>
-            <div className="text-2xl font-bold tracking-tight text-emerald-500 mt-1 tabular-nums">&lt; 15m</div>
-            <span className="text-xs text-muted-foreground mt-0.5 block">Within SLA standards</span>
-          </div>
-          <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
-            <span className="text-xs font-bold">SLA</span>
-          </div>
-        </div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+        <select value={kind} onChange={(e) => setKind(e.target.value)} className={selectClass} aria-label="Kind">
+          <option value="all">All kinds</option>
+          <option value="auto">Auto</option>
+          <option value="manual">Manual</option>
+        </select>
+        <select value={status} onChange={(e) => setStatus(e.target.value)} className={selectClass} aria-label="Status">
+          <option value="all">All statuses</option>
+          <option value="new">New</option>
+          <option value="acked">Acked</option>
+          <option value="resolved">Resolved</option>
+        </select>
       </div>
 
-      {/* Main Alert Card */}
-      <div className="section-card overflow-hidden">
-        <div className="px-6 py-4 border-b border-border bg-muted/40 flex items-center justify-between flex-wrap gap-3">
-          <div className="flex gap-2 items-center">
-            <button
-              className={`btn-pill text-xs px-3 py-1 ${filter === "all" ? "" : "btn-pill--ghost"}`}
-              onClick={() => setFilter("all")}
-              type="button"
-            >
-              All Alerts ({items.length})
-            </button>
-            <button
-              className={`btn-pill text-xs px-3 py-1 ${filter === "active" ? "" : "btn-pill--ghost"}`}
-              onClick={() => setFilter("active")}
-              type="button"
-            >
-              Action Required ({activeCount})
-            </button>
-            <button
-              className={`btn-pill text-xs px-3 py-1 ${filter === "acked" ? "" : "btn-pill--ghost"}`}
-              onClick={() => setFilter("acked")}
-              type="button"
-            >
-              Resolved ({ackedCount})
+      {error ? (
+        <p style={{ fontSize: "13px", color: "var(--red)" }}>{error}</p>
+      ) : loading ? (
+        <p style={{ padding: "32px 0", textAlign: "center", color: "var(--mute)", fontSize: "13px" }}>
+          Loading alert ledger...
+        </p>
+      ) : filtered.length === 0 ? (
+        <p style={{ padding: "32px 0", textAlign: "center", color: "var(--mute)", fontSize: "13px" }}>
+          No alerts match.
+        </p>
+      ) : (
+        <div style={{ border: "1px solid var(--hairline)", borderRadius: 12, overflowX: "auto", background: "var(--card)" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", minWidth: 760 }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid var(--hairline)", background: "var(--muted)" }}>
+                {(["Kind", "Place", "Disease", "Message", "Status"] as const).map((h) => (
+                  <th
+                    key={h}
+                    style={{
+                      textAlign: "left",
+                      fontSize: "11.5px",
+                      fontWeight: 600,
+                      color: "var(--mute)",
+                      padding: "10px 16px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {h}
+                  </th>
+                ))}
+                <th style={{ width: 120 }} aria-label="Action" />
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((a) => (
+                <tr key={a.id} style={{ borderBottom: "1px solid var(--hairline)" }}>
+                  <td style={{ padding: "11px 16px", textTransform: "capitalize", whiteSpace: "nowrap" }}>{a.kind}</td>
+                  <td style={{ padding: "11px 16px", fontWeight: 700, color: "var(--ink)", whiteSpace: "nowrap" }}>{a.muni}</td>
+                  <td style={{ padding: "11px 16px", color: "var(--ink)", whiteSpace: "nowrap" }}>{a.disease}</td>
+                  <td style={{ padding: "11px 16px", color: "var(--ink)" }}>{a.message}</td>
+                  <td style={{ padding: "11px 16px", textTransform: "capitalize", whiteSpace: "nowrap" }}>{a.status}</td>
+                  <td style={{ padding: "11px 16px", textAlign: "right", whiteSpace: "nowrap" }}>
+                    {a.status.toLowerCase() === "new" && (
+                      <button type="button" className="btn-pill text-xs" onClick={() => handleAck(a.id)}>
+                        Acknowledge
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {isAdmin && (
+        <div className="section-card" style={{ padding: 20, display: "grid", gap: 12 }}>
+          <h3 style={{ margin: 0, fontSize: "14px", fontWeight: 700 }}>Broadcast alert</h3>
+          <select value={muni} onChange={(e) => setMuni(e.target.value)} className={selectClass} aria-label="Municipality">
+            {MUNIS.map((m) => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Alert message..."
+            rows={3}
+            style={{ width: "100%", boxSizing: "border-box", padding: 10, background: "var(--background)", border: "1px solid var(--input)", borderRadius: 8, fontSize: "13px", color: "var(--ink)" }}
+          />
+          <input
+            type="text"
+            value={playbookCode}
+            onChange={(e) => setPlaybookCode(e.target.value)}
+            placeholder="SOP code (optional)"
+            style={{ width: "100%", boxSizing: "border-box", padding: 10, background: "var(--background)", border: "1px solid var(--input)", borderRadius: 8, fontSize: "13px", color: "var(--ink)" }}
+          />
+          <div>
+            <button type="button" className="btn-pill text-xs" onClick={handleSend} disabled={sending || !message.trim()}>
+              {sending ? "Sending..." : "Send"}
             </button>
           </div>
         </div>
-
-        <div className="p-6">
-          {error ? (
-            <div className="flex items-center gap-2 p-3 bg-destructive/10 text-destructive border border-destructive/20 rounded-md text-xs font-semibold">
-              <AlertCircle size={16} strokeWidth={2} />
-              <span>{error}</span>
-            </div>
-          ) : (
-            <AlertTable items={filteredItems} onAck={onAck} />
-          )}
-        </div>
-      </div>
+      )}
     </div>
   );
 }
