@@ -1,4 +1,6 @@
+using HealthAlert.Database;
 using HealthAlert.Tools;
+using Microsoft.EntityFrameworkCore;
 
 namespace HealthAlert.Api.Services;
 
@@ -31,6 +33,31 @@ public class IngestTickerService(ILogger<IngestTickerService> log, IServiceProvi
                     await new AlertEngineTools(ctx).EvaluateAsync(spots.Select(s => (s.Muni, s.Disease, s.Level)).ToList());
                 }
                 catch (Exception ex) { log.LogWarning(ex, "alert evaluation failed; existing alerts stand"); }
+            }
+            if (tick % 168 == 0)
+            {
+                try
+                {
+                    using var scope = services.CreateScope();
+                    var ctx = scope.ServiceProvider.GetRequiredService<HealthAlertDbContext>();
+                    if (!await ctx.Cases.AnyAsync(c => c.SourceKey != null && c.SourceKey.Contains("|HDX-"), ct))
+                    {
+                        var http = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>().CreateClient();
+                        var n = await DohIngestTools.BackfillHdxAsync(ctx, http, ct);
+                        log.LogInformation("HDX backfill wrote {Rows} rows", n);
+                    }
+                }
+                catch (Exception ex) { log.LogWarning(ex, "HDX backfill failed; existing cases stand"); }
+                try
+                {
+                    using var scope = services.CreateScope();
+                    var ctx = scope.ServiceProvider.GetRequiredService<HealthAlertDbContext>();
+                    var http = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>().CreateClient();
+                    var html = await http.GetStringAsync(DohIngestTools.WdsrUrl, ct);
+                    var n = await DohIngestTools.IngestWdsrTablesAsync(ctx, html, ct);
+                    log.LogInformation("WDSR scrape wrote {Rows} rows", n);
+                }
+                catch (Exception ex) { log.LogWarning(ex, "WDSR scrape failed; existing cases stand"); }
             }
             await Task.Delay(TimeSpan.FromHours(1), ct);
         }

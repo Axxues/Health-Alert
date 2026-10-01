@@ -54,6 +54,7 @@ public class RiskMapsGetTools(HealthAlertDbContext ctx, ModelRegistryTools reg, 
             var t = thresholds.FirstOrDefault(t => t.Disease == g.Key.Disease) ?? RiskBandTools.DefaultFor(g.Key.Disease);
             var level = RiskBandTools.Assign(prob, latest / Math.Max(1, prior), Val(newest, t.CovariateKey ?? ""), t) switch { "moderate" => "medium", var l => l };
             var (prov, lat, lng) = Coords(g.Key.Muni);
+            if (rows.Any(c => IsProvinceLevel(c.SourceKey ?? ""))) prov = g.Key.Muni; // ponytail: HDX/WDSR keys are province-level; surface the name, not the La Union fallback
             spots.Add(new(g.Key.Disease + "-" + g.Key.Muni.ToLowerInvariant().Replace(' ', '-'), g.Key.Muni, prov, g.Key.Disease, NameOf(g.Key.Disease), level, lat, lng, (int)Math.Round(rows.Sum(c => c.Count ?? 0)), prob));
         }
         cache.Set("hotspots", spots, TimeSpan.FromHours(1));
@@ -78,7 +79,7 @@ public class RiskMapsGetTools(HealthAlertDbContext ctx, ModelRegistryTools reg, 
         var older = cov.Count > 1 ? cov[^2] : null;
         var models = new Dictionary<string, TblForecastModel?>();
         var rows = new List<LocationRow>();
-        foreach (var p in DemoHistorySeeder.Places)
+        foreach (var p in await PlacesAsync())
             foreach (var d in DemoHistorySeeder.Diseases)
             {
                 groups.TryGetValue((p.Municipality, d), out var list);
@@ -109,6 +110,27 @@ public class RiskMapsGetTools(HealthAlertDbContext ctx, ModelRegistryTools reg, 
     }
 
     private static bool NoFilter(string? v) => string.IsNullOrWhiteSpace(v) || v.Equals("all", StringComparison.OrdinalIgnoreCase);
+
+    // ponytail: national directory = static seeds UNION harvested case prefixes; HDX/WDSR prefixes are province-level so province = name
+    private async Task<List<DemoPlace>> PlacesAsync()
+    {
+        var keys = await ctx.Cases.Where(c => c.SourceKey != null).Select(c => c.SourceKey!).ToListAsync();
+        var provinceLevel = keys.Where(IsProvinceLevel).Select(Prefix).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var known = new HashSet<string>(DemoHistorySeeder.Places.Select(p => p.Municipality), StringComparer.OrdinalIgnoreCase);
+        var dir = new List<DemoPlace>(DemoHistorySeeder.Places);
+        foreach (var muni in keys.Select(Prefix).Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            if (muni.Length == 0 || !known.Add(muni)) continue;
+            var (prov0, lat, lng) = Coords(muni);
+            dir.Add(new DemoPlace(muni, provinceLevel.Contains(muni) ? muni : prov0, "", "DOH PIDSR reporting units", lat, lng));
+        }
+        return dir;
+    }
+
+    private static string Prefix(string key) => key.Split('|', 2)[0];
+
+    private static bool IsProvinceLevel(string key) =>
+        key.Contains("|HDX-", StringComparison.Ordinal) || key.Contains("|WDSR-", StringComparison.Ordinal);
 
     private static double Val(TblCovariateReading? r, string key)
     {
