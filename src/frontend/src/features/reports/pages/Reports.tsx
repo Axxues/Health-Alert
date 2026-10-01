@@ -1,175 +1,197 @@
-import { useState } from "react";
-import {
-  FileBarChart,
-  Download,
-  CheckCircle2,
-  FileText,
-  Table,
-} from "lucide-react";
+import { useEffect, useState } from "react";
+import { bulletin, exportRows } from "@/services/reports/api/reports.api";
+import type { WeeklyBulletin } from "@/services/reports/types/reports.types";
 
-interface ReportRow {
-  disease: string;
-  casesThisWeek: number;
-  casesLastWeek: number;
-  attackRate: string;
-  cfr: string;
-  thresholdStatus: "Normal" | "Alert" | "Epidemic";
+const MUNIS = ["San Fernando City", "Agoo", "Bauang", "Bacnotan", "San Juan"];
+const DISEASES = ["dengue", "leptospirosis", "ili", "asthma"];
+
+function currentMonday(): string {
+  const d = new Date();
+  const diff = (d.getDay() - 1 + 7) % 7;
+  d.setDate(d.getDate() - diff);
+  return d.toISOString().slice(0, 10);
 }
 
-const REPORT_DATA: ReportRow[] = [
-  { disease: "Dengue Clinical (Suspected + Confirmed)", casesThisWeek: 48, casesLastWeek: 31, attackRate: "18.4 / 100k", cfr: "0.0%", thresholdStatus: "Alert" },
-  { disease: "Leptospirosis (Post-Flood Exposure)", casesThisWeek: 9, casesLastWeek: 4, attackRate: "3.5 / 100k", cfr: "0.0%", thresholdStatus: "Alert" },
-  { disease: "Influenza-like Illness (ILI)", casesThisWeek: 112, casesLastWeek: 108, attackRate: "43.1 / 100k", cfr: "0.0%", thresholdStatus: "Normal" },
-  { disease: "Bronchial Asthma & Acute Dyspnea", casesThisWeek: 34, casesLastWeek: 29, attackRate: "13.1 / 100k", cfr: "0.0%", thresholdStatus: "Normal" },
-];
+type Tab = "bulletin" | "custom";
 
 export function Reports() {
-  const [downloading, setDownloading] = useState(false);
-  const [downloaded, setDownloaded] = useState(false);
+  const [tab, setTab] = useState<Tab>("bulletin");
+  const [week, setWeek] = useState(currentMonday);
+  const [data, setData] = useState<WeeklyBulletin | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [generatedAt] = useState(() => new Date().toLocaleString());
 
-  function handleDownload(_format: string) {
+  const [muni, setMuni] = useState("all");
+  const [disease, setDisease] = useState("all");
+  const [from, setFrom] = useState(currentMonday());
+  const [to, setTo] = useState(() => new Date().toISOString().slice(0, 10));
+  const [downloading, setDownloading] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    setError("");
+    bulletin(week)
+      .then(setData)
+      .catch(() => setError("Failed to retrieve weekly bulletin."))
+      .finally(() => setLoading(false));
+  }, [week]);
+
+  const handleDownload = async () => {
     setDownloading(true);
-    setTimeout(() => {
+    try {
+      const rows = await exportRows(
+        muni === "all" ? undefined : muni,
+        disease === "all" ? undefined : disease,
+        from || undefined,
+        to || undefined
+      );
+      const csv = ["date,muni,disease,count", ...rows.map((r) => `${r.date},${r.muni},${r.disease},${r.count}`)].join("\n");
+      const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `cases-${from}_${to}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
       setDownloading(false);
-      setDownloaded(true);
-      setTimeout(() => setDownloaded(false), 3000);
-    }, 1200);
-  }
+    }
+  };
+
+  const selectClass =
+    "bg-transparent border border-input rounded-md text-xs text-foreground focus:outline-none cursor-pointer px-2.5 py-2 shadow-xs";
+  const inputClass =
+    "bg-transparent border border-input rounded-md text-xs text-foreground focus:outline-none px-2.5 py-2 shadow-xs";
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/10 px-2.5 py-0.5 text-[11px] font-medium text-blue-600 dark:text-blue-400">
-              <FileBarChart size={13} strokeWidth={2.2} />
-              DOH Epidemiological Surveillance Reports
-            </span>
-          </div>
-          <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-            Surveillance Bulletins & Reporting
-          </h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            Automated Weekly Epidemiological Surveillance Report (WESR) compliant with DOH EB & RA 11332 standards.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => handleDownload("PDF")}
-            disabled={downloading}
-            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors shadow-xs disabled:opacity-50"
-          >
-            <Download size={14} strokeWidth={2.2} />
-            <span>{downloading ? "Compiling..." : "Export WESR (PDF)"}</span>
-          </button>
-          <button
-            onClick={() => handleDownload("CSV")}
-            disabled={downloading}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50"
-          >
-            <Table size={14} strokeWidth={2.2} />
-            <span>Export Linelist (CSV)</span>
-          </button>
-        </div>
+    <div className="page-doc" style={{ display: "grid", gap: 20 }}>
+      <div>
+        <h1 style={{ margin: "0 0 4px", fontSize: "24px", fontWeight: 800, letterSpacing: "-0.02em" }}>
+          Reports
+        </h1>
+        <p style={{ margin: 0, fontSize: "13px", color: "var(--mute)" }}>
+          Weekly epidemiological bulletin and custom case exports
+        </p>
       </div>
 
-      {downloaded && (
-        <div className="flex items-center gap-3 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
-          <CheckCircle2 size={16} strokeWidth={2.2} className="shrink-0" />
-          <span>Official Epidemiological Bulletin generated successfully. File downloaded to local system.</span>
+      <div style={{ display: "flex", gap: 20, borderBottom: "1px solid var(--hairline)" }}>
+        {(
+          [
+            { id: "bulletin", label: "Bulletin" },
+            { id: "custom", label: "Custom export" },
+          ] as { id: Tab; label: string }[]
+        ).map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setTab(t.id)}
+            style={{
+              background: "none",
+              border: "none",
+              borderBottom: tab === t.id ? "2px solid var(--primary)" : "2px solid transparent",
+              color: tab === t.id ? "var(--ink)" : "var(--mute)",
+              fontSize: "13px",
+              fontWeight: tab === t.id ? 700 : 500,
+              padding: "0 2px 8px",
+              marginBottom: -1,
+              cursor: "pointer",
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "bulletin" ? (
+        <div style={{ display: "grid", gap: 12 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <input type="date" value={week} onChange={(e) => setWeek(e.target.value)} className={inputClass} aria-label="Week" />
+            <button type="button" className="btn-pill text-xs" onClick={() => window.print()}>
+              Print
+            </button>
+          </div>
+          {error ? (
+            <p style={{ fontSize: "13px", color: "var(--red)" }}>{error}</p>
+          ) : loading ? (
+            <p style={{ padding: "32px 0", textAlign: "center", color: "var(--mute)", fontSize: "13px" }}>
+              Loading weekly bulletin...
+            </p>
+          ) : (
+            <div className="print-area" style={{ border: "1px solid var(--hairline)", borderRadius: 12, background: "var(--card)", padding: 24, display: "grid", gap: 16 }}>
+              <div>
+                <h2 style={{ margin: "0 0 4px", fontSize: "18px", fontWeight: 800 }}>Weekly epidemiological bulletin</h2>
+                <p style={{ margin: 0, fontSize: "13px", color: "var(--mute)" }}>Week of {data?.week}</p>
+              </div>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                <thead>
+                  <tr style={{ borderBottom: "1px solid var(--hairline)", background: "var(--muted)" }}>
+                    {(["Disease", "Cases", "Prev", "Change %"] as const).map((h) => (
+                      <th key={h} style={{ textAlign: "left", fontSize: "11.5px", fontWeight: 600, color: "var(--mute)", padding: "10px 16px", whiteSpace: "nowrap" }}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {(data?.diseases ?? []).map((d) => (
+                    <tr key={d.disease} style={{ borderBottom: "1px solid var(--hairline)" }}>
+                      <td style={{ padding: "11px 16px", fontWeight: 700 }}>{d.disease}</td>
+                      <td className="tabular" style={{ padding: "11px 16px" }}>{d.cases}</td>
+                      <td className="tabular" style={{ padding: "11px 16px" }}>{d.prevCases}</td>
+                      <td className="tabular" style={{ padding: "11px 16px", color: d.changePct > 0 ? "var(--red)" : "var(--green)" }}>
+                        {d.changePct.toFixed(1)}%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div>
+                <h3 style={{ margin: "0 0 6px", fontSize: "14px", fontWeight: 700 }}>Hotspots</h3>
+                {(data?.hotspots ?? []).length === 0 ? (
+                  <p style={{ margin: 0, fontSize: "13px", color: "var(--mute)" }}>No hotspots this week.</p>
+                ) : (
+                  <ul style={{ margin: 0, paddingLeft: 18, fontSize: "13px" }}>
+                    {data?.hotspots.map((h) => <li key={h}>{h}</li>)}
+                  </ul>
+                )}
+              </div>
+              <div>
+                <h3 style={{ margin: "0 0 6px", fontSize: "14px", fontWeight: 700 }}>Active alerts</h3>
+                {(data?.activeAlerts ?? []).length === 0 ? (
+                  <p style={{ margin: 0, fontSize: "13px", color: "var(--mute)" }}>No active alerts.</p>
+                ) : (
+                  <ul style={{ margin: 0, paddingLeft: 18, fontSize: "13px" }}>
+                    {data?.activeAlerts.map((a, i) => <li key={i}>{a}</li>)}
+                  </ul>
+                )}
+              </div>
+              <p style={{ margin: 0, fontSize: "12px", color: "var(--mute)" }}>Generated {generatedAt}</p>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div style={{ display: "grid", gap: 12 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <select value={muni} onChange={(e) => setMuni(e.target.value)} className={selectClass} aria-label="Municipality">
+              <option value="all">All municipalities</option>
+              {MUNIS.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+            <select value={disease} onChange={(e) => setDisease(e.target.value)} className={selectClass} aria-label="Disease">
+              <option value="all">All diseases</option>
+              {DISEASES.map((d) => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className={inputClass} aria-label="From" />
+            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className={inputClass} aria-label="To" />
+            <button type="button" className="btn-pill text-xs" onClick={handleDownload} disabled={downloading}>
+              {downloading ? "Preparing..." : "Download CSV"}
+            </button>
+          </div>
         </div>
       )}
-
-      {/* Executive Briefing Summary Card */}
-      <div className="rounded-xl border border-border border-l-4 border-l-blue-500 bg-card p-5 shadow-sm space-y-3">
-        <div className="flex items-center gap-2">
-          <FileText size={16} strokeWidth={2.2} className="text-blue-500" />
-          <h3 className="text-sm font-semibold text-foreground">
-            Executive Surveillance Brief — Epi Week 40
-          </h3>
-        </div>
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          <strong className="text-foreground">Summary for Municipal Health Board:</strong> A statistically significant increase in Dengue
-          cases (+54.8% week-over-week) was observed across 3 barangays, driven by recent continuous precipitation
-          and standing water pooling. Prepositioning of ORS and Doxycycline is 92% complete across RHU sentinel stations.
-        </p>
-        <div className="flex flex-wrap gap-4 pt-1 text-[11px] text-muted-foreground border-t border-border/50">
-          <span><strong className="text-foreground">Period:</strong> Epi Week 40 (Oct 1–7)</span>
-          <span><strong className="text-foreground">Reporting RHU:</strong> San Fernando Main Sentinel</span>
-          <span><strong className="text-foreground">Surveillance Officer:</strong> Dr. M. Santos (MHO)</span>
-        </div>
-      </div>
-
-      {/* Morbidity & Mortality Table */}
-      <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-6 py-4 border-b border-border bg-muted/40">
-          <div>
-            <h3 className="text-sm font-semibold text-foreground">
-              Weekly Morbidity & Outbreak Threshold Indicators
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              Sentinel disease incidence comparison against historic 5-year epidemic thresholds.
-            </p>
-          </div>
-          <span className="inline-flex items-center rounded-md bg-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
-            Official DOH Registry
-          </span>
-        </div>
-
-        <div className="p-5">
-          <div className="overflow-x-auto rounded-lg border border-border">
-            <table className="w-full text-xs text-left border-collapse">
-              <thead className="bg-muted/40 text-muted-foreground border-b border-border">
-                <tr>
-                  <th className="px-4 py-3 font-semibold uppercase tracking-wider">Monitored Syndrome / Disease</th>
-                  <th className="px-4 py-3 font-semibold uppercase tracking-wider">Epi W40 Cases</th>
-                  <th className="px-4 py-3 font-semibold uppercase tracking-wider">Epi W39 Cases</th>
-                  <th className="px-4 py-3 font-semibold uppercase tracking-wider">Attack Rate</th>
-                  <th className="px-4 py-3 font-semibold uppercase tracking-wider">CFR</th>
-                  <th className="px-4 py-3 font-semibold uppercase tracking-wider text-right">Threshold Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {REPORT_DATA.map((r, i) => (
-                  <tr key={i} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-4 py-3 font-medium text-foreground text-[13px]">
-                      {r.disease}
-                    </td>
-                    <td className="px-4 py-3 font-bold text-sm tabular-nums">
-                      <span className={r.casesThisWeek > r.casesLastWeek ? "text-rose-600 dark:text-rose-400" : "text-foreground"}>
-                        {r.casesThisWeek}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground tabular-nums">
-                      {r.casesLastWeek}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground tabular-nums">
-                      {r.attackRate}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground tabular-nums">
-                      {r.cfr}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {r.thresholdStatus === "Alert" ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-md bg-rose-500/10 px-2.5 py-1 text-[11px] font-medium text-rose-600 dark:text-rose-400">
-                          <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
-                          Alert Threshold
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center rounded-md bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-                          Normal Baseline
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

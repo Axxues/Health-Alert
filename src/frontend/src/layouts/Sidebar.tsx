@@ -4,6 +4,7 @@ import {
   Activity,
   MapPin,
   Bell,
+  FileText,
   Shield,
 } from "lucide-react";
 import { menuItems } from "@/constants/layout/menu/menu";
@@ -13,6 +14,7 @@ const iconMap: Record<string, React.ReactNode> = {
   Intelligence: <Activity size={18} strokeWidth={2} />,
   "Risk maps": <MapPin size={18} strokeWidth={2} />,
   Alerts: <Bell size={18} strokeWidth={2} />,
+  Reports: <FileText size={18} strokeWidth={2} />,
 };
 
 export function Sidebar({

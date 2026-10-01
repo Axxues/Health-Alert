@@ -13,6 +13,7 @@ const LocationDetail = lazy(() =>
 );
 const RiskMaps = lazy(() => import("@/features/risk-maps/pages/RiskMaps").then((m) => ({ default: m.RiskMaps })));
 const Alerts = lazy(() => import("@/features/alerts/pages/Alerts").then((m) => ({ default: m.Alerts })));
+const Reports = lazy(() => import("@/features/reports/pages/Reports").then((m) => ({ default: m.Reports })));
 
 function ProtectedRoute() {
   return isAuthenticated() ? <Outlet /> : <Navigate to="/login" replace />;
@@ -74,6 +75,7 @@ export const router = createBrowserRouter([
           },
           { path: "risk-maps", ...guard(PERMISSIONS.riskmapsView, <RiskMaps />) },
           { path: "alerts", ...guard(PERMISSIONS.alertsView, <Alerts />) },
+          { path: "reports", element: slice(<Reports />) },
         ],
       },
     ],
