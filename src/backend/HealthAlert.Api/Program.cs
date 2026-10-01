@@ -68,6 +68,7 @@ using (var scope = app.Services.CreateScope())
     if (ctx.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory") await ctx.Database.EnsureCreatedAsync();
     else await ctx.Database.MigrateAsync();
     await Seed.RunAsync(ctx);
+    if (app.Environment.IsDevelopment()) await DemoHistorySeeder.EnsureAsync(ctx); // ponytail: demo history only on empty dev DB
 }
 
 app.Run();

@@ -15,6 +15,12 @@ public class ForecastController(IConfiguration cfg, IHostEnvironment env) : Cont
         [FromServices] ForecastGetTools g) =>
         Ok(ApiResponse.Ok(await g.OutlookAsync(disease, muni)));
 
+    [HttpGet("locations")]
+    public async Task<IActionResult> Locations([FromQuery] string? search, [FromQuery] string? province,
+        [FromQuery] string? municipality, [FromQuery] string? disease, [FromQuery] string? riskLevel,
+        [FromServices] RiskMapsGetTools g) =>
+        Ok(ApiResponse.Ok(await g.LocationsAsync(search, province, municipality, disease, riskLevel)));
+
     [HttpPost("train")]
     public async Task<IActionResult> Train([FromBody] ForecastReq r,
         [FromServices] ModelRegistryTools reg) =>
