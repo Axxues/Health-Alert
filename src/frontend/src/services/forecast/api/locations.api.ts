@@ -483,41 +483,6 @@ function buildEntry(raw: typeof RAW_LOCATIONS[0]): LocationDiseaseEntry {
   };
 }
 
-// ponytail: mock fallback keeps the page alive when the API is down or empty
-function mockListLocations(filter: LocationFilter = {}): LocationDiseaseEntry[] {
-  const entries = RAW_LOCATIONS.map(buildEntry);
-
-  return entries.filter((loc) => {
-    if (filter.province && loc.province.toLowerCase() !== filter.province.toLowerCase()) {
-      return false;
-    }
-    if (filter.municipality) {
-      const targetMuni = filter.municipality.trim().toLowerCase();
-      const locMuni = loc.municipality.trim().toLowerCase();
-      if (locMuni !== targetMuni) {
-        return false;
-      }
-    }
-    if (filter.disease && loc.disease.toLowerCase() !== filter.disease.toLowerCase()) {
-      return false;
-    }
-    if (filter.riskLevel && loc.riskLevel.toLowerCase() !== filter.riskLevel.toLowerCase()) {
-      return false;
-    }
-    if (filter.search && filter.search.trim()) {
-      const q = filter.search.trim().toLowerCase();
-      const match =
-        loc.barangay.toLowerCase().includes(q) ||
-        loc.municipality.toLowerCase().includes(q) ||
-        loc.province.toLowerCase().includes(q) ||
-        loc.disease.toLowerCase().includes(q) ||
-        loc.diseaseName.toLowerCase().includes(q);
-      if (!match) return false;
-    }
-    return true;
-  });
-}
-
 export async function listLocations(filter: LocationFilter = {}): Promise<LocationDiseaseEntry[]> {
   const params: Record<string, string> = {};
   const set = (k: string, v?: string) => {
@@ -529,16 +494,19 @@ export async function listLocations(filter: LocationFilter = {}): Promise<Locati
   set("municipality", filter.municipality);
   set("disease", filter.disease);
   set("riskLevel", filter.riskLevel);
+  let res;
   try {
-    const res = await httpClient<LocationDiseaseEntry[]>("/forecast/locations", {
+    res = await httpClient<LocationDiseaseEntry[]>("/forecast/locations", {
       method: "get",
       params,
     });
-    if (res.data && res.data.length > 0) return res.data;
-  } catch {
-    // ponytail: fall through to mock entries so the page never blanks
+  } catch (err) {
+    throw new Error(err instanceof Error && err.message ? err.message : "Failed to retrieve location intelligence directory.");
   }
-  return mockListLocations(filter);
+  if (!res.data || res.data.length === 0) {
+    throw new Error("No location intelligence available from the feed.");
+  }
+  return res.data;
 }
 
 export async function getLocationDetail(id: string, disease?: string): Promise<LocationDetailData> {

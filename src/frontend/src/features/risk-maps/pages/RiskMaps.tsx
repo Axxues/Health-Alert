@@ -56,13 +56,13 @@ export function RiskMaps() {
   useEffect(() => {
     listHotspots()
       .then(setSpots)
-      .catch(() => setError("Unable to load geospatial hotspot telemetry. Please retry."));
+      .catch((e) => setError(e instanceof Error && e.message ? e.message : "Unable to load geospatial hotspot telemetry. Please retry."));
   }, []);
 
   const filteredSpots = filter === "all" ? spots : spots.filter((s) => s.disease.toLowerCase() === filter);
 
   return (
-    <div className="grid gap-5">
+    <div className="grid gap-5 page-doc">
       {/* Header */}
       <div className="dash-head m-0">
         <div>
@@ -136,6 +136,7 @@ export function RiskMaps() {
         <div className="flex items-center gap-2 p-3 bg-destructive/10 text-destructive border border-destructive/20 rounded-md text-xs font-semibold">
           <AlertCircle size={16} strokeWidth={2.2} />
           <span>{error}</span>
+          <button type="button" className="btn-pill text-xs ml-auto" onClick={() => window.location.reload()}>Retry</button>
         </div>
       )}
 
@@ -164,7 +165,7 @@ export function RiskMaps() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
-                  {selected.province || "Region 1 Surveillance"}
+                  {selected.province || "Philippine National Surveillance"}
                 </span>
                 <h3 className="text-lg font-bold text-foreground mt-0.5 mb-0">{selected.muni}</h3>
               </div>
