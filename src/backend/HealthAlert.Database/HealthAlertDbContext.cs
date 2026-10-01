@@ -15,6 +15,7 @@ public class TblUser { public long Id { get; set; } public string? Username { ge
 public class TblAuditTrail { public long Id { get; set; } public string? Action { get; set; } public DateTime? CreatedAt { get; set; } }
 public class TblOutbox { public long Id { get; set; } public string? IdempotencyKey { get; set; } public string? Payload { get; set; } }
 public class TblCovariateReading { public long Id { get; set; } public string? Place { get; set; } public DateTime? Date { get; set; } public string? Source { get; set; } public string? Payload { get; set; } }
+public class TblForecastModel { public long Id { get; set; } public string? Disease { get; set; } public int Version { get; set; } public string? CoeffsJson { get; set; } public DateTime? TrainedFrom { get; set; } public DateTime? TrainedTo { get; set; } public double? Rmse { get; set; } public double? Mae { get; set; } public double? R2 { get; set; } public string? Status { get; set; } }
 
 public class HealthAlertDbContext(DbContextOptions<HealthAlertDbContext> o) : DbContext(o)
 {
@@ -30,6 +31,7 @@ public class HealthAlertDbContext(DbContextOptions<HealthAlertDbContext> o) : Db
     public DbSet<TblAuditTrail> AuditTrail => Set<TblAuditTrail>();
     public DbSet<TblOutbox> Outbox => Set<TblOutbox>();
     public DbSet<TblCovariateReading> CovariateReadings => Set<TblCovariateReading>();
+    public DbSet<TblForecastModel> ForecastModels => Set<TblForecastModel>();
 
     protected override void OnModelCreating(ModelBuilder m)
     {
@@ -46,6 +48,7 @@ public class HealthAlertDbContext(DbContextOptions<HealthAlertDbContext> o) : Db
         m.Entity<TblAuditTrail>().ToTable("tblAuditTrail");
         m.Entity<TblOutbox>().ToTable("tblOutbox");
         m.Entity<TblCovariateReading>().ToTable("tblCovariateReadings");
+        m.Entity<TblForecastModel>().ToTable("tblForecastModels");
     }
 }
 
