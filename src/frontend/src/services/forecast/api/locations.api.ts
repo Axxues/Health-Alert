@@ -1,3 +1,4 @@
+import { httpClient } from "@/services/core/client";
 import type {
   LocationDiseaseEntry,
   LocationDetailData,
@@ -6,6 +7,270 @@ import type {
 } from "../types/forecast.types";
 
 const RAW_LOCATIONS: Omit<LocationDiseaseEntry, "activeCases" | "prevWeekCases" | "changePercent">[] = [
+  // === NATIONAL CAPITAL REGION (NCR) ===
+  {
+    id: "ncr-qc-batasan",
+    province: "Metro Manila (NCR)",
+    municipality: "Quezon City",
+    barangay: "Batasan Hills",
+    disease: "dengue",
+    diseaseName: "Dengue Fever",
+    category: "vector",
+    riskLevel: "high",
+    outbreakProbability: 0.88,
+    sentinelFacility: "East Avenue Medical Center / QC Health Department",
+    lastUpdated: "2026-09-30T02:00:00Z",
+  },
+  {
+    id: "ncr-mnl-tondo",
+    province: "Metro Manila (NCR)",
+    municipality: "City of Manila",
+    barangay: "Tondo",
+    disease: "leptospirosis",
+    diseaseName: "Leptospirosis",
+    category: "waterborne",
+    riskLevel: "high",
+    outbreakProbability: 0.84,
+    sentinelFacility: "San Lazaro Hospital / Tondo Medical Center",
+    lastUpdated: "2026-09-30T02:00:00Z",
+  },
+  {
+    id: "ncr-cal-bagongsilang",
+    province: "Metro Manila (NCR)",
+    municipality: "Caloocan City",
+    barangay: "176 Bagong Silang",
+    disease: "ili",
+    diseaseName: "Flu-like Illness (ILI)",
+    category: "respiratory",
+    riskLevel: "moderate",
+    outbreakProbability: 0.58,
+    sentinelFacility: "Caloocan City Medical Center",
+    lastUpdated: "2026-09-30T01:30:00Z",
+  },
+  {
+    id: "ncr-psg-pinagbuhatan",
+    province: "Metro Manila (NCR)",
+    municipality: "Pasig City",
+    barangay: "Pinagbuhatan",
+    disease: "asthma",
+    diseaseName: "Bronchial Asthma Aggravation",
+    category: "environmental",
+    riskLevel: "moderate",
+    outbreakProbability: 0.52,
+    sentinelFacility: "Pasig City General Hospital",
+    lastUpdated: "2026-09-30T01:00:00Z",
+  },
+
+  // === CENTRAL LUZON (REGION 3) ===
+  {
+    id: "r3-pam-sanfernando",
+    province: "Pampanga",
+    municipality: "City of San Fernando",
+    barangay: "Dolores",
+    disease: "dengue",
+    diseaseName: "Dengue Fever",
+    category: "vector",
+    riskLevel: "high",
+    outbreakProbability: 0.79,
+    sentinelFacility: "Jose B. Lingad Memorial General Hospital (JBLMGH)",
+    lastUpdated: "2026-09-30T01:15:00Z",
+  },
+  {
+    id: "r3-bul-malolos",
+    province: "Bulacan",
+    municipality: "Malolos City",
+    barangay: "Guinhawa",
+    disease: "leptospirosis",
+    diseaseName: "Leptospirosis",
+    category: "waterborne",
+    riskLevel: "moderate",
+    outbreakProbability: 0.55,
+    sentinelFacility: "Bulacan Medical Center",
+    lastUpdated: "2026-09-30T01:00:00Z",
+  },
+
+  // === CALABARZON (REGION 4A) ===
+  {
+    id: "r4a-cav-dasma",
+    province: "Cavite",
+    municipality: "Dasmariñas City",
+    barangay: "Salitran",
+    disease: "dengue",
+    diseaseName: "Dengue Fever",
+    category: "vector",
+    riskLevel: "high",
+    outbreakProbability: 0.81,
+    sentinelFacility: "Pagamusan ng Dasmariñas",
+    lastUpdated: "2026-09-30T01:30:00Z",
+  },
+  {
+    id: "r4a-lag-starosa",
+    province: "Laguna",
+    municipality: "Santa Rosa City",
+    barangay: "Balibago",
+    disease: "asthma",
+    diseaseName: "Bronchial Asthma Aggravation",
+    category: "environmental",
+    riskLevel: "moderate",
+    outbreakProbability: 0.49,
+    sentinelFacility: "Santa Rosa Community Hospital",
+    lastUpdated: "2026-09-30T00:45:00Z",
+  },
+  {
+    id: "r4a-bat-batangas",
+    province: "Batangas",
+    municipality: "Batangas City",
+    barangay: "Kumintang Ibaba",
+    disease: "ili",
+    diseaseName: "Flu-like Illness (ILI)",
+    category: "respiratory",
+    riskLevel: "moderate",
+    outbreakProbability: 0.46,
+    sentinelFacility: "Batangas Medical Center",
+    lastUpdated: "2026-09-30T00:30:00Z",
+  },
+
+  // === CENTRAL VISAYAS (REGION 7) ===
+  {
+    id: "r7-ceb-guadalupe",
+    province: "Cebu",
+    municipality: "Cebu City",
+    barangay: "Guadalupe",
+    disease: "dengue",
+    diseaseName: "Dengue Fever",
+    category: "vector",
+    riskLevel: "high",
+    outbreakProbability: 0.85,
+    sentinelFacility: "Vicente Sotto Memorial Medical Center (VSMMC)",
+    lastUpdated: "2026-09-30T02:00:00Z",
+  },
+  {
+    id: "r7-ceb-mandaue",
+    province: "Cebu",
+    municipality: "Mandaue City",
+    barangay: "Subangdaku",
+    disease: "leptospirosis",
+    diseaseName: "Leptospirosis",
+    category: "waterborne",
+    riskLevel: "moderate",
+    outbreakProbability: 0.53,
+    sentinelFacility: "Mandaue City District Hospital",
+    lastUpdated: "2026-09-30T01:45:00Z",
+  },
+  {
+    id: "r7-boh-tagbilaran",
+    province: "Bohol",
+    municipality: "Tagbilaran City",
+    barangay: "Poblacion",
+    disease: "ili",
+    diseaseName: "Flu-like Illness (ILI)",
+    category: "respiratory",
+    riskLevel: "low",
+    outbreakProbability: 0.29,
+    sentinelFacility: "Gov. Celestino Gallares Memorial Medical Center",
+    lastUpdated: "2026-09-30T00:30:00Z",
+  },
+
+  // === WESTERN VISAYAS (REGION 6) ===
+  {
+    id: "r6-ilo-mandurriao",
+    province: "Iloilo",
+    municipality: "Iloilo City",
+    barangay: "Mandurriao",
+    disease: "dengue",
+    diseaseName: "Dengue Fever",
+    category: "vector",
+    riskLevel: "high",
+    outbreakProbability: 0.77,
+    sentinelFacility: "Western Visayas Medical Center (WVMC)",
+    lastUpdated: "2026-09-30T01:30:00Z",
+  },
+  {
+    id: "r6-neg-bacolod",
+    province: "Negros Occidental",
+    municipality: "Bacolod City",
+    barangay: "Mansilingan",
+    disease: "leptospirosis",
+    diseaseName: "Leptospirosis",
+    category: "waterborne",
+    riskLevel: "moderate",
+    outbreakProbability: 0.48,
+    sentinelFacility: "Corazon Locsin Montelibano Memorial Regional Hospital",
+    lastUpdated: "2026-09-30T01:15:00Z",
+  },
+
+  // === DAVAO REGION (REGION 11) ===
+  {
+    id: "r11-dav-buhangin",
+    province: "Davao del Sur",
+    municipality: "Davao City",
+    barangay: "Buhangin",
+    disease: "dengue",
+    diseaseName: "Dengue Fever",
+    category: "vector",
+    riskLevel: "high",
+    outbreakProbability: 0.82,
+    sentinelFacility: "Southern Philippines Medical Center (SPMC)",
+    lastUpdated: "2026-09-30T02:00:00Z",
+  },
+  {
+    id: "r11-dav-talomo",
+    province: "Davao del Sur",
+    municipality: "Davao City",
+    barangay: "Talomo",
+    disease: "ili",
+    diseaseName: "Flu-like Illness (ILI)",
+    category: "respiratory",
+    riskLevel: "moderate",
+    outbreakProbability: 0.51,
+    sentinelFacility: "Davao City Health Office",
+    lastUpdated: "2026-09-30T01:30:00Z",
+  },
+
+  // === NORTHERN MINDANAO (REGION 10) ===
+  {
+    id: "r10-cdo-carmen",
+    province: "Misamis Oriental",
+    municipality: "Cagayan de Oro City",
+    barangay: "Carmen",
+    disease: "dengue",
+    diseaseName: "Dengue Fever",
+    category: "vector",
+    riskLevel: "moderate",
+    outbreakProbability: 0.63,
+    sentinelFacility: "Northern Mindanao Medical Center (NMMC)",
+    lastUpdated: "2026-09-30T01:00:00Z",
+  },
+
+  // === CORDILLERA (CAR) ===
+  {
+    id: "car-bgu-irisan",
+    province: "Benguet",
+    municipality: "Baguio City",
+    barangay: "Irisan",
+    disease: "ili",
+    diseaseName: "Flu-like Illness (ILI)",
+    category: "respiratory",
+    riskLevel: "moderate",
+    outbreakProbability: 0.54,
+    sentinelFacility: "Baguio General Hospital and Medical Center (BGHMC)",
+    lastUpdated: "2026-09-30T01:15:00Z",
+  },
+  {
+    id: "car-bgu-loakan",
+    province: "Benguet",
+    municipality: "Baguio City",
+    barangay: "Loakan",
+    disease: "asthma",
+    diseaseName: "Bronchial Asthma Aggravation",
+    category: "environmental",
+    riskLevel: "moderate",
+    outbreakProbability: 0.47,
+    sentinelFacility: "BGHMC / Baguio Health Services Office",
+    lastUpdated: "2026-09-30T01:00:00Z",
+  },
+
+  // === NORTHERN LUZON (REGION 1 - ILOCOS) ===
   {
     id: "lu-sfc-sevilla",
     province: "La Union",
@@ -218,7 +483,8 @@ function buildEntry(raw: typeof RAW_LOCATIONS[0]): LocationDiseaseEntry {
   };
 }
 
-export async function listLocations(filter: LocationFilter = {}): Promise<LocationDiseaseEntry[]> {
+// ponytail: mock fallback keeps the page alive when the API is down or empty
+function mockListLocations(filter: LocationFilter = {}): LocationDiseaseEntry[] {
   const entries = RAW_LOCATIONS.map(buildEntry);
 
   return entries.filter((loc) => {
@@ -226,14 +492,9 @@ export async function listLocations(filter: LocationFilter = {}): Promise<Locati
       return false;
     }
     if (filter.municipality) {
-      const targetMuni = filter.municipality.toLowerCase();
-      const locMuni = loc.municipality.toLowerCase();
-      const matches =
-        locMuni === targetMuni ||
-        locMuni.includes(targetMuni) ||
-        targetMuni.includes(locMuni) ||
-        (locMuni.includes("san fernando") && targetMuni.includes("san fernando"));
-      if (!matches) {
+      const targetMuni = filter.municipality.trim().toLowerCase();
+      const locMuni = loc.municipality.trim().toLowerCase();
+      if (locMuni !== targetMuni) {
         return false;
       }
     }
@@ -257,6 +518,29 @@ export async function listLocations(filter: LocationFilter = {}): Promise<Locati
   });
 }
 
+export async function listLocations(filter: LocationFilter = {}): Promise<LocationDiseaseEntry[]> {
+  const params: Record<string, string> = {};
+  const set = (k: string, v?: string) => {
+    const t = v?.trim();
+    if (t && t.toLowerCase() !== "all") params[k] = t;
+  };
+  set("search", filter.search);
+  set("province", filter.province);
+  set("municipality", filter.municipality);
+  set("disease", filter.disease);
+  set("riskLevel", filter.riskLevel);
+  try {
+    const res = await httpClient<LocationDiseaseEntry[]>("/forecast/locations", {
+      method: "get",
+      params,
+    });
+    if (res.data && res.data.length > 0) return res.data;
+  } catch {
+    // ponytail: fall through to mock entries so the page never blanks
+  }
+  return mockListLocations(filter);
+}
+
 export async function getLocationDetail(id: string, disease?: string): Promise<LocationDetailData> {
   const raw = RAW_LOCATIONS.find((l) => l.id === id) ?? RAW_LOCATIONS[0];
   const entry = buildEntry({ ...raw, disease: (disease as typeof raw.disease) || raw.disease });
@@ -265,11 +549,22 @@ export async function getLocationDetail(id: string, disease?: string): Promise<L
   const timeline: TimelineWeek[] = [];
   const startWeek = 31; // W31 (Aug 4) to W42 (Oct 20)
   const currentWeek = 38; // Current epidemic week
+  // ponytail: mock epi weeks anchored to W31 starting Tue Aug 4 2026; derive from real week-start dates once the API serves them.
+  const weekStart = (w: number) => {
+    const d = new Date(2026, 7, 4 + (w - startWeek) * 7);
+    const fmt = (x: Date) => x.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const end = new Date(d);
+    end.setDate(end.getDate() + 6);
+    return { short: fmt(d), range: `${fmt(d)}–${fmt(end)}` };
+  };
   const peakForecast = Math.round(entry.activeCases * (entry.outbreakProbability >= 0.7 ? 1.45 : 1.15));
 
   for (let w = startWeek; w <= startWeek + 11; w++) {
     const isFuture = w > currentWeek;
-    const weekLabel = `W${w} (${isFuture ? "Predicted" : w === currentWeek ? "Current" : "Historical"})`;
+    const phase = isFuture ? "Projected" : w === currentWeek ? "Current" : "Observed";
+    const dates = weekStart(w);
+    const weekLabel = `${dates.range} · ${phase}`;
+    const shortLabel = dates.short;
 
     if (!isFuture) {
       // Historical actual counts curve leading to current active cases
@@ -283,6 +578,7 @@ export async function getLocationDetail(id: string, disease?: string): Promise<L
       timeline.push({
         weekNumber: w,
         weekLabel,
+        shortLabel,
         isFuture: false,
         actualCases,
         predictedCases,
@@ -302,6 +598,7 @@ export async function getLocationDetail(id: string, disease?: string): Promise<L
       timeline.push({
         weekNumber: w,
         weekLabel,
+        shortLabel,
         isFuture: true,
         actualCases: null,
         predictedCases: forecastVal,

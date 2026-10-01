@@ -1,5 +1,17 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { httpClient } from "@/services/core/client";
 import { listLocations, getLocationDetail } from "./locations.api";
+
+vi.mock("@/services/core/client", () => ({
+  httpClient: vi.fn(),
+}));
+
+const mockHttp = vi.mocked(httpClient);
+
+beforeEach(() => {
+  mockHttp.mockReset();
+  mockHttp.mockResolvedValue({ success: true, code: "OK", message: "", data: [] });
+});
 
 describe("locations.api", () => {
   it("returns filtered list of disease locations", async () => {
@@ -39,6 +51,46 @@ describe("locations.api", () => {
     const high = await listLocations({ riskLevel: "high" });
     expect(high.length).toBeGreaterThan(0);
     expect(high.every((l) => l.riskLevel === "high")).toBe(true);
+  });
+
+  it("issues GET /forecast/locations with mapped params", async () => {
+    mockHttp.mockResolvedValue({
+      success: true,
+      code: "OK",
+      message: "",
+      data: [
+        {
+          id: "x",
+          province: "La Union",
+          municipality: "Agoo",
+          barangay: "San Nicolas",
+          disease: "dengue",
+          diseaseName: "Dengue Fever",
+          category: "vector",
+          activeCases: 10,
+          prevWeekCases: 8,
+          changePercent: 25,
+          riskLevel: "high",
+          outbreakProbability: 0.8,
+          sentinelFacility: "LUMC",
+          lastUpdated: "2026-09-30T00:00:00Z",
+        },
+      ],
+    });
+    const rows = await listLocations({ province: "La Union", disease: "dengue", riskLevel: "all", search: "" });
+    expect(mockHttp).toHaveBeenCalledWith(
+      "/forecast/locations",
+      expect.objectContaining({ method: "get" })
+    );
+    expect(mockHttp.mock.calls[0][1]?.params).toEqual({ province: "La Union", disease: "dengue" });
+    expect(rows.length).toBe(1);
+  });
+
+  it("falls back to mock entries on network error", async () => {
+    mockHttp.mockRejectedValueOnce(new Error("offline"));
+    const rows = await listLocations({ province: "La Union" });
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.every((l) => l.province === "La Union")).toBe(true);
   });
 
   it("returns location detail with 8 past weeks and 4 future weeks", async () => {
