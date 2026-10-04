@@ -23,9 +23,31 @@ public record LocationRow(
     [property: JsonPropertyName("riskLevel")] string RiskLevel,
     [property: JsonPropertyName("outbreakProbability")] double OutbreakProbability,
     [property: JsonPropertyName("sentinelFacility")] string SentinelFacility,
-    [property: JsonPropertyName("lastUpdated")] string LastUpdated);
+    [property: JsonPropertyName("lastUpdated")] string LastUpdated,
+    [property: JsonPropertyName("lat")] double Lat,
+    [property: JsonPropertyName("lng")] double Lng);
 
-public record ForecastSeries(string Muni, string Disease, List<SeriesWeek> Weeks, int? ModelVersion, int HistoryLength, List<string> DataSources);
+public record ModelMetrics(
+    [property: JsonPropertyName("modelName")] string ModelName,
+    [property: JsonPropertyName("version")] int Version,
+    [property: JsonPropertyName("rmse")] double Rmse,
+    [property: JsonPropertyName("mae")] double Mae,
+    [property: JsonPropertyName("r2")] double R2,
+    [property: JsonPropertyName("baselineName")] string BaselineName,
+    [property: JsonPropertyName("baselineRmse")] double BaselineRmse,
+    [property: JsonPropertyName("method")] string Method,
+    [property: JsonPropertyName("citation")] string Citation);
+
+public record CovariateSnapshot(
+    [property: JsonPropertyName("rainMm")] double RainMm,
+    [property: JsonPropertyName("tempC")] double TempC,
+    [property: JsonPropertyName("aqi")] double Aqi,
+    [property: JsonPropertyName("pageviews")] long Pageviews,
+    [property: JsonPropertyName("date")] DateTime Date);
+
+public record ForecastSeries(string Muni, string Disease, List<SeriesWeek> Weeks, int? ModelVersion, int HistoryLength, List<string> DataSources,
+    [property: JsonPropertyName("metrics")] ModelMetrics? Metrics,
+    [property: JsonPropertyName("covariates")] CovariateSnapshot? Covariates);
 public record SeriesWeek(DateTime WeekStart, int? Actual, int Predicted, int CiLower, int CiUpper, bool IsFuture);
 
 public class RiskMapsGetTools(HealthAlertDbContext ctx, ModelRegistryTools reg, IMemoryCache cache)
@@ -69,8 +91,18 @@ public class RiskMapsGetTools(HealthAlertDbContext ctx, ModelRegistryTools reg, 
         var feedIds = rows.Where(c => c.FeedId != null).Select(c => c.FeedId!.Value).Distinct().ToList();
         var feeds = feedIds.Count > 0 ? await ctx.Feeds.Where(f => feedIds.Contains(f.Id)).Select(f => f.Code).ToListAsync() : [];
         var covSrc = await ctx.CovariateReadings.Select(c => c.Source).Distinct().ToListAsync();
+        // ponytail: method/citation come from the stored risk-threshold row, never invented model names
+        var threshold = await ctx.RiskThresholds.FirstOrDefaultAsync(t => t.Disease == code);
+        const string noMethod = "ridge walk-forward (no published method)";
+        ModelMetrics? metrics = model is null ? null : new ModelMetrics(
+            $"Ridge regressor v{model.Version} ({code} walk-forward)",
+            model.Version, model.Rmse ?? 0, model.Mae ?? 0, model.R2 ?? 0,
+            model.BaselineName ?? "persistence", model.BaselineRmse ?? 0,
+            string.IsNullOrWhiteSpace(threshold?.Method) ? noMethod : threshold!.Method!,
+            string.IsNullOrWhiteSpace(threshold?.Citation) ? noMethod : threshold!.Citation!);
         return new ForecastSeries(muni, code, weeks, model?.Version, rows.Count,
-            [.. feeds.Where(s => s != null).Cast<string>(), .. covSrc.Where(s => s != null).Cast<string>()]);
+            [.. feeds.Where(s => s != null).Cast<string>(), .. covSrc.Where(s => s != null).Cast<string>()],
+            metrics, Snapshot(cov));
     }
 
     // ponytail: single 8-wide feature builder for Hotspots/LocationsAsync/SeriesAsync; twin copy lives in ForecastGetTools.OutlookAsync, keep order in sync
@@ -129,6 +161,8 @@ public class RiskMapsGetTools(HealthAlertDbContext ctx, ModelRegistryTools reg, 
         var older = cov.Count > 1 ? cov[^2] : null;
         var models = new Dictionary<string, TblForecastModel?>();
         var rows = new List<LocationRow>();
+        // ponytail: coords from the static place directory only; unknown muni -> (0,0), never invented
+        var dirCoords = DemoHistorySeeder.Places.ToDictionary(p => p.Municipality, p => (p.Lat, p.Lng), StringComparer.OrdinalIgnoreCase);
         foreach (var p in await PlacesAsync())
             foreach (var d in DemoHistorySeeder.Diseases)
             {
@@ -143,13 +177,15 @@ public class RiskMapsGetTools(HealthAlertDbContext ctx, ModelRegistryTools reg, 
                     : ForecastGetTools.Build(d).Probability;
                 var t = thresholds.FirstOrDefault(t => t.Disease == d) ?? RiskBandTools.DefaultFor(d);
                 var level = RiskBandTools.Assign(prob, cur / Math.Max(1, prv), Val(newest, t.CovariateKey ?? ""), t);
+                var (lat, lng) = dirCoords.TryGetValue(p.Municipality, out var c) ? c : (0.0, 0.0);
                 rows.Add(new(
                     $"{p.Municipality}|{d}".ToLowerInvariant().Replace(' ', '-'),
                     p.Province, p.Municipality, p.Barangay, d, DemoHistorySeeder.DiseaseName(d), DemoHistorySeeder.Category(d),
                     (int)Math.Round(cur), (int)Math.Round(prv),
                     prv == 0 ? 0 : Math.Round((cur - prv) / prv * 100, 1),
                     level, prob, p.SentinelFacility,
-                    (list.Count > 0 ? list.Max(c => c.ReportedAt) ?? now : now).ToString("yyyy-MM-dd")));
+                    (list.Count > 0 ? list.Max(c => c.ReportedAt) ?? now : now).ToString("yyyy-MM-dd"),
+                    lat, lng));
             }
         return rows.Where(r =>
             (NoFilter(search) || $"{r.Municipality} {r.Province} {r.Barangay} {r.Disease} {r.DiseaseName} {r.SentinelFacility}".Contains(search!, StringComparison.OrdinalIgnoreCase)) &&
@@ -181,6 +217,29 @@ public class RiskMapsGetTools(HealthAlertDbContext ctx, ModelRegistryTools reg, 
 
     private static bool IsProvinceLevel(string key) =>
         key.Contains("|HDX-", StringComparison.Ordinal) || key.Contains("|WDSR-", StringComparison.Ordinal);
+
+    // ponytail: per-key newest value across readings; missing keys -> 0, no readings -> null
+    private static CovariateSnapshot? Snapshot(List<TblCovariateReading> cov)
+    {
+        if (cov.Count == 0) return null;
+        var ordered = cov.OrderBy(c => c.Date).ToList();
+        return new CovariateSnapshot(Key("rainMm"), Key("tempC"), Key("aqi"), (long)Key("pageviews"), ordered[^1].Date ?? DateTime.UtcNow);
+
+        double Key(string key)
+        {
+            foreach (var r in ((IEnumerable<TblCovariateReading>)ordered).Reverse())
+            {
+                if (r.Payload is null) continue;
+                try
+                {
+                    using var d = JsonDocument.Parse(r.Payload);
+                    if (d.RootElement.TryGetProperty(key, out var v) && v.ValueKind == JsonValueKind.Number && v.TryGetDouble(out var x)) return x;
+                }
+                catch (JsonException) { }
+            }
+            return 0;
+        }
+    }
 
     private static double Val(TblCovariateReading? r, string key)
     {
