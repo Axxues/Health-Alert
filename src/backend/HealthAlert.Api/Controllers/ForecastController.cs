@@ -27,6 +27,11 @@ public class ForecastController(IConfiguration cfg, IHostEnvironment env) : Cont
         [FromServices] ModelRegistryTools reg) =>
         Ok(ApiResponse.Ok(await reg.TrainAsync(r.Disease ?? "dengue")));
 
+    [HttpGet("backtest")]
+    public async Task<IActionResult> Backtest([FromQuery] string? disease,
+        [FromServices] ModelRegistryTools reg) =>
+        Ok(ApiResponse.Ok(await reg.BacktestAsync(disease ?? "dengue")));
+
     [HttpPost("promote/{id:long}")]
     public async Task<IActionResult> Promote(long id,
         [FromServices] ModelRegistryTools reg)

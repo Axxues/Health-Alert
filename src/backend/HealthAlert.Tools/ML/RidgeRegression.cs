@@ -29,6 +29,31 @@ public static class RidgeRegression
                 preds.Add(Dot(w, X[i])); actual.Add(y[i]);
             }
         }
+        return Metrics(preds, actual);
+    }
+
+    /// <summary>Naive baselines over the SAME walk-forward prediction points as <see cref="WalkForward"/>
+    /// (identical cut/fold loop) so the comparison is fair. Persistence predicts the last observed value;
+    /// seasonal-naive-52 predicts the value 52 weeks ago, falling back to persistence when fewer than
+    /// 53 points of history are available at the prediction point.</summary>
+    public static (double Rmse, double Mae, double R2) BaselineMetrics(double[] y, int folds = 3, int season = 52, bool seasonal = false)
+    {
+        var preds = new List<double>(); var actual = new List<double>();
+        int cut = y.Length / (folds + 1);
+        for (int f = 1; f <= folds; f++)
+        {
+            for (int i = cut * f; i < Math.Min(cut * (f + 1), y.Length); i++)
+            {
+                // ponytail: seasonal falls back to persistence when history is shorter than 53 weeks
+                preds.Add(seasonal && i >= season ? y[i - season] : y[i - 1]);
+                actual.Add(y[i]);
+            }
+        }
+        return Metrics(preds, actual);
+    }
+
+    private static (double Rmse, double Mae, double R2) Metrics(List<double> preds, List<double> actual)
+    {
         double mae = preds.Zip(actual, (p, a) => Math.Abs(p - a)).Average();
         double rmse = Math.Sqrt(preds.Zip(actual, (p, a) => (p - a) * (p - a)).Average());
         double mean = actual.Average();
