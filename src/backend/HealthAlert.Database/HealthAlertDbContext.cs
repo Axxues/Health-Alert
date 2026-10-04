@@ -16,7 +16,7 @@ public class TblAuditTrail { public long Id { get; set; } public string? Action 
 public class TblOutbox { public long Id { get; set; } public string? IdempotencyKey { get; set; } public string? Payload { get; set; } }
 public class TblCovariateReading { public long Id { get; set; } public string? Place { get; set; } public DateTime? Date { get; set; } public string? Source { get; set; } public string? Payload { get; set; } }
 public class TblForecastModel { public long Id { get; set; } public string? Disease { get; set; } public int Version { get; set; } public string? CoeffsJson { get; set; } public DateTime? TrainedFrom { get; set; } public DateTime? TrainedTo { get; set; } public double? Rmse { get; set; } public double? Mae { get; set; } public double? R2 { get; set; } public string? Status { get; set; } }
-public class TblRiskThreshold { public long Id { get; set; } public string? Disease { get; set; } public double HighProb { get; set; } public double WatchProb { get; set; } public double VelocityHigh { get; set; } public double VelocityWatch { get; set; } public string? CovariateKey { get; set; } public double CovariateHigh { get; set; } }
+public class TblRiskThreshold { public long Id { get; set; } public string? Disease { get; set; } public double HighProb { get; set; } public double WatchProb { get; set; } public double VelocityHigh { get; set; } public double VelocityWatch { get; set; } public string? CovariateKey { get; set; } public double CovariateHigh { get; set; } public string? Method { get; set; } public string? Citation { get; set; } }
 
 public class HealthAlertDbContext(DbContextOptions<HealthAlertDbContext> o) : DbContext(o)
 {
@@ -96,10 +96,10 @@ public static class Seed
             {
                 c.RiskThresholds.Add(code switch
                 {
-                    "leptospirosis" => new TblRiskThreshold { Disease = code, HighProb = 0.7, WatchProb = 0.4, VelocityHigh = 1.4, VelocityWatch = 1.15, CovariateKey = "rainMm", CovariateHigh = 150 },
-                    "ili" => new TblRiskThreshold { Disease = code, HighProb = 0.7, WatchProb = 0.4, VelocityHigh = 1.4, VelocityWatch = 1.15, CovariateKey = "pageviews", CovariateHigh = 800 },
-                    "asthma" => new TblRiskThreshold { Disease = code, HighProb = 0.7, WatchProb = 0.4, VelocityHigh = 1.4, VelocityWatch = 1.15, CovariateKey = "aqi", CovariateHigh = 100 },
-                    _ => new TblRiskThreshold { Disease = code, HighProb = 0.7, WatchProb = 0.4, VelocityHigh = 1.4, VelocityWatch = 1.15, CovariateKey = "breteau", CovariateHigh = 20 },
+                    "leptospirosis" => new TblRiskThreshold { Disease = code, HighProb = 0.84, WatchProb = 0.63, VelocityHigh = 1.4, VelocityWatch = 1.15, CovariateKey = "rainMm", CovariateHigh = 150, Method = "endemic-channel+2SD excl-max-year; EARS-C1 k=3; Serfling k=1.64; MEM 40/90/97.5; prob=logistic(z); velocity grid-selected", Citation = "WHO TDR dengue surveillance handbook (2016); Hutwagner et al., MMWR 2003 (EARS); WHO EWARS dengue (2017)" },
+                    "ili" => new TblRiskThreshold { Disease = code, HighProb = 0.84, WatchProb = 0.63, VelocityHigh = 1.4, VelocityWatch = 1.15, CovariateKey = "pageviews", CovariateHigh = 800, Method = "endemic-channel+2SD excl-max-year; EARS-C1 k=3; Serfling k=1.64; MEM 40/90/97.5; prob=logistic(z); velocity grid-selected", Citation = "Serfling, Am J Public Health 1963; CDC ILINet; Vega et al. MEM (WHO method)" },
+                    "asthma" => new TblRiskThreshold { Disease = code, HighProb = 0.84, WatchProb = 0.63, VelocityHigh = 1.4, VelocityWatch = 1.15, CovariateKey = "aqi", CovariateHigh = 100, Method = "endemic-channel+2SD excl-max-year; EARS-C1 k=3; Serfling k=1.64; MEM 40/90/97.5; prob=logistic(z); velocity grid-selected", Citation = "WHO EWARS alarm-indicator logic (2017); WHO Air Quality Guidelines 2021; CDC flu severity classification" },
+                    _ => new TblRiskThreshold { Disease = code, HighProb = 0.84, WatchProb = 0.63, VelocityHigh = 1.4, VelocityWatch = 1.15, CovariateKey = "breteau", CovariateHigh = 20, Method = "endemic-channel+2SD excl-max-year; EARS-C1 k=3; Serfling k=1.64; MEM 40/90/97.5; prob=logistic(z); velocity grid-selected", Citation = "WHO TDR dengue surveillance handbook (2016); Brady et al., PLoS NTD 2013; WHO EWARS dengue (2017)" },
                 });
             }
         }
