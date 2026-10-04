@@ -23,4 +23,37 @@ public class SurveillanceController(IConfiguration cfg, IHostEnvironment env) : 
         try { return Ok(ApiResponse.Ok(await e.IngestAsync(feed, b))); }
         catch (InvalidDataException ex) { await e.DeadLetterAsync(feed, b.ToString()); return BadRequest(ApiResponse.Fail("BAD_REQUEST", ex.Message)); }
     }
+
+    private bool CanUpload() => User.IsInRole("Admin") || User.IsInRole("Encoder");
+
+    [HttpPost("upload")]
+    public async Task<IActionResult> Upload(IFormFile? file, [FromServices] UploadTools t)
+    {
+        if (!CanUpload()) return Forbid();
+        if (file is null || file.Length == 0) return BadRequest(ApiResponse.Fail("BAD_REQUEST", "file required"));
+        using var r = new StreamReader(file.OpenReadStream());
+        try { return Ok(ApiResponse.Ok(await t.IngestAsync(await r.ReadToEndAsync(), file.FileName, User.Identity?.Name))); }
+        catch (InvalidDataException ex) { return BadRequest(ApiResponse.Fail("BAD_REQUEST", ex.Message)); }
+    }
+
+    [HttpGet("batches")]
+    public async Task<IActionResult> Batches([FromServices] UploadTools t) =>
+        Ok(ApiResponse.Ok(await t.BatchesAsync()));
+
+    [HttpGet("batches/{id}/issues")]
+    public async Task<IActionResult> Issues(long id, [FromServices] UploadTools t) =>
+        Ok(ApiResponse.Ok(await t.IssuesAsync(id)));
+
+    [HttpPost("issues/{id}/resolve")]
+    public async Task<IActionResult> ResolveIssue(long id, [FromBody] ResolveReq req, [FromServices] UploadTools t)
+    {
+        if (!CanUpload()) return Forbid();
+        var accept = string.Equals(req.Action, "accept", StringComparison.OrdinalIgnoreCase);
+        return Ok(ApiResponse.Ok(await t.ResolveAsync(id, accept)));
+    }
+
+    [HttpGet("template")]
+    public IActionResult Template() => Content(UploadTools.TemplateCsv(), "text/csv");
 }
+
+public record ResolveReq(string Action);

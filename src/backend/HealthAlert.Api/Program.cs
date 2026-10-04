@@ -36,6 +36,7 @@ builder.Services.AddDbContext<HealthAlertDbContext>(o =>
 });
 builder.Services.AddScoped<SurveillanceGetTools>();
 builder.Services.AddScoped<SurveillanceEditTools>();
+builder.Services.AddScoped<UploadTools>();
 builder.Services.AddScoped<ForecastGetTools>();
 builder.Services.AddScoped<ForecastEditTools>();
 builder.Services.AddScoped<ModelRegistryTools>();

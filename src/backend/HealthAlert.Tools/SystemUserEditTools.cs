@@ -16,7 +16,7 @@ public class SystemUserEditTools(HealthAlertDbContext ctx)
 
     public async Task<TblUser> CreateAsync(string username, string role)
     {
-        if (role is not ("Admin" or "Viewer")) throw new InvalidOperationException($"unknown role {role}");
+        if (role is not ("Admin" or "Viewer" or "Encoder")) throw new InvalidOperationException($"unknown role {role}");
         var u = new TblUser { Username = username, Role = role, IsActive = true };
         ctx.Users.Add(u);
         await ctx.SaveChangesAsync();
@@ -34,7 +34,7 @@ public class SystemUserEditTools(HealthAlertDbContext ctx)
 
     public async Task<TblUser?> SetRoleAsync(long id, string role)
     {
-        if (role is not ("Admin" or "Viewer")) throw new InvalidOperationException($"unknown role {role}");
+        if (role is not ("Admin" or "Viewer" or "Encoder")) throw new InvalidOperationException($"unknown role {role}");
         var u = await ctx.Users.FindAsync(id);
         if (u is null) return null;
         u.Role = role;

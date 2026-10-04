@@ -17,8 +17,15 @@ public class AuthController(IConfiguration cfg, IHostEnvironment env) : Controll
     public IActionResult Login([FromBody] LoginReq r)
     {
         var key = CronAuth.JwtKey(cfg, env.IsDevelopment());
-        var isGuest = string.Equals(r.Username, "guest", StringComparison.OrdinalIgnoreCase);
-        var role = isGuest ? "Guest" : "MHO";
+        // ponytail: stub role by username; full Identity if roles grow (guest/MHO mapping unchanged)
+        var role = (r.Username ?? "").ToLowerInvariant() switch
+        {
+            "guest" => "Guest",
+            "admin" => "Admin",
+            "encoder" => "Encoder",
+            "viewer" => "Viewer",
+            _ => "MHO",
+        };
         // ponytail: guests get full access for now; trim to public slices when roles grow
         var perms = new[] { Permissions.DashboardView, Permissions.ForecastView,
             Permissions.SurveillanceView, Permissions.RiskmapsView, Permissions.RagView,
