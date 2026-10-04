@@ -13,13 +13,15 @@ export interface PredictionGraphProps {
   timeline: TimelineWeek[];
   metrics: {
     modelName: string;
-    accuracyRate: number;
-    mape: number;
-    r2Score: number;
-    aucRoc: number;
+    accuracyRate: number | null;
+    mape: number | null;
+    r2Score: number | null;
+    aucRoc?: number | null;
     confidenceMethod: string;
   };
   diseaseName: string;
+  selectedWeek: number | null;
+  onSelectWeek: (weekNumber: number) => void;
 }
 
 export interface ChartPoint {
@@ -99,7 +101,7 @@ export function computeChartScales(timeline: TimelineWeek[], width = 800, height
   };
 }
 
-export function PredictionGraph({ timeline, metrics, diseaseName }: PredictionGraphProps) {
+export function PredictionGraph({ timeline, metrics, diseaseName, selectedWeek, onSelectWeek }: PredictionGraphProps) {
   const [activePoint, setActivePoint] = useState<ChartPoint | null>(null);
   const [showTable, setShowTable] = useState(false);
 
@@ -150,7 +152,7 @@ export function PredictionGraph({ timeline, metrics, diseaseName }: PredictionGr
               </div>
             </div>
             <div className="text-2xl font-bold tracking-tight text-foreground mt-2 tabular-nums">
-              {metrics.accuracyRate}%
+              {metrics.accuracyRate !== null ? `${metrics.accuracyRate}%` : "—"}
             </div>
             <p className="text-xs text-muted-foreground mt-1 mb-0">Validated vs. PIDSR actuals</p>
           </div>
@@ -163,7 +165,7 @@ export function PredictionGraph({ timeline, metrics, diseaseName }: PredictionGr
               </div>
             </div>
             <div className="text-2xl font-bold tracking-tight text-foreground mt-2 tabular-nums">
-              {metrics.mape}%
+              {metrics.mape !== null ? `${metrics.mape}%` : "—"}
             </div>
             <p className="text-xs text-muted-foreground mt-1 mb-0">Mean absolute percentage error</p>
           </div>
@@ -176,7 +178,7 @@ export function PredictionGraph({ timeline, metrics, diseaseName }: PredictionGr
               </div>
             </div>
             <div className="text-2xl font-bold tracking-tight text-foreground mt-2 tabular-nums">
-              {metrics.r2Score}
+              {metrics.r2Score ?? "—"}
             </div>
             <p className="text-xs text-muted-foreground mt-1 mb-0">Empirical correlation index</p>
           </div>
@@ -282,25 +284,57 @@ export function PredictionGraph({ timeline, metrics, diseaseName }: PredictionGr
                 strokeLinejoin="round"
               />
 
+              {/* Selected-week indicator line */}
+              {selectedWeek !== null &&
+                scales.points
+                  .filter((p) => p.week.weekNumber === selectedWeek)
+                  .map((p) => (
+                    <line
+                      key={`sel-${p.week.weekNumber}`}
+                      x1={p.x}
+                      y1={scales.padTop}
+                      x2={p.x}
+                      y2={scales.height - scales.padBottom}
+                      stroke="var(--primary)"
+                      strokeWidth="1.5"
+                      strokeDasharray="2 3"
+                    />
+                  ))}
+
               {/* Data Points */}
               {scales.points.map((p) => {
                 const isHovered = activePoint?.week.weekNumber === p.week.weekNumber;
+                const isSelected = selectedWeek === p.week.weekNumber;
                 return (
                   <g
                     key={p.week.weekNumber}
                     style={{ cursor: "pointer" }}
                     onMouseEnter={() => setActivePoint(p)}
                     onMouseLeave={() => setActivePoint(null)}
+                    onClick={() => onSelectWeek(p.week.weekNumber)}
                   >
                     {/* Hover hotspot */}
                     <circle cx={p.x} cy={p.actualY ?? p.predY} r={16} fill="transparent" />
+
+                    {/* Selected halo */}
+                    {isSelected && (
+                      <circle
+                        cx={p.x}
+                        cy={p.actualY ?? p.predY}
+                        r={10}
+                        fill="none"
+                        stroke="var(--primary)"
+                        strokeWidth="1.5"
+                        opacity="0.5"
+                      />
+                    )}
 
                     {/* Actual Circle */}
                     {p.actualY !== null && (
                       <circle
                         cx={p.x}
                         cy={p.actualY}
-                        r={isHovered ? 6 : 4}
+                        r={isHovered || isSelected ? 6 : 4}
                         fill="var(--card)"
                         stroke="var(--primary)"
                         strokeWidth="2.5"
@@ -313,7 +347,7 @@ export function PredictionGraph({ timeline, metrics, diseaseName }: PredictionGr
                       <circle
                         cx={p.x}
                         cy={p.predY}
-                        r={isHovered ? 6 : 4}
+                        r={isHovered || isSelected ? 6 : 4}
                         fill="var(--card)"
                         stroke="var(--amber)"
                         strokeWidth="2.5"
@@ -325,12 +359,12 @@ export function PredictionGraph({ timeline, metrics, diseaseName }: PredictionGr
                     <text
                       x={p.x}
                       y={scales.height - scales.padBottom + 20}
-                      fill={p.week.isFuture ? "var(--amber)" : "var(--mute)"}
-                      fontSize="11"
-                      fontWeight={p.week.isFuture ? "700" : "500"}
+                      fill={isSelected ? "var(--primary)" : p.week.isFuture ? "var(--amber)" : "var(--mute)"}
+                      fontSize={isSelected ? "12" : "11"}
+                      fontWeight={isSelected ? "800" : p.week.isFuture ? "700" : "500"}
                       textAnchor="middle"
                     >
-                      {p.week.weekLabel.split(" ")[0]}
+                      {p.week.shortLabel}
                     </text>
                   </g>
                 );
@@ -401,7 +435,9 @@ export function PredictionGraph({ timeline, metrics, diseaseName }: PredictionGr
                 return (
                   <tr
                     key={w.weekNumber}
-                    className={`transition-colors hover:bg-muted/30 ${w.isFuture ? "bg-muted/10" : ""}`}
+                    onClick={() => onSelectWeek(w.weekNumber)}
+                    className={`transition-colors hover:bg-muted/30 cursor-pointer ${w.isFuture ? "bg-muted/10" : ""}`}
+                    style={selectedWeek === w.weekNumber ? { outline: "2px solid var(--primary)", outlineOffset: -2 } : undefined}
                   >
                     <td className="px-4 py-3 font-semibold text-foreground">
                       {w.weekLabel}

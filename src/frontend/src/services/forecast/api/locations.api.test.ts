@@ -98,7 +98,23 @@ describe("locations.api", () => {
       success: true,
       code: "OK",
       message: "",
-      data: { muni: "Butuan City", disease: "dengue", weeks },
+      data: {
+        muni: "Butuan City",
+        disease: "dengue",
+        weeks,
+        metrics: {
+          modelName: "Ridge regressor v2 (dengue walk-forward)",
+          version: 2,
+          rmse: 2.1,
+          mae: 1.6,
+          r2: 0.91,
+          baselineName: "persistence",
+          baselineRmse: 3.4,
+          method: "endemic-channel+2SD excl-max-year; EARS-C1 k=3",
+          citation: "WHO TDR dengue surveillance handbook (2016); Brady et al.",
+        },
+        covariates: { rainMm: 112.5, tempC: 31.4, aqi: 42, pageviews: 900, date: "2026-09-30T00:00:00Z" },
+      },
     });
 
     const detail = await getLocationDetail("agoosan-del-norte|dengue");
@@ -162,5 +178,148 @@ describe("locations.api", () => {
     });
     mockHttp.mockRejectedValueOnce(new Error("series offline"));
     await expect(getLocationDetail("agoosan-del-norte|dengue")).rejects.toThrow("series offline");
+  });
+
+  const liveEntry = (over = {}) => ({
+    id: "agoosan-del-norte|dengue",
+    province: "Agusan del Norte",
+    municipality: "Butuan City",
+    barangay: "Ampayon",
+    disease: "dengue",
+    diseaseName: "Dengue Fever",
+    category: "vector",
+    activeCases: 34,
+    prevWeekCases: 28,
+    changePercent: 21,
+    riskLevel: "high",
+    outbreakProbability: 0.82,
+    sentinelFacility: "Butuan Medical Center",
+    lastUpdated: "2026-09-30T00:00:00Z",
+    ...over,
+  });
+
+  const liveSeries = (weeks: unknown[], metrics: unknown, covariates: unknown) => ({
+    success: true,
+    code: "OK",
+    message: "",
+    data: { muni: "Butuan City", disease: "dengue", weeks, metrics, covariates },
+  });
+
+  const wk = (weekStart: string, actual: number | null, predicted: number, isFuture: boolean) => ({
+    weekStart,
+    actual,
+    predicted,
+    ciLower: predicted - 2,
+    ciUpper: predicted + 2,
+    isFuture,
+  });
+
+  const fittedMetrics = {
+    modelName: "Ridge regressor v2 (dengue walk-forward)",
+    version: 2,
+    rmse: 2.1,
+    mae: 1.6,
+    r2: 0.91,
+    baselineName: "persistence",
+    baselineRmse: 3.4,
+    method: "endemic-channel+2SD excl-max-year; EARS-C1 k=3",
+    citation: "WHO TDR dengue surveillance handbook (2016); Brady et al.",
+  };
+
+  it("maps live metrics/covariates/coordinates into the detail", async () => {
+    mockHttp.mockResolvedValueOnce({
+      success: true, code: "OK", message: "", data: [liveEntry({ lat: 8.95, lng: 125.53 })],
+    });
+    mockHttp.mockResolvedValueOnce(
+      liveSeries(
+        [
+          wk("2026-09-07", 10, 10, false),
+          wk("2026-09-14", 12, 12, false),
+          wk("2026-09-21", 14, 14, false),
+          wk("2026-09-28", null, 16, true),
+        ],
+        fittedMetrics,
+        { rainMm: 112.5, tempC: 31.4, aqi: 42, pageviews: 900, date: "2026-09-30T00:00:00Z" }
+      )
+    );
+
+    const detail = await getLocationDetail("agoosan-del-norte|dengue");
+
+    // mean(actuals) = 12 → mape = round(1.6/12*100) = 13; accuracy = round(0.91*100) = 91
+    expect(detail.accuracyMetrics.modelName).toBe("Ridge regressor v2 (dengue walk-forward)");
+    expect(detail.accuracyMetrics.accuracyRate).toBe(91);
+    expect(detail.accuracyMetrics.mape).toBe(13);
+    expect(detail.accuracyMetrics.r2Score).toBe(0.91);
+    expect(detail.accuracyMetrics.aucRoc ?? null).toBeNull();
+    expect(detail.accuracyMetrics.confidenceMethod).toContain("endemic-channel+2SD excl-max-year");
+    expect(detail.accuracyMetrics.confidenceMethod).toContain("WHO TDR dengue surveillance handbook (2016)");
+    expect(detail.accuracyMetrics.confidenceMethod).not.toContain("EARS-C1");
+    expect(detail.covariates.cumulativeRainfallMm).toBe(112.5);
+    expect(detail.covariates.avgTemperatureC).toBe(31.4);
+    expect(detail.covariates.aqiLevel).toBe(42);
+    expect(detail.covariates.standingWaterSites).toBeNull();
+    expect(detail.covariates.larvalBreteauIndex).toBeNull();
+    expect(detail.covariates.heatIndexC).toBeNull();
+    expect(detail.coordinates).toEqual({ lat: 8.95, lng: 125.53 });
+  });
+
+  it("falls back to heuristic baseline when metrics/covariates are null", async () => {
+    mockHttp.mockResolvedValueOnce({
+      success: true, code: "OK", message: "", data: [liveEntry()],
+    });
+    mockHttp.mockResolvedValueOnce(
+      liveSeries([wk("2026-09-07", 10, 10, false), wk("2026-09-28", null, 12, true)], null, null)
+    );
+
+    const detail = await getLocationDetail("agoosan-del-norte|dengue");
+
+    expect(detail.accuracyMetrics.modelName).toBe("Heuristic baseline (no fitted model)");
+    expect(detail.accuracyMetrics.accuracyRate).toBeNull();
+    expect(detail.accuracyMetrics.mape).toBeNull();
+    expect(detail.accuracyMetrics.r2Score).toBeNull();
+    expect(detail.covariates.cumulativeRainfallMm).toBeNull();
+    expect(detail.covariates.avgTemperatureC).toBeNull();
+    expect(detail.covariates.aqiLevel).toBeNull();
+    expect(detail.coordinates).toEqual({ lat: 0, lng: 0 });
+  });
+
+  it("omits mape when mean actuals is zero and clamps r2", async () => {
+    mockHttp.mockResolvedValueOnce({
+      success: true, code: "OK", message: "", data: [liveEntry()],
+    });
+    mockHttp.mockResolvedValueOnce(
+      liveSeries(
+        [wk("2026-09-07", 0, 0, false), wk("2026-09-28", null, 1, true)],
+        { ...fittedMetrics, r2: 0.5 },
+        null
+      )
+    );
+    const zero = await getLocationDetail("agoosan-del-norte|dengue");
+    expect(zero.accuracyMetrics.mape).toBeNull();
+    expect(zero.accuracyMetrics.accuracyRate).toBe(50);
+
+    mockHttp.mockResolvedValueOnce({
+      success: true, code: "OK", message: "", data: [liveEntry()],
+    });
+    mockHttp.mockResolvedValueOnce(
+      liveSeries(
+        [wk("2026-09-07", 5, 5, false), wk("2026-09-28", null, 6, true)],
+        { ...fittedMetrics, r2: 1.4 },
+        null
+      )
+    );
+    expect((await getLocationDetail("agoosan-del-norte|dengue")).accuracyMetrics.accuracyRate).toBe(100);
+
+    mockHttp.mockResolvedValueOnce({
+      success: true, code: "OK", message: "", data: [liveEntry()],
+    });
+    mockHttp.mockResolvedValueOnce(
+      liveSeries(
+        [wk("2026-09-07", 5, 5, false), wk("2026-09-28", null, 6, true)],
+        { ...fittedMetrics, r2: -0.3 },
+        null
+      )
+    );
+    expect((await getLocationDetail("agoosan-del-norte|dengue")).accuracyMetrics.accuracyRate).toBe(0);
   });
 });

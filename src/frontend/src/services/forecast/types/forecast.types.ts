@@ -25,11 +25,14 @@ export interface LocationDiseaseEntry {
   outbreakProbability: number;
   sentinelFacility: string;
   lastUpdated: string;
+  lat?: number;
+  lng?: number;
 }
 
 export interface TimelineWeek {
   weekNumber: number;
   weekLabel: string;
+  shortLabel: string;
   isFuture: boolean;
   actualCases: number | null;
   predictedCases: number;
@@ -43,19 +46,19 @@ export interface LocationDetailData extends LocationDiseaseEntry {
   timeline: TimelineWeek[];
   accuracyMetrics: {
     modelName: string;
-    accuracyRate: number;
-    mape: number;
-    r2Score: number;
-    aucRoc: number;
+    accuracyRate: number | null;
+    mape: number | null;
+    r2Score: number | null;
+    aucRoc?: number | null;
     confidenceMethod: string;
   };
   covariates: {
-    cumulativeRainfallMm: number;
-    avgTemperatureC: number;
-    standingWaterSites: number;
-    larvalBreteauIndex: number;
-    heatIndexC: number;
-    aqiLevel: number;
+    cumulativeRainfallMm: number | null;
+    avgTemperatureC: number | null;
+    standingWaterSites: number | null;
+    larvalBreteauIndex: number | null;
+    heatIndexC: number | null;
+    aqiLevel: number | null;
   };
   recommendedPlaybooks: {
     id: number;

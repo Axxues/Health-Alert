@@ -15,6 +15,26 @@ interface SeriesWeek {
   isFuture: boolean;
 }
 
+interface SeriesMetrics {
+  modelName: string;
+  version: number;
+  rmse: number;
+  mae: number;
+  r2: number;
+  baselineName: string;
+  baselineRmse: number;
+  method: string;
+  citation: string;
+}
+
+interface SeriesCovariates {
+  rainMm: number;
+  tempC: number;
+  aqi: number;
+  pageviews: number;
+  date: string;
+}
+
 interface SeriesResponse {
   muni: string;
   disease: string;
@@ -22,6 +42,8 @@ interface SeriesResponse {
   modelVersion?: string;
   historyLength?: number;
   dataSources?: string[];
+  metrics?: SeriesMetrics | null;
+  covariates?: SeriesCovariates | null;
 }
 
 export async function listLocations(filter: LocationFilter = {}): Promise<LocationDiseaseEntry[]> {
@@ -77,16 +99,17 @@ export async function getLocationDetail(id: string, disease?: string): Promise<L
     scope.find((e) => needle.includes(norm(e.municipality)) || norm(e.municipality).includes(needle)) ??
     scope[0];
 
-  let weeks;
+  let series;
   try {
     const res = await httpClient<SeriesResponse>("/forecast/series", {
       method: "get",
       params: { muni: entry.municipality, disease: entry.disease },
     });
-    weeks = res.data?.weeks;
+    series = res.data;
   } catch (err) {
     throw new Error(err instanceof Error && err.message ? err.message : "Failed to retrieve location detail.");
   }
+  const weeks = series?.weeks;
   if (!weeks || weeks.length === 0) {
     throw new Error("No forecast series available from the feed.");
   }
@@ -111,30 +134,39 @@ export async function getLocationDetail(id: string, disease?: string): Promise<L
     };
   });
 
-  // Model accuracy stats from Chapter 2 of Literature Rev2
-  const accuracyMetrics = {
-    modelName:
-      entry.disease === "dengue"
-        ? "4-Layer Bi-LSTM (Lag-3 Climate Covariates)"
-        : entry.disease === "leptospirosis"
-        ? "Distributed Lag Non-Linear Model (DLNM Rain/Temp)"
-        : entry.disease === "ili"
-        ? "ARGO Autoregressive + Taglish Search Terms"
-        : "Rothfusz Heat-Index & AQI Distributed Model",
-    accuracyRate: 93.8,
-    mape: 5.8,
-    r2Score: 0.91,
-    aucRoc: 0.92,
-    confidenceMethod: "95% Empirical Bootstrap Confidence Band",
-  };
+  // ponytail: accuracy from the live series metrics block; null when no fitted model, never fabricated.
+  const m = series?.metrics ?? null;
+  const observed = timeline.filter((w) => w.actualCases !== null).map((w) => w.actualCases as number);
+  const meanActual = observed.length > 0 ? observed.reduce((a, b) => a + b, 0) / observed.length : 0;
+  const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
+  const short = (s: string) => s.split(";")[0].trim();
+  const accuracyMetrics = m
+    ? {
+        modelName: m.modelName,
+        accuracyRate: Math.round(clamp01(m.r2) * 100),
+        mape: meanActual > 0 ? Math.round((m.mae / meanActual) * 100) : null,
+        r2Score: m.r2,
+        aucRoc: null,
+        confidenceMethod: `${short(m.method)} (${short(m.citation)})`,
+      }
+    : {
+        modelName: "Heuristic baseline (no fitted model)",
+        accuracyRate: null,
+        mape: null,
+        r2Score: null,
+        aucRoc: null,
+        confidenceMethod: "Heuristic projection band (no fitted model)",
+      };
 
+  // ponytail: only rain/temp/aqi have a live feed; the rest stay null (tiles hidden, never static).
+  const cov = series?.covariates ?? null;
   const covariates = {
-    cumulativeRainfallMm: entry.disease === "leptospirosis" ? 184.2 : 112.5,
-    avgTemperatureC: 31.4,
-    standingWaterSites: entry.riskLevel === "high" ? 18 : 6,
-    larvalBreteauIndex: entry.riskLevel === "high" ? 24.5 : 8.2,
-    heatIndexC: 38.6,
-    aqiLevel: 42,
+    cumulativeRainfallMm: cov?.rainMm ?? null,
+    avgTemperatureC: cov?.tempC ?? null,
+    standingWaterSites: null,
+    larvalBreteauIndex: null,
+    heatIndexC: null,
+    aqiLevel: cov?.aqi ?? null,
   };
 
   const recommendedPlaybooks = [
@@ -161,7 +193,7 @@ export async function getLocationDetail(id: string, disease?: string): Promise<L
   return {
     ...entry,
     populationAtRisk: 14200,
-    coordinates: { lat: 16.6159, lng: 120.3209 },
+    coordinates: { lat: entry.lat ?? 0, lng: entry.lng ?? 0 },
     timeline,
     accuracyMetrics,
     covariates,

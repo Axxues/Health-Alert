@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text.Json;
 using HealthAlert.Database;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,8 +10,11 @@ public record DemoPlace(string Municipality, string Province, string Barangay, s
 
 public static class DemoHistorySeeder
 {
-    public const string Feed = "pidsr-demo";
+    public const string Feed = UploadTools.DemoFeedCode;
     public static readonly string[] Diseases = ["dengue", "leptospirosis", "ili", "asthma"];
+    public const int DemoWeeks = 8;
+    public static readonly string[] Preparers = ["J. Dela Cruz", "M. Santos", "R. Aquino", "L. Ramos"];
+    public static readonly string[] Contacts = ["09171234567", "09181234567", "09191234567"];
 
     public static readonly DemoPlace[] Places =
     [
@@ -43,33 +45,69 @@ public static class DemoHistorySeeder
         _ => "other",
     };
 
-    private static int Base(string d) => d switch { "dengue" => 18, "leptospirosis" => 8, "ili" => 30, "asthma" => 12, _ => 5 };
+    private static (int Min, int Max) Range(string d) => d switch
+    {
+        "dengue" => (10, 25),
+        "leptospirosis" => (3, 10),
+        "ili" => (20, 45),
+        "asthma" => (8, 18),
+        _ => (1, 5),
+    };
+
+    private static string Csv(string v) =>
+        v.Contains(',') || v.Contains('"') || v.Contains('\n') ? $"\"{v.Replace("\"", "\"\"")}\"" : v;
+
+    // ponytail: one CSV through the real upload path; dedupe keys collide on re-run so seeding stays idempotent
+    public static string BuildCsv(DateTime startMonday, Random rng)
+    {
+        var lines = new List<string> { string.Join(",", UploadTools.TemplateColumns) };
+        for (int w = 0; w < DemoWeeks; w++)
+        {
+            var monday = startMonday.AddDays(-7 * w);
+            var week = ISOWeek.GetWeekOfYear(monday);
+            var year = ISOWeek.GetYear(monday);
+            // ponytail: peak on recent weeks; clamped so magnitudes stay in Range()
+            var peak = (double)(DemoWeeks - 1 - w) / (DemoWeeks - 1);
+            for (int pi = 0; pi < Places.Length; pi++)
+                for (int di = 0; di < Diseases.Length; di++)
+                {
+                    var p = Places[pi];
+                    var d = Diseases[di];
+                    var (min, max) = Range(d);
+                    var cases = min + rng.Next(max - min + 1);
+                    cases += (int)Math.Round((max - min) * 0.25 * peak);
+                    if (cases > max) cases = max;
+                    if (rng.NextDouble() < 0.04) cases = 0; // ponytail: occasional zero-case compliance row
+                    int deaths = 0;
+                    if (cases > 0 && (d == "dengue" || d == "leptospirosis") && rng.NextDouble() < 0.12)
+                        deaths = rng.Next(0, Math.Min(cases, 1) + 1);
+                    var under5 = cases == 0 ? 0 : rng.Next(0, cases + 1);
+                    var male = cases == 0 ? 0 : rng.Next(0, cases + 1);
+                    var submitted = monday.AddDays(6).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                    lines.Add(string.Join(",", new[]
+                    {
+                        week.ToString(CultureInfo.InvariantCulture), year.ToString(CultureInfo.InvariantCulture),
+                        Csv(p.Province), Csv(p.Municipality), Csv(p.Barangay), Csv(p.SentinelFacility), "RHU",
+                        d, cases.ToString(CultureInfo.InvariantCulture), deaths.ToString(CultureInfo.InvariantCulture),
+                        under5.ToString(CultureInfo.InvariantCulture), (cases - under5).ToString(CultureInfo.InvariantCulture),
+                        male.ToString(CultureInfo.InvariantCulture), (cases - male).ToString(CultureInfo.InvariantCulture),
+                        Csv(Preparers[(pi + di + w) % Preparers.Length]), Contacts[(pi + di + w) % Contacts.Length], submitted,
+                    }));
+                }
+        }
+        return string.Join("\n", lines);
+    }
 
     public static async Task EnsureAsync(HealthAlertDbContext ctx)
     {
         if (await ctx.Cases.AnyAsync()) return; // ponytail: real data always wins; demo only fills an empty DB
         await Seed.RunAsync(ctx);
-        var tools = new SurveillanceEditTools(ctx);
         var rng = new Random(42);
         // ponytail: anchor on the most recent Monday (floored at 2026-09-28) so last-7d windows stay live
         var floor = new DateTime(2026, 9, 28);
         var today = DateTime.UtcNow.Date;
         var start = today < floor ? floor : today.AddDays(-(((int)today.DayOfWeek + 6) % 7));
-        for (int w = 0; w < 12; w++)
-        {
-            var monday = start.AddDays(-7 * w);
-            var week = ISOWeek.GetWeekOfYear(monday);
-            foreach (var p in Places)
-                foreach (var d in Diseases)
-                {
-                    // ponytail: "-{disease}" suffix keeps SourceKey unique per disease-week; muni prefix stays parseable
-                    var key = $"{p.Municipality}|{monday.Year}-W{week:D2}-{d}";
-                    var count = Math.Max(0, (int)Math.Round(Base(d) * (1 + 0.6 * Math.Sin(w / 11.0 * Math.PI)) * (0.85 + 0.3 * rng.NextDouble())));
-                    using var doc = JsonDocument.Parse(JsonSerializer.Serialize(new { sourceKey = key, disease = d, count }));
-                    var row = (TblCase)await tools.IngestAsync(Feed, doc.RootElement);
-                    row.ReportedAt = monday;
-                }
-        }
-        await ctx.SaveChangesAsync();
+        var csv = BuildCsv(start, rng);
+        await new UploadTools(ctx).IngestAsync(csv, "mho-weekly-demo.csv", "demo-seeder", Feed);
     }
 }

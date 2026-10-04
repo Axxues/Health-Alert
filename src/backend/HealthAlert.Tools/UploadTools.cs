@@ -11,6 +11,7 @@ public class UploadTools(HealthAlertDbContext ctx)
 {
     // ponytail: weekly PIDSR submission from the reporting unit (emailed upward to PHO/RESU); EDCS-IS encoding happens downstream
     public const string FeedCode = "mho-weekly";
+    public const string DemoFeedCode = "mho-weekly-demo";
     public static readonly string[] TemplateColumns =
     [
         "morbidity_week", "morbidity_year", "province", "municipality", "barangay",
@@ -54,7 +55,7 @@ public class UploadTools(HealthAlertDbContext ctx)
     private static bool TryCount(string s, out int v) =>
         int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out v) && v >= 0;
 
-    public async Task<UploadResult> IngestAsync(string csv, string? fileName, string? uploadedBy)
+    public async Task<UploadResult> IngestAsync(string csv, string? fileName, string? uploadedBy, string? feedCode = null)
     {
         var lines = csv.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
             .Where(l => l.Trim().Length > 0 && !l.TrimStart().StartsWith('#')).ToList();
@@ -76,8 +77,9 @@ public class UploadTools(HealthAlertDbContext ctx)
         await ctx.UploadBatches.AddAsync(batch);
         await ctx.SaveChangesAsync();
 
-        var feed = await ctx.Feeds.FirstOrDefaultAsync(f => f.Code == FeedCode);
-        if (feed is null) { feed = new TblFeed { Code = FeedCode, Name = FeedCode }; await ctx.Feeds.AddAsync(feed); await ctx.SaveChangesAsync(); }
+        var code = string.IsNullOrWhiteSpace(feedCode) ? FeedCode : feedCode;
+        var feed = await ctx.Feeds.FirstOrDefaultAsync(f => f.Code == code);
+        if (feed is null) { feed = new TblFeed { Code = code, Name = code }; await ctx.Feeds.AddAsync(feed); await ctx.SaveChangesAsync(); }
         var diseases = await ctx.Diseases.ToDictionaryAsync(d => d.Code ?? "", d => d.Id);
 
         int accepted = 0, quarantined = 0, duplicates = 0;

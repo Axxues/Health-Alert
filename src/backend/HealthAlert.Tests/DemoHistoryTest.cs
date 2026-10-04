@@ -17,11 +17,17 @@ public class DemoHistoryTest
         var ctx = TestDb.Create();
         await DemoHistorySeeder.EnsureAsync(ctx);
         var n = await ctx.Cases.CountAsync();
-        Assert.True(n > 100);
-        // provenance: IngestAsync stores the raw key in SourceKey and the feed code in tblFeeds
+        Assert.Equal(7 * 4 * DemoHistorySeeder.DemoWeeks, n);
+        // provenance: every seeded case traceable to the demo source, never a real submission tag
         Assert.All(await ctx.Cases.Select(c => c.SourceKey).ToListAsync(), k => Assert.Contains("|", k!));
         var feedCodes = await ctx.Cases.Join(ctx.Feeds, c => c.FeedId, f => f.Id, (c, f) => f.Code).Distinct().ToListAsync();
-        Assert.Single(feedCodes, DemoHistorySeeder.Feed);
+        Assert.Single(feedCodes, UploadTools.DemoFeedCode);
+        Assert.Equal(DemoHistorySeeder.Feed, UploadTools.DemoFeedCode);
+        // validation: the generated CSV passes the upload path with nothing quarantined
+        Assert.Equal(0, await ctx.UploadIssues.CountAsync());
+        var batch = await ctx.UploadBatches.OrderByDescending(b => b.Id).FirstAsync();
+        Assert.Equal(0, batch.Quarantined);
+        Assert.Equal(n, batch.Accepted);
         await DemoHistorySeeder.EnsureAsync(ctx);
         Assert.Equal(n, await ctx.Cases.CountAsync());
     }
