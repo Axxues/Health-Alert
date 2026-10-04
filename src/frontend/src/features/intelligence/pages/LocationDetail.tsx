@@ -207,7 +207,7 @@ export function LocationDetail() {
             <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "var(--mute)", lineHeight: 1.6 }}>
               {detail.province} province · {detail.sentinelFacility}
               <br />
-              Last ingestion {detail.lastUpdated} · Est. pop. at risk {detail.populationAtRisk.toLocaleString()}
+              Last ingestion {detail.lastUpdated} · {detail.populationAtRisk != null ? `Est. pop. at risk ${detail.populationAtRisk.toLocaleString()}${detail.populationYear != null ? ` (${detail.populationYear})` : ""}` : "No population on file"}
             </p>
           </div>
 

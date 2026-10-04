@@ -27,6 +27,8 @@ export interface LocationDiseaseEntry {
   lastUpdated: string;
   lat?: number;
   lng?: number;
+  populationAtRisk?: number | null;
+  populationYear?: number | null;
 }
 
 export interface TimelineWeek {
@@ -41,7 +43,8 @@ export interface TimelineWeek {
 }
 
 export interface LocationDetailData extends LocationDiseaseEntry {
-  populationAtRisk: number;
+  populationAtRisk: number | null;
+  populationYear: number | null;
   coordinates: { lat: number; lng: number };
   timeline: TimelineWeek[];
   accuracyMetrics: {

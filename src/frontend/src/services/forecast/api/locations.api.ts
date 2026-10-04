@@ -192,7 +192,9 @@ export async function getLocationDetail(id: string, disease?: string): Promise<L
 
   return {
     ...entry,
-    populationAtRisk: 14200,
+    // ponytail: live population from the locations feed; null when no row on file, never fabricated
+    populationAtRisk: entry.populationAtRisk ?? null,
+    populationYear: entry.populationYear ?? null,
     coordinates: { lat: entry.lat ?? 0, lng: entry.lng ?? 0 },
     timeline,
     accuracyMetrics,

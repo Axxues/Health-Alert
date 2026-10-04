@@ -13,3 +13,16 @@ export const TEMPLATE_COLUMNS = [
 export function buildTemplateCsv(): string {
   return TEMPLATE_COLUMNS.join(",") + "\n# 39,2026,La Union,Agoo,Poblacion,Agoo RHU,RHU,dengue,5,0,1,4,3,2,J. Dela Cruz,09171234567,2026-10-01";
 }
+
+export interface PopulationUploadResult { accepted: number; errors: number; errorLines: string[]; }
+export interface PopulationRow { id: number; province: string | null; municipality: string | null; barangay: string | null; population: number; refYear: number; source: string | null; uploadedBy?: string | null; updatedAt?: string | null; }
+export interface PopulationFilter { province?: string; municipality?: string; barangay?: string; }
+
+// ponytail: exact server header + example; server GET template is the download source, this is the offline fallback
+export const POPULATION_TEMPLATE_COLUMNS = [
+  "province", "municipality", "barangay", "population", "reference_year", "source",
+] as const;
+
+export function buildPopulationTemplateCsv(): string {
+  return POPULATION_TEMPLATE_COLUMNS.join(",") + "\nLa Union,Agoo,Poblacion,5000,2024,census";
+}

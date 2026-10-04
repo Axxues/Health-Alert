@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { downloadTemplate, listBatches, listIssues, resolveIssue, uploadBatch } from "@/services/uploads/api/uploads.api";
-import type { UploadBatch, UploadIssue, UploadResult } from "@/services/uploads/types/uploads.types";
+import { downloadTemplate, listBatches, listIssues, populationTemplate, resolveIssue, uploadBatch, uploadPopulation } from "@/services/uploads/api/uploads.api";
+import type { PopulationUploadResult, UploadBatch, UploadIssue, UploadResult } from "@/services/uploads/types/uploads.types";
 
 export function Uploads() {
   const [batches, setBatches] = useState<UploadBatch[]>([]);
@@ -8,9 +8,12 @@ export function Uploads() {
   const [selectedBatch, setSelectedBatch] = useState<number | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<UploadResult | null>(null);
+  const [popFile, setPopFile] = useState<File | null>(null);
+  const [popResult, setPopResult] = useState<PopulationUploadResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [issuesLoading, setIssuesLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [popUploading, setPopUploading] = useState(false);
   const [error, setError] = useState("");
 
   const refresh = () => {
@@ -53,6 +56,19 @@ export function Uploads() {
     refresh();
   };
 
+  const handlePopUpload = async () => {
+    if (!popFile) return;
+    setPopUploading(true);
+    setError("");
+    await uploadPopulation(popFile)
+      .then((r) => {
+        setPopResult(r);
+        setPopFile(null);
+      })
+      .catch(() => setError("Failed to upload population file."))
+      .finally(() => setPopUploading(false));
+  };
+
   const openIssues = issues.filter((i) => !i.resolved);
 
   return (
@@ -89,6 +105,40 @@ export function Uploads() {
           <p style={{ margin: 0, fontSize: "13px", color: "var(--ink)" }}>
             Batch #{result.batchId}: {result.accepted} accepted, {result.quarantined} quarantined, {result.duplicates} duplicates
           </p>
+        )}
+      </div>
+
+      <div className="section-card" style={{ padding: 20, display: "grid", gap: 12 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          <h3 style={{ margin: 0, fontSize: "14px", fontWeight: 700 }}>Annual barangay population</h3>
+          <button type="button" className="btn-pill text-xs" onClick={() => populationTemplate().catch(() => setError("Failed to download population template."))}>
+            Download template
+          </button>
+        </div>
+        <input
+          type="file"
+          accept=".csv,text/csv"
+          aria-label="Barangay population file"
+          onChange={(e) => setPopFile(e.target.files?.[0] ?? null)}
+          style={{ fontSize: "13px", color: "var(--ink)" }}
+        />
+        <div>
+          <button type="button" className="btn-pill text-xs" onClick={handlePopUpload} disabled={!popFile || popUploading}>
+            {popUploading ? "Uploading..." : "Upload"}
+          </button>
+        </div>
+        {popResult && (
+          <p style={{ margin: 0, fontSize: "13px", color: "var(--ink)" }}>
+            Population: {popResult.accepted} accepted, {popResult.errors} errors
+          </p>
+        )}
+        {popResult && popResult.errorLines.length > 0 && (
+          <ul style={{ margin: 0, paddingLeft: 18, fontSize: "12.5px", color: "var(--mute)", display: "grid", gap: 2 }}>
+            {popResult.errorLines.slice(0, 5).map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+            {popResult.errorLines.length > 5 && <li>…and {popResult.errorLines.length - 5} more</li>}
+          </ul>
         )}
       </div>
 
