@@ -15,6 +15,7 @@ const RiskMaps = lazy(() => import("@/features/risk-maps/pages/RiskMaps").then((
 const Alerts = lazy(() => import("@/features/alerts/pages/Alerts").then((m) => ({ default: m.Alerts })));
 const Reports = lazy(() => import("@/features/reports/pages/Reports").then((m) => ({ default: m.Reports })));
 const Users = lazy(() => import("@/features/users/pages/Users").then((m) => ({ default: m.Users })));
+const Uploads = lazy(() => import("@/features/uploads/pages/Uploads").then((m) => ({ default: m.Uploads })));
 
 function ProtectedRoute() {
   return isAuthenticated() ? <Outlet /> : <Navigate to="/login" replace />;
@@ -27,6 +28,12 @@ function PermissionRoute({ permission, children }: { permission: string; childre
 
 function AdminRoute({ children }: { children?: React.ReactNode }) {
   if (getRole() !== "Admin") return <Navigate to="/unauthorized" replace />;
+  return children ?? <Outlet />;
+}
+
+function UploadRoute({ children }: { children?: React.ReactNode }) {
+  const role = getRole();
+  if (role !== "Admin" && role !== "Encoder") return <Navigate to="/unauthorized" replace />;
   return children ?? <Outlet />;
 }
 
@@ -86,6 +93,11 @@ export const router = createBrowserRouter([
             path: "users",
             element: <AdminRoute />,
             children: [{ index: true, element: slice(<Users />) }],
+          },
+          {
+            path: "uploads",
+            element: <UploadRoute />,
+            children: [{ index: true, element: slice(<Uploads />) }],
           },
         ],
       },

@@ -5,6 +5,7 @@ import {
   MapPin,
   Bell,
   FileText,
+  UploadCloud,
   Users,
   Shield,
 } from "lucide-react";
@@ -16,6 +17,7 @@ const iconMap: Record<string, React.ReactNode> = {
   "Risk maps": <MapPin size={18} strokeWidth={2} />,
   Alerts: <Bell size={18} strokeWidth={2} />,
   Reports: <FileText size={18} strokeWidth={2} />,
+  Uploads: <UploadCloud size={18} strokeWidth={2} />,
   Users: <Users size={18} strokeWidth={2} />,
 };
 

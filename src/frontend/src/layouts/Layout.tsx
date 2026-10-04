@@ -88,7 +88,7 @@ export function Layout() {
   const guideTimer = useRef<number | null>(null);
   const { pathname } = useLocation();
   const links = menuItems.filter(
-    (m) => (!m.permission || hasPermission(m.permission)) && (m.path !== "/users" || getRole() === "Admin")
+    (m) => (!m.permission || hasPermission(m.permission)) && (m.path !== "/users" || getRole() === "Admin") && (m.path !== "/uploads" || getRole() === "Admin" || getRole() === "Encoder")
   );
   const close = () => setDrawer(false);
 
