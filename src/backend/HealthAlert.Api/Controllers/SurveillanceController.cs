@@ -54,6 +54,24 @@ public class SurveillanceController(IConfiguration cfg, IHostEnvironment env) : 
 
     [HttpGet("template")]
     public IActionResult Template() => Content(UploadTools.TemplateCsv(), "text/csv");
+
+    [HttpPost("population/upload")]
+    public async Task<IActionResult> UploadPopulation(IFormFile? file, [FromServices] PopulationTools t)
+    {
+        if (!CanUpload()) return Forbid();
+        if (file is null || file.Length == 0) return BadRequest(ApiResponse.Fail("BAD_REQUEST", "file required"));
+        using var r = new StreamReader(file.OpenReadStream());
+        var (valid, errors) = PopulationTools.ParseValidateCsv(await r.ReadToEndAsync());
+        var res = await t.ImportAsync(valid, User.Identity?.Name);
+        return Ok(ApiResponse.Ok(new PopUploadResult(res.Accepted, res.Errors + errors.Count, [.. res.ErrorLines, .. errors])));
+    }
+
+    [HttpGet("population")]
+    public async Task<IActionResult> Population([FromQuery] string? province, [FromQuery] string? municipality, [FromQuery] string? barangay, [FromServices] PopulationTools t) =>
+        Ok(ApiResponse.Ok(await t.QueryAsync(province, municipality, barangay)));
+
+    [HttpGet("population/template")]
+    public IActionResult PopulationTemplate() => Content(PopulationTools.TemplateCsv(), "text/csv");
 }
 
 public record ResolveReq(string Action);

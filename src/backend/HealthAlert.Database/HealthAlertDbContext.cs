@@ -19,6 +19,7 @@ public class TblForecastModel { public long Id { get; set; } public string? Dise
 public class TblRiskThreshold { public long Id { get; set; } public string? Disease { get; set; } public double HighProb { get; set; } public double WatchProb { get; set; } public double VelocityHigh { get; set; } public double VelocityWatch { get; set; } public string? CovariateKey { get; set; } public double CovariateHigh { get; set; } public string? Method { get; set; } public string? Citation { get; set; } }
 public class TblUploadBatch { public long Id { get; set; } public string? FileName { get; set; } public string? UploadedBy { get; set; } public DateTime? UploadedAt { get; set; } public string? Status { get; set; } public int Accepted { get; set; } public int Quarantined { get; set; } public int Duplicates { get; set; } }
 public class TblUploadIssue { public long Id { get; set; } public long BatchId { get; set; } public int Row { get; set; } public string? Reason { get; set; } public string? RawLine { get; set; } public string? SourceKey { get; set; } public string? Disease { get; set; } public double? Count { get; set; } public DateTime? ReportedAt { get; set; } public bool Resolved { get; set; } public string? Resolution { get; set; } }
+public class TblPlacePopulation { public long Id { get; set; } public string? Province { get; set; } public string? Municipality { get; set; } public string? Barangay { get; set; } public long Population { get; set; } public int RefYear { get; set; } public string? Source { get; set; } public string? UploadedBy { get; set; } public DateTime? UpdatedAt { get; set; } }
 
 public class HealthAlertDbContext(DbContextOptions<HealthAlertDbContext> o) : DbContext(o)
 {
@@ -38,6 +39,7 @@ public class HealthAlertDbContext(DbContextOptions<HealthAlertDbContext> o) : Db
     public DbSet<TblRiskThreshold> RiskThresholds => Set<TblRiskThreshold>();
     public DbSet<TblUploadBatch> UploadBatches => Set<TblUploadBatch>();
     public DbSet<TblUploadIssue> UploadIssues => Set<TblUploadIssue>();
+    public DbSet<TblPlacePopulation> PlacePopulations => Set<TblPlacePopulation>();
 
     protected override void OnModelCreating(ModelBuilder m)
     {
@@ -58,6 +60,11 @@ public class HealthAlertDbContext(DbContextOptions<HealthAlertDbContext> o) : Db
         m.Entity<TblRiskThreshold>().ToTable("tblRiskThresholds");
         m.Entity<TblUploadBatch>().ToTable("tblUploadBatches");
         m.Entity<TblUploadIssue>().ToTable("tblUploadIssues");
+        m.Entity<TblPlacePopulation>().ToTable("tblPlacePopulation");
+        m.Entity<TblPlacePopulation>().Property(p => p.Province).HasMaxLength(450);
+        m.Entity<TblPlacePopulation>().Property(p => p.Municipality).HasMaxLength(450);
+        m.Entity<TblPlacePopulation>().Property(p => p.Barangay).HasMaxLength(450);
+        m.Entity<TblPlacePopulation>().HasIndex(p => new { p.Province, p.Municipality, p.Barangay, p.RefYear }).IsUnique();
     }
 }
 
