@@ -25,8 +25,57 @@ public record LocationRow(
     [property: JsonPropertyName("sentinelFacility")] string SentinelFacility,
     [property: JsonPropertyName("lastUpdated")] string LastUpdated);
 
+public record ForecastSeries(string Muni, string Disease, List<SeriesWeek> Weeks, int? ModelVersion, int HistoryLength, List<string> DataSources);
+public record SeriesWeek(DateTime WeekStart, int? Actual, int Predicted, int CiLower, int CiUpper, bool IsFuture);
+
 public class RiskMapsGetTools(HealthAlertDbContext ctx, ModelRegistryTools reg, IMemoryCache cache)
 {
+    private static readonly HashSet<string> KnownDiseases = new(StringComparer.OrdinalIgnoreCase) { "dengue", "leptospirosis", "ili", "asthma" };
+
+    // ponytail: 12 honest history weeks (0 when no rows) + 4 projected; ±30% CI without a fitted model
+    public async Task<ForecastSeries> SeriesAsync(string muni, string disease)
+    {
+        var code = (disease ?? "dengue").ToLowerInvariant();
+        if (!KnownDiseases.Contains(code)) throw new InvalidOperationException($"unknown disease: {disease}");
+        var did = await ctx.Diseases.Where(d => d.Code == code).Select(d => d.Id).FirstOrDefaultAsync();
+        var rows = (await ctx.Cases.Where(c => c.DiseaseId == did).ToListAsync())
+            .Where(c => (c.SourceKey ?? "").Split('|', 2)[0].Equals(muni, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        var today = DateTime.UtcNow.Date;
+        var lastMonday = today.AddDays(-(((int)today.DayOfWeek + 6) % 7));
+        var past = Enumerable.Range(0, 12).Select(i => lastMonday.AddDays(-7 * (11 - i))).ToList();
+        var actuals = past.Select(w => (int)Math.Round(rows.Where(c => c.ReportedAt >= w && c.ReportedAt < w.AddDays(7)).Sum(c => c.Count ?? 0))).ToList();
+        var cov = await ctx.CovariateReadings.OrderBy(c => c.Date).ToListAsync();
+        var newest = cov.Count > 0 ? cov[^1] : null;
+        var prev = cov.Count > 1 ? cov[^2] : null;
+        var model = await reg.DeployedAsync(code);
+        var weeks = past.Select((w, i) => new SeriesWeek(w, actuals[i], actuals[i], actuals[i], actuals[i], false)).ToList();
+        double lag1 = actuals.Count > 0 ? actuals[^1] : 0, lag2 = actuals.Count > 1 ? actuals[^2] : 0;
+        var prob = model is null ? ForecastGetTools.Build(code).Probability : 0;
+        for (int i = 1; i <= 4; i++)
+        {
+            int pred;
+            if (model is not null)
+            {
+                pred = Math.Max(0, (int)Math.Round(ModelRegistryTools.Predict(model, ServingFeatures(lag1, lag2, newest, prev))));
+                lag2 = lag1; lag1 = pred;
+            }
+            else pred = Math.Max(0, (int)Math.Round(prob * lag1));
+            var (lo, hi) = model is not null
+                ? (Math.Max(0, (int)Math.Round(pred - 1.96 * (model.Rmse ?? 0))), (int)Math.Round(pred + 1.96 * (model.Rmse ?? 0)))
+                : (Math.Max(0, (int)Math.Round(pred * 0.7)), (int)Math.Round(pred * 1.3));
+            weeks.Add(new SeriesWeek(lastMonday.AddDays(7 * i), null, pred, lo, hi, true));
+        }
+        var feedIds = rows.Where(c => c.FeedId != null).Select(c => c.FeedId!.Value).Distinct().ToList();
+        var feeds = feedIds.Count > 0 ? await ctx.Feeds.Where(f => feedIds.Contains(f.Id)).Select(f => f.Code).ToListAsync() : [];
+        var covSrc = await ctx.CovariateReadings.Select(c => c.Source).Distinct().ToListAsync();
+        return new ForecastSeries(muni, code, weeks, model?.Version, rows.Count,
+            [.. feeds.Where(s => s != null).Cast<string>(), .. covSrc.Where(s => s != null).Cast<string>()]);
+    }
+
+    // ponytail: single 8-wide feature builder for Hotspots/LocationsAsync/SeriesAsync; twin copy lives in ForecastGetTools.OutlookAsync, keep order in sync
+    private static double[] ServingFeatures(double lag1, double lag2, TblCovariateReading? newest, TblCovariateReading? prev) =>
+        [1.0, lag1, lag2, Val(newest, "rainMm"), Val(prev, "rainMm"), Val(newest, "tempC"), Val(newest, "aqi"), Val(newest, "pageviews") - Val(prev, "pageviews")];
     // ponytail: signals computed from recent cases; only coords stay static, La Union center fallback
     public async Task<List<HotspotRow>> Hotspots()
     {
@@ -50,7 +99,7 @@ public class RiskMapsGetTools(HealthAlertDbContext ctx, ModelRegistryTools reg, 
             if (!models.TryGetValue(g.Key.Disease, out var m))
                 models[g.Key.Disease] = m = await reg.DeployedAsync(g.Key.Disease);
             double prob = m is not null
-                ? Math.Min(0.97, ModelRegistryTools.Predict(m, [1.0, latest, prior, Val(newest, "rainMm"), Val(prev, "rainMm"), Val(newest, "tempC"), Val(newest, "aqi"), Val(newest, "pageviews") - Val(prev, "pageviews")]) / 50)
+                ? Math.Min(0.97, ModelRegistryTools.Predict(m, ServingFeatures(latest, prior, newest, prev)) / 50)
                 : ForecastGetTools.Build(g.Key.Disease).Probability;
             var t = thresholds.FirstOrDefault(t => t.Disease == g.Key.Disease) ?? RiskBandTools.DefaultFor(g.Key.Disease);
             var level = RiskBandTools.Assign(prob, latest / Math.Max(1, prior), Val(newest, t.CovariateKey ?? ""), t) switch { "moderate" => "medium", var l => l };
@@ -90,7 +139,7 @@ public class RiskMapsGetTools(HealthAlertDbContext ctx, ModelRegistryTools reg, 
                 if (!models.TryGetValue(d, out var m))
                     models[d] = m = await reg.DeployedAsync(d);
                 double prob = m is not null
-                    ? Math.Min(0.97, ModelRegistryTools.Predict(m, [1.0, cur, prv, Val(newest, "rainMm"), Val(older, "rainMm"), Val(newest, "tempC"), Val(newest, "aqi"), Val(newest, "pageviews") - Val(older, "pageviews")]) / 50)
+                    ? Math.Min(0.97, ModelRegistryTools.Predict(m, ServingFeatures(cur, prv, newest, older)) / 50)
                     : ForecastGetTools.Build(d).Probability;
                 var t = thresholds.FirstOrDefault(t => t.Disease == d) ?? RiskBandTools.DefaultFor(d);
                 var level = RiskBandTools.Assign(prob, cur / Math.Max(1, prv), Val(newest, t.CovariateKey ?? ""), t);

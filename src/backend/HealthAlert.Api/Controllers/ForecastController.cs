@@ -22,6 +22,14 @@ public class ForecastController(IConfiguration cfg, IHostEnvironment env) : Cont
         [FromServices] RiskMapsGetTools g) =>
         Ok(ApiResponse.Ok(await g.LocationsAsync(search, province, municipality, disease, riskLevel)));
 
+    [HttpGet("series")]
+    public async Task<IActionResult> Series([FromQuery] string? muni, [FromQuery] string? disease,
+        [FromServices] RiskMapsGetTools g)
+    {
+        if (string.IsNullOrWhiteSpace(muni)) return BadRequest(ApiResponse.Fail("BAD_REQUEST", "muni is required"));
+        return Ok(ApiResponse.Ok(await g.SeriesAsync(muni, disease ?? "dengue")));
+    }
+
     [HttpPost("train")]
     public async Task<IActionResult> Train([FromBody] ForecastReq r,
         [FromServices] ModelRegistryTools reg) =>
