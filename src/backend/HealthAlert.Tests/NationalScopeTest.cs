@@ -1,6 +1,7 @@
 using System.Text.Json;
 using HealthAlert.Database;
 using HealthAlert.Tools;
+using HealthAlert.Tools.ML;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace HealthAlert.Tests;

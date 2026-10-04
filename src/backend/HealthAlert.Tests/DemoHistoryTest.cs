@@ -2,6 +2,7 @@ using HealthAlert.Api.Controllers;
 using HealthAlert.Common;
 using HealthAlert.Database;
 using HealthAlert.Tools;
+using HealthAlert.Tools.ML;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;

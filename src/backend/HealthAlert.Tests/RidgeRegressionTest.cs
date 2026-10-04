@@ -1,4 +1,5 @@
 using HealthAlert.Tools;
+using HealthAlert.Tools.ML;
 
 namespace HealthAlert.Tests;
 

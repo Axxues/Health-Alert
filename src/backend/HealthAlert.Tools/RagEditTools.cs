@@ -7,11 +7,7 @@ public class RagEditTools(HealthAlertDbContext ctx)
 {
     public async Task<object> ReindexAsync()
     {
-        if (!await ctx.RagDocs.AnyAsync())
-        {
-            ctx.RagDocs.Add(new TblRagDoc { Doc = "Dengue Clinical Bulletin", Chapter = "Fluid Management", Page = "p.12", Content = "Give oral fluids early." });
-            await ctx.SaveChangesAsync();
-        }
+        await Seed.RunAsync(ctx); // ponytail: single curated DOH/WHO corpus; no external fetch until sources are approved
         return new { docs = await ctx.RagDocs.CountAsync() };
     }
 }

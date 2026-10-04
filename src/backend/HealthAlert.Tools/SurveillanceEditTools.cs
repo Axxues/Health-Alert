@@ -6,7 +6,24 @@ namespace HealthAlert.Tools;
 
 public class SurveillanceEditTools(HealthAlertDbContext ctx)
 {
-    public async Task<TblCase> IngestAsync(string feed, JsonElement body)
+    public async Task<object> IngestAsync(string feed, JsonElement body)
+    {
+        if (body.ValueKind == JsonValueKind.Array)
+        {
+            var results = new List<TblCase>();
+            foreach (var item in body.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.Object)
+                {
+                    results.Add(await IngestSingleAsync(feed, item));
+                }
+            }
+            return results;
+        }
+        return await IngestSingleAsync(feed, body);
+    }
+
+    private async Task<TblCase> IngestSingleAsync(string feed, JsonElement body)
     {
         if (body.ValueKind != JsonValueKind.Object || !body.TryGetProperty("sourceKey", out var k)
             || string.IsNullOrWhiteSpace(k.GetString()))

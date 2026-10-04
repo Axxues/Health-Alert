@@ -1,5 +1,6 @@
 using HealthAlert.Common;
 using HealthAlert.Tools;
+using HealthAlert.Tools.ML;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

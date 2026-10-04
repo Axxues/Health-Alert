@@ -1,4 +1,4 @@
-namespace HealthAlert.Tools;
+namespace HealthAlert.Tools.ML;
 
 public static class RidgeRegression
 {

@@ -2,7 +2,7 @@ using System.Text.Json;
 using HealthAlert.Database;
 using Microsoft.EntityFrameworkCore;
 
-namespace HealthAlert.Tools;
+namespace HealthAlert.Tools.ML;
 
 public class ModelRegistryTools(HealthAlertDbContext ctx)
 {

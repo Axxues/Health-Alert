@@ -1,5 +1,6 @@
 using System.Text.Json;
 using HealthAlert.Database;
+using HealthAlert.Tools.ML;
 using Microsoft.EntityFrameworkCore;
 
 namespace HealthAlert.Tools;

@@ -1,5 +1,6 @@
 using HealthAlert.Database;
 using HealthAlert.Tools;
+using HealthAlert.Tools.ML;
 using Microsoft.EntityFrameworkCore;
 
 namespace HealthAlert.Tests;

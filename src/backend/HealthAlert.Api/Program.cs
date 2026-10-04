@@ -4,6 +4,7 @@ using HealthAlert.Api.Services;
 using HealthAlert.Common;
 using HealthAlert.Database;
 using HealthAlert.Tools;
+using HealthAlert.Tools.ML;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
