@@ -6,6 +6,8 @@
 
 **Architecture:** `UploadTools` parses/validates CSV (no new packages) into `tblCases` + `tblUploadBatch`/`tblUploadIssue`; endpoints for upload, batches, issues, resolve, and template download; frontend Upload page + review queue; new `Encoder` role (upload + view own scope) alongside Admin/Viewer.
 
+**Provenance correction:** the uploaded file is the reporting unit's weekly PIDSR submission (the same file emailed upward to PHO/RESU), NOT an EDCS-IS export — EDCS-IS is DOH's system of record that this data gets encoded into downstream. Source-tag rows `mho-weekly` accordingly.
+
 **Tech Stack:** .NET 10, EF Core, xUnit, React + Tailwind, multipart form upload.
 
 **Spec:** user directive 2026-10-01 (PIDSR weekly-report format) + field mapping agreed in chat.
