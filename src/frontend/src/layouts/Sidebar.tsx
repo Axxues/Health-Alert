@@ -1,3 +1,4 @@
+import React from "react";
 import { NavLink } from "react-router";
 import {
   LayoutDashboard,
@@ -7,63 +8,64 @@ import {
   FileText,
   UploadCloud,
   Users,
-  Shield,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Radio,
 } from "lucide-react";
-import { menuItems } from "@/constants/layout/menu/menu";
+import { MenuItem, MenuSection } from "@/constants/layout/menu/menu";
 
 const iconMap: Record<string, React.ReactNode> = {
-  Dashboard: <LayoutDashboard size={18} strokeWidth={2} />,
-  Intelligence: <Activity size={18} strokeWidth={2} />,
-  "Risk maps": <MapPin size={18} strokeWidth={2} />,
-  Alerts: <Bell size={18} strokeWidth={2} />,
-  Reports: <FileText size={18} strokeWidth={2} />,
-  Uploads: <UploadCloud size={18} strokeWidth={2} />,
-  Users: <Users size={18} strokeWidth={2} />,
+  Dashboard: <LayoutDashboard size={16} strokeWidth={2.2} />,
+  Intelligence: <Activity size={16} strokeWidth={2.2} />,
+  "Risk maps": <MapPin size={16} strokeWidth={2.2} />,
+  Alerts: <Bell size={16} strokeWidth={2.2} />,
+  Reports: <FileText size={16} strokeWidth={2.2} />,
+  Uploads: <UploadCloud size={16} strokeWidth={2.2} />,
+  Users: <Users size={16} strokeWidth={2.2} />,
 };
+
+const SECTIONS: MenuSection[] = [
+  "Surveillance & Telemetry",
+  "Incident Operations",
+  "Administration",
+];
+
+export interface SidebarProps {
+  items: MenuItem[];
+  onNavigate?: () => void;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
+}
 
 export function Sidebar({
   items,
   onNavigate,
   collapsed = false,
-}: {
-  items: typeof menuItems;
-  onNavigate?: () => void;
-  collapsed?: boolean;
-}) {
+  onToggleCollapse,
+}: SidebarProps) {
   return (
-    <nav
-      className="sidebar"
+    <aside
       aria-label="Primary navigation"
-      style={{
-        width: collapsed ? 68 : 240,
-        minWidth: collapsed ? 68 : 240,
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        transition: "width 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
-      }}
+      className={`relative flex flex-col h-full bg-card/95 backdrop-blur-md border-r border-border transition-all duration-200 select-none z-20 ${
+        collapsed ? "w-16 min-w-16" : "w-60 min-w-60"
+      }`}
     >
-      <div style={{ flex: 1, overflowY: "auto" }}>
-        {(["Epidemiology"] as const).map((sec) => {
+      {/* Navigation Links Scroll Container */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-5 py-4 scrollbar-none">
+        {SECTIONS.map((sec) => {
           const list = items.filter((m) => m.section === sec);
           if (list.length === 0) return null;
+
           return (
-            <div key={sec} style={{ marginBottom: 12 }}>
-              {!collapsed && (
-                <div
-                  className="navsec"
-                  style={{
-                    fontSize: "10.5px",
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.06em",
-                    color: "var(--mute)",
-                    padding: "0 12px 6px",
-                  }}
-                >
+            <div key={sec} className="space-y-1">
+              {!collapsed ? (
+                <div className="px-2.5 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">
                   {sec}
                 </div>
+              ) : (
+                <div className="h-2" />
               )}
+
               {list.map((m) => (
                 <NavLink
                   key={m.path}
@@ -71,31 +73,36 @@ export function Sidebar({
                   end={m.path === "/"}
                   onClick={onNavigate}
                   title={collapsed ? m.name : undefined}
-                  className={({ isActive }) => (isActive ? "active" : "")}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    padding: collapsed ? "8px 0" : "8px 12px",
-                    justifyContent: collapsed ? "center" : "flex-start",
-                    borderRadius: "var(--radius-md)",
-                    marginBottom: 2,
-                    textDecoration: "none",
-                  }}
+                  className={({ isActive }) =>
+                    `group relative flex items-center gap-3 rounded-lg text-xs font-semibold transition-all duration-150 ${
+                      collapsed ? "justify-center p-2.5" : "px-3 py-2"
+                    } ${
+                      isActive
+                        ? "bg-primary/10 text-primary font-bold shadow-xs"
+                        : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+                    }`
+                  }
                 >
-                  <span
-                    className="navicon"
-                    aria-hidden="true"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "inherit",
-                    }}
-                  >
-                    {iconMap[m.name] ?? null}
-                  </span>
-                  {!collapsed && <span style={{ fontSize: "13px", fontWeight: 600 }}>{m.name}</span>}
+                  {({ isActive }) => (
+                    <>
+                      {/* Active indicator rail */}
+                      {isActive && (
+                        <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r-md bg-primary" />
+                      )}
+
+                      <span
+                        className={`shrink-0 transition-colors ${
+                          isActive
+                            ? "text-primary"
+                            : "text-muted-foreground group-hover:text-foreground"
+                        }`}
+                      >
+                        {iconMap[m.name] ?? null}
+                      </span>
+
+                      {!collapsed && <span className="truncate">{m.name}</span>}
+                    </>
+                  )}
                 </NavLink>
               ))}
             </div>
@@ -103,35 +110,38 @@ export function Sidebar({
         })}
       </div>
 
-      <div
-        style={{
-          marginTop: "auto",
-          flexShrink: 0,
-          position: "sticky",
-          bottom: 0,
-          padding: collapsed ? "10px 4px" : "12px 14px",
-          background: "var(--card-subtle)",
-          border: "1px solid var(--hairline)",
-          borderRadius: "var(--radius-md)",
-          fontSize: "12px",
-          lineHeight: 1.4,
-          textAlign: collapsed ? "center" : "left",
-        }}
-      >
-        {collapsed ? (
-          <div title="LGU Surveillance Unit Active" style={{ display: "flex", justifyContent: "center" }}>
-            <Shield size={16} style={{ color: "var(--green)" }} />
-          </div>
-        ) : (
-          <>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 700, color: "var(--ink)", marginBottom: 2 }}>
-              <span className="dot" style={{ color: "var(--green)" }} />
-              <span>LGU Sentinel Unit</span>
+      {/* Footer Area with Telemetry Status & Collapse Toggle */}
+      <div className="p-3 border-t border-border/80 bg-muted/20 space-y-2">
+        {!collapsed && (
+          <div className="rounded-lg border border-border/60 bg-card p-2.5 text-xs">
+            <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]">
+              <Radio size={12} className="animate-pulse" />
+              <span>PIDSR Sync Online</span>
             </div>
-            <div style={{ color: "var(--mute)", fontSize: "11px" }}>Philippine National Multi-Syndromic</div>
-          </>
+            <div className="text-[10px] text-muted-foreground mt-0.5 truncate">
+              Region I · DOH Sentinel Feed
+            </div>
+          </div>
+        )}
+
+        {onToggleCollapse && (
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className="flex w-full items-center justify-center gap-2 rounded-lg p-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
+          >
+            {collapsed ? (
+              <PanelLeftOpen size={16} />
+            ) : (
+              <>
+                <PanelLeftClose size={16} />
+                <span className="text-[11px]">Collapse sidebar</span>
+              </>
+            )}
+          </button>
         )}
       </div>
-    </nav>
+    </aside>
   );
 }
