@@ -3,7 +3,6 @@ import { useNavigate } from "react-router";
 import {
   Search,
   AlertTriangle,
-  ChevronRight,
   X,
   Compass,
   Building2,
@@ -417,11 +416,10 @@ export function Intelligence() {
                     <TableHead className="text-right">Surge Probability</TableHead>
                     <TableHead className="text-right">Active Cases</TableHead>
                     <TableHead className="text-right">Weekly Delta</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRowSkeleton columns={7} rows={6} />
+                  <TableRowSkeleton columns={6} rows={6} />
                 </TableBody>
               </Table>
             )
@@ -440,9 +438,10 @@ export function Intelligence() {
                   <Card
                     key={`${loc.id}-${loc.disease}`}
                     hover
-                    className={`flex flex-col justify-between overflow-hidden ${
+                    className={`flex flex-col justify-between overflow-hidden cursor-pointer transition-all ${
                       isHigh ? "border-l-4 border-l-destructive" : ""
                     }`}
+                    onClick={() => navigate(`/intelligence/${loc.id}`)}
                   >
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between gap-2">
@@ -456,7 +455,7 @@ export function Intelligence() {
                       </div>
                     </CardHeader>
 
-                    <CardContent className="space-y-3 pb-3">
+                    <CardContent className="space-y-3 pb-4">
                       <div className="flex items-baseline justify-between rounded-lg bg-muted/40 p-2.5 text-xs">
                         <div>
                           <span className="text-[11px] text-muted-foreground block">Vector Disease</span>
@@ -501,18 +500,6 @@ export function Intelligence() {
                         <span className="truncate">{loc.sentinelFacility || "Sentinel Health Unit"}</span>
                       </div>
                     </CardContent>
-
-                    <div className="p-3 pt-0">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full justify-between"
-                        onClick={() => navigate(`/intelligence/${loc.id}`)}
-                      >
-                        <span>Telemetry Deep-Dive</span>
-                        <ChevronRight size={14} />
-                      </Button>
-                    </div>
                   </Card>
                 );
               })}
@@ -576,12 +563,11 @@ export function Intelligence() {
                       {renderSortIcon("changePercent")}
                     </div>
                   </TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {sortedLocations.length === 0 ? (
-                  <TableEmpty colSpan={7} message="No sentinel locations match the selected criteria." />
+                  <TableEmpty colSpan={6} message="No sentinel locations match the selected criteria." />
                 ) : (
                   sortedLocations.map((loc) => {
                     const isHigh = loc.riskLevel === "high";
@@ -659,16 +645,6 @@ export function Intelligence() {
                               ? `+${loc.changePercent}%`
                               : `${loc.changePercent}%`}
                           </span>
-                        </TableCell>
-                        <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => navigate(`/intelligence/${loc.id}`)}
-                            icon={<ChevronRight size={13} />}
-                          >
-                            Deep-Dive
-                          </Button>
                         </TableCell>
                       </TableRow>
                     );
