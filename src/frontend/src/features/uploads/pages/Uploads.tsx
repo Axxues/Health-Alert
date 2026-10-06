@@ -1,11 +1,51 @@
 import { useEffect, useState } from "react";
-import { downloadTemplate, listBatches, listIssues, populationTemplate, resolveIssue, uploadBatch, uploadPopulation } from "@/services/uploads/api/uploads.api";
-import type { PopulationUploadResult, UploadBatch, UploadIssue, UploadResult } from "@/services/uploads/types/uploads.types";
+import {
+  UploadCloud,
+  FileSpreadsheet,
+  Download,
+  AlertTriangle,
+  Users,
+  Check,
+  X,
+} from "lucide-react";
+import {
+  downloadTemplate,
+  listBatches,
+  listIssues,
+  populationTemplate,
+  resolveIssue,
+  uploadBatch,
+  uploadPopulation,
+} from "@/services/uploads/api/uploads.api";
+import type {
+  PopulationUploadResult,
+  UploadBatch,
+  UploadIssue,
+  UploadResult,
+} from "@/services/uploads/types/uploads.types";
+import {
+  Button,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  Badge,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  TableEmpty,
+  Dialog,
+  PageHeader,
+} from "@/components/ui";
 
 export function Uploads() {
   const [batches, setBatches] = useState<UploadBatch[]>([]);
   const [issues, setIssues] = useState<UploadIssue[]>([]);
   const [selectedBatch, setSelectedBatch] = useState<number | null>(null);
+  const [issuesOpen, setIssuesOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<UploadResult | null>(null);
   const [popFile, setPopFile] = useState<File | null>(null);
@@ -29,6 +69,7 @@ export function Uploads() {
 
   const selectBatch = (id: number) => {
     setSelectedBatch(id);
+    setIssuesOpen(true);
     setIssuesLoading(true);
     listIssues(id)
       .then(setIssues)
@@ -52,7 +93,9 @@ export function Uploads() {
 
   const handleResolve = async (id: number, action: "accept" | "discard") => {
     await resolveIssue(id, action).catch(() => setError("Failed to resolve row."));
-    if (selectedBatch !== null) selectBatch(selectedBatch);
+    if (selectedBatch !== null) {
+      listIssues(selectedBatch).then(setIssues).catch(() => {});
+    }
     refresh();
   };
 
@@ -72,171 +115,304 @@ export function Uploads() {
   const openIssues = issues.filter((i) => !i.resolved);
 
   return (
-    <div className="page-doc" style={{ display: "grid", gap: 20 }}>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-        <div>
-          <h1 style={{ margin: "0 0 4px", fontSize: "24px", fontWeight: 800, letterSpacing: "-0.02em" }}>
-            PIDSR uploads
-          </h1>
-          <p style={{ margin: 0, fontSize: "13px", color: "var(--mute)" }}>
-            {batches.length} weekly submissions uploaded
-          </p>
-        </div>
-        <button type="button" className="btn-pill text-xs" onClick={() => downloadTemplate().catch(() => setError("Failed to download template."))}>
-          Download template
-        </button>
-      </div>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <PageHeader
+        title="PIDSR Linelist & Population Ingestion"
+        description="Batch ingestion portal for weekly municipal PIDSR linelists and annual barangay census baselines with automated schema validation."
+        badge={
+          <Badge variant="primary">
+            {batches.length} Weekly Batches Ingested
+          </Badge>
+        }
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            icon={<Download size={14} />}
+            onClick={() => downloadTemplate().catch(() => setError("Failed to download template."))}
+          >
+            Download CSV Template
+          </Button>
+        }
+      />
 
-      <div className="section-card" style={{ padding: 20, display: "grid", gap: 12 }}>
-        <h3 style={{ margin: 0, fontSize: "14px", fontWeight: 700 }}>Upload weekly report</h3>
-        <input
-          type="file"
-          accept=".csv,text/csv"
-          aria-label="Weekly report file"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          style={{ fontSize: "13px", color: "var(--ink)" }}
-        />
-        <div>
-          <button type="button" className="btn-pill text-xs" onClick={handleUpload} disabled={!file || uploading}>
-            {uploading ? "Uploading..." : "Upload"}
-          </button>
-        </div>
-        {result && (
-          <p style={{ margin: 0, fontSize: "13px", color: "var(--ink)" }}>
-            Batch #{result.batchId}: {result.accepted} accepted, {result.quarantined} quarantined, {result.duplicates} duplicates
-          </p>
-        )}
-      </div>
-
-      <div className="section-card" style={{ padding: 20, display: "grid", gap: 12 }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-          <h3 style={{ margin: 0, fontSize: "14px", fontWeight: 700 }}>Annual barangay population</h3>
-          <button type="button" className="btn-pill text-xs" onClick={() => populationTemplate().catch(() => setError("Failed to download population template."))}>
-            Download template
-          </button>
-        </div>
-        <input
-          type="file"
-          accept=".csv,text/csv"
-          aria-label="Barangay population file"
-          onChange={(e) => setPopFile(e.target.files?.[0] ?? null)}
-          style={{ fontSize: "13px", color: "var(--ink)" }}
-        />
-        <div>
-          <button type="button" className="btn-pill text-xs" onClick={handlePopUpload} disabled={!popFile || popUploading}>
-            {popUploading ? "Uploading..." : "Upload"}
-          </button>
-        </div>
-        {popResult && (
-          <p style={{ margin: 0, fontSize: "13px", color: "var(--ink)" }}>
-            Population: {popResult.accepted} accepted, {popResult.errors} errors
-          </p>
-        )}
-        {popResult && popResult.errorLines.length > 0 && (
-          <ul style={{ margin: 0, paddingLeft: 18, fontSize: "12.5px", color: "var(--mute)", display: "grid", gap: 2 }}>
-            {popResult.errorLines.slice(0, 5).map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-            {popResult.errorLines.length > 5 && <li>…and {popResult.errorLines.length - 5} more</li>}
-          </ul>
-        )}
-      </div>
-
-      {error && <p style={{ fontSize: "13px", color: "var(--red)" }}>{error}</p>}
-
-      {loading ? (
-        <p style={{ padding: "32px 0", textAlign: "center", color: "var(--mute)", fontSize: "13px" }}>
-          Loading upload batches...
-        </p>
-      ) : batches.length === 0 ? (
-        <p style={{ padding: "32px 0", textAlign: "center", color: "var(--mute)", fontSize: "13px" }}>
-          No weekly reports uploaded yet.
-        </p>
-      ) : (
-        <div style={{ border: "1px solid var(--hairline)", borderRadius: 12, overflowX: "auto", background: "var(--card)" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", minWidth: 640 }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid var(--hairline)", background: "var(--muted)" }}>
-                {(["Batch", "File", "Status", "Accepted", "Quarantined", "Duplicates"] as const).map((h) => (
-                  <th key={h} style={{ textAlign: "left", fontSize: "11.5px", fontWeight: 600, color: "var(--mute)", padding: "10px 16px", whiteSpace: "nowrap" }}>
-                    {h}
-                  </th>
-                ))}
-                <th style={{ width: 120 }} aria-label="Action" />
-              </tr>
-            </thead>
-            <tbody>
-              {batches.map((b) => (
-                <tr key={b.id} style={{ borderBottom: "1px solid var(--hairline)" }}>
-                  <td style={{ padding: "11px 16px", fontWeight: 700, color: "var(--ink)", whiteSpace: "nowrap" }}>#{b.id}</td>
-                  <td style={{ padding: "11px 16px", color: "var(--ink)" }}>{b.fileName ?? "—"}</td>
-                  <td style={{ padding: "11px 16px", textTransform: "capitalize", whiteSpace: "nowrap" }}>{b.status ?? "—"}</td>
-                  <td style={{ padding: "11px 16px", whiteSpace: "nowrap" }}>{b.accepted}</td>
-                  <td style={{ padding: "11px 16px", whiteSpace: "nowrap" }}>{b.quarantined}</td>
-                  <td style={{ padding: "11px 16px", whiteSpace: "nowrap" }}>{b.duplicates}</td>
-                  <td style={{ padding: "11px 16px", textAlign: "right", whiteSpace: "nowrap" }}>
-                    <button type="button" className="btn-pill text-xs" onClick={() => selectBatch(b.id)}>
-                      Review
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* Error Alert */}
+      {error && (
+        <div className="flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-xs font-medium text-destructive">
+          <AlertTriangle size={16} className="shrink-0" />
+          <span>{error}</span>
         </div>
       )}
 
-      {selectedBatch !== null && (
-        <div style={{ display: "grid", gap: 12 }}>
-          <h3 style={{ margin: 0, fontSize: "14px", fontWeight: 700 }}>
-            Quarantined rows — batch #{selectedBatch} ({openIssues.length} open)
-          </h3>
-          {issuesLoading ? (
-            <p style={{ fontSize: "13px", color: "var(--mute)" }}>Loading quarantined rows...</p>
-          ) : issues.length === 0 ? (
-            <p style={{ fontSize: "13px", color: "var(--mute)" }}>No quarantined rows in this batch.</p>
-          ) : (
-            <div style={{ border: "1px solid var(--hairline)", borderRadius: 12, overflowX: "auto", background: "var(--card)" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", minWidth: 640 }}>
-                <thead>
-                  <tr style={{ borderBottom: "1px solid var(--hairline)", background: "var(--muted)" }}>
-                    {(["Row", "Reason", "Disease", "Source key"] as const).map((h) => (
-                      <th key={h} style={{ textAlign: "left", fontSize: "11.5px", fontWeight: 600, color: "var(--mute)", padding: "10px 16px", whiteSpace: "nowrap" }}>
-                        {h}
-                      </th>
-                    ))}
-                    <th style={{ width: 200 }} aria-label="Action" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {issues.map((i) => (
-                    <tr key={i.id} style={{ borderBottom: "1px solid var(--hairline)" }}>
-                      <td style={{ padding: "11px 16px", whiteSpace: "nowrap" }}>{i.row}</td>
-                      <td style={{ padding: "11px 16px", whiteSpace: "nowrap" }}>{i.reason ?? "—"}</td>
-                      <td style={{ padding: "11px 16px", whiteSpace: "nowrap" }}>{i.disease ?? "—"}</td>
-                      <td style={{ padding: "11px 16px", color: "var(--ink)" }}>{i.sourceKey ?? "—"}</td>
-                      <td style={{ padding: "11px 16px", textAlign: "right", whiteSpace: "nowrap" }}>
-                        {i.resolved ? (
-                          <span style={{ fontSize: "12px", color: "var(--mute)" }}>{i.resolution ?? "resolved"}</span>
-                        ) : (
-                          <span style={{ display: "inline-flex", gap: 8 }}>
-                            <button type="button" className="btn-pill text-xs" onClick={() => handleResolve(i.id, "accept")}>
-                              Accept
-                            </button>
-                            <button type="button" className="btn-pill text-xs" onClick={() => handleResolve(i.id, "discard")}>
-                              Discard
-                            </button>
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      {/* Upload Zones Dual Grid */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Weekly Report Linelist Card */}
+        <Card className="p-5 space-y-4">
+          <div className="flex items-center justify-between border-b border-border/60 pb-3">
+            <div>
+              <CardTitle>Weekly PIDSR Linelist Ingestion</CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Upload weekly epidemiological case submissions (.csv format)
+              </p>
+            </div>
+            <FileSpreadsheet size={18} className="text-primary" />
+          </div>
+
+          <div className="rounded-xl border-2 border-dashed border-border/80 bg-muted/20 p-6 text-center hover:bg-muted/40 transition-colors">
+            <UploadCloud size={32} className="mx-auto text-muted-foreground mb-2" />
+            <div className="text-xs text-muted-foreground mb-3">
+              {file ? (
+                <span className="font-semibold text-foreground">{file.name}</span>
+              ) : (
+                <span>Select or drop PIDSR weekly report CSV</span>
+              )}
+            </div>
+            <input
+              type="file"
+              id="weekly-file"
+              accept=".csv,text/csv"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              className="hidden"
+            />
+            <label htmlFor="weekly-file">
+              <Button variant="outline" size="sm" type="button" onClick={() => document.getElementById("weekly-file")?.click()}>
+                Choose File
+              </Button>
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between pt-2">
+            <span className="text-[11px] text-muted-foreground">UTF-8 Encoded · DOH Linelist Spec</span>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleUpload}
+              loading={uploading}
+              disabled={!file}
+              icon={<UploadCloud size={14} />}
+            >
+              Upload Linelist Batch
+            </Button>
+          </div>
+
+          {result && (
+            <div className="rounded-lg bg-muted/50 p-3 text-xs border border-border/60 space-y-1">
+              <div className="font-bold text-foreground">Batch #{result.batchId} Results:</div>
+              <div className="flex items-center gap-3 text-[11px] font-mono">
+                <span className="text-emerald-600 dark:text-emerald-400">{result.accepted} Accepted</span>
+                <span className="text-rose-600 dark:text-rose-400">{result.quarantined} Quarantined</span>
+                <span className="text-muted-foreground">{result.duplicates} Duplicates</span>
+              </div>
             </div>
           )}
-        </div>
-      )}
+        </Card>
+
+        {/* Annual Barangay Population Census Card */}
+        <Card className="p-5 space-y-4">
+          <div className="flex items-center justify-between border-b border-border/60 pb-3">
+            <div>
+              <CardTitle>Annual Barangay Population Census</CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Update municipal denominator baselines for incidence calculations
+              </p>
+            </div>
+            <Users size={18} className="text-primary" />
+          </div>
+
+          <div className="rounded-xl border-2 border-dashed border-border/80 bg-muted/20 p-6 text-center hover:bg-muted/40 transition-colors">
+            <UploadCloud size={32} className="mx-auto text-muted-foreground mb-2" />
+            <div className="text-xs text-muted-foreground mb-3">
+              {popFile ? (
+                <span className="font-semibold text-foreground">{popFile.name}</span>
+              ) : (
+                <span>Select or drop barangay census CSV</span>
+              )}
+            </div>
+            <input
+              type="file"
+              id="pop-file"
+              accept=".csv,text/csv"
+              onChange={(e) => setPopFile(e.target.files?.[0] ?? null)}
+              className="hidden"
+            />
+            <label htmlFor="pop-file">
+              <Button variant="outline" size="sm" type="button" onClick={() => document.getElementById("pop-file")?.click()}>
+                Choose File
+              </Button>
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between pt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => populationTemplate().catch(() => setError("Failed to download population template."))}
+              icon={<Download size={12} />}
+            >
+              Census Template
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handlePopUpload}
+              loading={popUploading}
+              disabled={!popFile}
+              icon={<UploadCloud size={14} />}
+            >
+              Update Population
+            </Button>
+          </div>
+
+          {popResult && (
+            <div className="rounded-lg bg-muted/50 p-3 text-xs border border-border/60 space-y-1">
+              <div className="font-bold text-foreground">Population Upload Summary:</div>
+              <div className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400">
+                {popResult.accepted} records accepted ({popResult.errors} errors)
+              </div>
+            </div>
+          )}
+        </Card>
+      </div>
+
+      {/* Batch Submissions History Table */}
+      <Card>
+        <CardHeader className="pb-3 border-b border-border/60 flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Batch Submissions History</CardTitle>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Historical submissions log with schema quarantine breakdown
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={refresh}>
+            Refresh
+          </Button>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Batch ID</TableHead>
+                <TableHead>File Name</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Accepted</TableHead>
+                <TableHead className="text-right">Quarantined</TableHead>
+                <TableHead className="text-right">Duplicates</TableHead>
+                <TableHead className="text-right">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="py-8 text-center text-xs text-muted-foreground">
+                    Loading submissions history...
+                  </TableCell>
+                </TableRow>
+              ) : batches.length === 0 ? (
+                <TableEmpty colSpan={7} message="No weekly submissions uploaded yet." />
+              ) : (
+                batches.map((b) => (
+                  <TableRow key={b.id}>
+                    <TableCell className="font-mono font-bold text-foreground">#{b.id}</TableCell>
+                    <TableCell className="font-medium text-foreground">{b.fileName ?? "—"}</TableCell>
+                    <TableCell>
+                      <Badge variant={b.quarantined > 0 ? "warning" : "success"}>
+                        {b.status ?? "Processed"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-mono tabular-nums text-foreground">{b.accepted}</TableCell>
+                    <TableCell className="text-right font-mono tabular-nums">
+                      <span className={b.quarantined > 0 ? "text-rose-600 dark:text-rose-400 font-bold" : "text-muted-foreground"}>
+                        {b.quarantined}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right font-mono tabular-nums text-muted-foreground">{b.duplicates}</TableCell>
+                    <TableCell className="text-right">
+                      {b.quarantined > 0 ? (
+                        <Button variant="outline" size="sm" onClick={() => selectBatch(b.id)}>
+                          Review Issues ({b.quarantined})
+                        </Button>
+                      ) : (
+                        <span className="text-[11px] text-muted-foreground">Clean</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Quarantined Issues Resolution Dialog */}
+      <Dialog
+        open={issuesOpen}
+        onClose={() => setIssuesOpen(false)}
+        title={`Quarantined Rows — Batch #${selectedBatch}`}
+        description={`${openIssues.length} unresolved rows flagged by the validation engine.`}
+        maxWidth="max-w-3xl"
+        footer={
+          <Button variant="outline" size="sm" onClick={() => setIssuesOpen(false)}>
+            Close
+          </Button>
+        }
+      >
+        {issuesLoading ? (
+          <div className="py-8 text-center text-xs text-muted-foreground">Loading quarantined rows...</div>
+        ) : issues.length === 0 ? (
+          <div className="py-8 text-center text-xs text-muted-foreground">No quarantined rows in this batch.</div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Row #</TableHead>
+                <TableHead>Error Reason</TableHead>
+                <TableHead>Disease</TableHead>
+                <TableHead>Source Key</TableHead>
+                <TableHead className="text-right">Resolution</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {issues.map((i) => (
+                <TableRow key={i.id}>
+                  <TableCell className="font-mono font-bold">{i.row}</TableCell>
+                  <TableCell>
+                    <Badge variant="danger">{i.reason ?? "Validation Error"}</Badge>
+                  </TableCell>
+                  <TableCell className="capitalize">{i.disease ?? "—"}</TableCell>
+                  <TableCell className="font-mono text-muted-foreground text-[11px]">{i.sourceKey ?? "—"}</TableCell>
+                  <TableCell className="text-right">
+                    {i.resolved ? (
+                      <span className="text-[11px] font-semibold text-muted-foreground capitalize">
+                        {i.resolution ?? "resolved"}
+                      </span>
+                    ) : (
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          icon={<Check size={12} />}
+                          onClick={() => handleResolve(i.id, "accept")}
+                        >
+                          Accept
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          icon={<X size={12} />}
+                          onClick={() => handleResolve(i.id, "discard")}
+                        >
+                          Discard
+                        </Button>
+                      </div>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </Dialog>
     </div>
   );
 }
