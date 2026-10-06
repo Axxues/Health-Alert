@@ -33,6 +33,10 @@ import {
   TableRowSkeleton,
 } from "@/components/ui";
 import { EpidemicBarGraph } from "@/features/dashboard/components/EpidemicBarGraph";
+import {
+  DashboardDetailDrawer,
+  type DashboardDetailTarget,
+} from "@/features/dashboard/components/DashboardDetailDrawer";
 
 const DISEASES = ["dengue", "leptospirosis", "ili", "asthma"] as const;
 
@@ -63,6 +67,7 @@ export function Dashboard() {
   const [outlooks, setOutlooks] = useState<Record<string, ForecastOutlook>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedDetail, setSelectedDetail] = useState<DashboardDetailTarget | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -95,11 +100,6 @@ export function Dashboard() {
       <PageHeader
         title="Surveillance Command Center"
         description={`Philippine National Sentinel Network (PIDSR/EDCS) · ${spots.length} active monitoring sentinel nodes · ${highCount} municipal outbreak alerts require review today.`}
-        badge={
-          <Badge variant="primary" pulse>
-            Telemetry Synchronized
-          </Badge>
-        }
         actions={
           <div className="flex items-center gap-2">
             <Link to="/risk-maps">
@@ -142,6 +142,7 @@ export function Dashboard() {
               variant={highCount > 0 ? "critical" : "default"}
               icon={<Flame size={16} />}
               trend={{ delta: `+${highCount}`, positive: false, label: "today" }}
+              onClick={() => setSelectedDetail({ type: "metric", metricId: "hotspots" })}
             />
             <MetricCard
               title="Regional Surge Probability"
@@ -150,6 +151,7 @@ export function Dashboard() {
               variant={topProb > 60 ? "critical" : "default"}
               icon={<Activity size={16} />}
               trend={{ delta: "3.2%", positive: true, label: "confidence" }}
+              onClick={() => setSelectedDetail({ type: "metric", metricId: "surge" })}
             />
             <MetricCard
               title="Monitored Sentinel Stations"
@@ -158,6 +160,7 @@ export function Dashboard() {
               variant="success"
               icon={<Building2 size={16} />}
               trend={{ delta: "100%", positive: true, label: "uptime" }}
+              onClick={() => setSelectedDetail({ type: "metric", metricId: "stations" })}
             />
             <MetricCard
               title="Clinical SOP Actions"
@@ -166,6 +169,7 @@ export function Dashboard() {
               variant={highCount > 0 ? "warning" : "default"}
               icon={<ClipboardList size={16} />}
               trend={{ delta: highCount, positive: false, label: "municipalities" }}
+              onClick={() => setSelectedDetail({ type: "metric", metricId: "actions" })}
             />
           </>
         )}
@@ -205,7 +209,12 @@ export function Dashboard() {
               const isWatch = prob >= 35 && prob < 60;
 
               return (
-                <Card key={d} hover className="overflow-hidden">
+                <Card
+                  key={d}
+                  hover
+                  className="overflow-hidden cursor-pointer transition-all hover:border-primary/50"
+                  onClick={() => setSelectedDetail({ type: "disease", disease: d })}
+                >
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
                       <CardTitle>{diseaseName(d)}</CardTitle>
@@ -280,7 +289,11 @@ export function Dashboard() {
                 targets.map((spot, idx) => {
                   const s = sev(spot);
                   return (
-                    <TableRow key={`${spot.muni}-${spot.disease}-${idx}`}>
+                    <TableRow
+                      key={`${spot.muni}-${spot.disease}-${idx}`}
+                      className="cursor-pointer hover:bg-muted/40 transition-colors"
+                      onClick={() => setSelectedDetail({ type: "hotspot", spot })}
+                    >
                       <TableCell className="font-bold text-foreground">
                         <div className="flex items-center gap-2">
                           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-[10px] font-mono text-muted-foreground font-bold">
@@ -300,13 +313,15 @@ export function Dashboard() {
                       <TableCell className="text-right font-mono font-bold tabular-nums text-foreground">
                         {spot.cases ?? "—"}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <Link to={`/intelligence/${spot.id || "loc-launion-sfc"}`}>
-                          <Button variant="ghost" size="sm">
-                            <span>Details</span>
-                            <ArrowRight size={12} />
-                          </Button>
-                        </Link>
+                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedDetail({ type: "hotspot", spot })}
+                        >
+                          <span>Details</span>
+                          <ArrowRight size={12} />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   );
@@ -316,6 +331,14 @@ export function Dashboard() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Side Modal Detail Drawer with Full Page & Navigation Blur */}
+      <DashboardDetailDrawer
+        target={selectedDetail}
+        onClose={() => setSelectedDetail(null)}
+        spots={spots}
+        outlooks={outlooks}
+      />
     </div>
   );
 }

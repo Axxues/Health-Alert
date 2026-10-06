@@ -14,6 +14,7 @@ export interface MetricCardProps {
   icon?: React.ReactNode;
   variant?: "default" | "critical" | "warning" | "success";
   className?: string;
+  onClick?: () => void;
 }
 
 export const MetricCard: React.FC<MetricCardProps> = ({
@@ -24,6 +25,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   icon,
   variant = "default",
   className = "",
+  onClick,
 }) => {
   const borderStyles = {
     default: "border-border",
@@ -34,7 +36,22 @@ export const MetricCard: React.FC<MetricCardProps> = ({
 
   return (
     <div
-      className={`rounded-xl border bg-card p-4 shadow-xs transition-all duration-200 ease-out hover:shadow-md hover:-translate-y-0.5 ${borderStyles} ${className}`}
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
+      className={`rounded-xl border bg-card p-4 shadow-xs transition-all duration-200 ease-out hover:shadow-md hover:-translate-y-0.5 ${
+        onClick ? "cursor-pointer hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-ring" : ""
+      } ${borderStyles} ${className}`}
     >
       <div className="flex items-center justify-between gap-2">
         <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground truncate">
