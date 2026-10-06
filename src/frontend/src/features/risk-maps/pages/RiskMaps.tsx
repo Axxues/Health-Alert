@@ -10,10 +10,20 @@ import {
   AlertCircle,
   Building2,
   Activity,
+  Radio,
 } from "lucide-react";
 import { listHotspots } from "@/services/riskmaps/api";
 import type { Hotspot } from "@/services/riskmaps/types";
 import { PHMap } from "../components/PHMap";
+import {
+  Button,
+  Card,
+  CardHeader,
+  CardTitle,
+  Badge,
+  PageHeader,
+  Skeleton,
+} from "@/components/ui";
 
 const DISEASE_FILTERS = [
   { id: "all", label: "All Diseases", full: "All Diseases (Full Overlay)" },
@@ -23,27 +33,18 @@ const DISEASE_FILTERS = [
   { id: "asthma", label: "Bronchial Asthma", full: "Bronchial Asthma" },
 ] as const;
 
-function levelPill(level: string) {
+function levelBadge(level: string) {
   if (/high/i.test(level)) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-destructive/10 text-destructive border border-destructive/20 text-xs font-bold uppercase tracking-wider">
-        <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-ping" />
+      <Badge variant="danger" pulse>
         High Outbreak Risk
-      </span>
+      </Badge>
     );
   }
   if (/med|moderate/i.test(level)) {
-    return (
-      <span className="inline-flex items-center px-2.5 py-1 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 text-xs font-bold uppercase tracking-wider">
-        Elevated Watch
-      </span>
-    );
+    return <Badge variant="warning">Elevated Watch</Badge>;
   }
-  return (
-    <span className="inline-flex items-center px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-xs font-bold uppercase tracking-wider">
-      Routine Surveillance
-    </span>
-  );
+  return <Badge variant="success">Routine Surveillance</Badge>;
 }
 
 export function RiskMaps() {
@@ -51,38 +52,50 @@ export function RiskMaps() {
   const [filter, setFilter] = useState<string>("all");
   const [selected, setSelected] = useState<Hotspot | null>(null);
   const [showDensity, setShowDensity] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    setLoading(true);
     listHotspots()
       .then(setSpots)
-      .catch((e) => setError(e instanceof Error && e.message ? e.message : "Unable to load geospatial hotspot telemetry. Please retry."));
+      .catch((e) =>
+        setError(e instanceof Error && e.message ? e.message : "Unable to load geospatial hotspot telemetry.")
+      )
+      .finally(() => setLoading(false));
   }, []);
 
   const filteredSpots = filter === "all" ? spots : spots.filter((s) => s.disease.toLowerCase() === filter);
 
   return (
-    <div className="grid gap-5 page-doc">
-      {/* Header */}
-      <div className="dash-head m-0">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 text-xs font-semibold flex items-center gap-1.5">
-              <Layers size={13} strokeWidth={2.2} />
-              Geospatial Outbreak Matrix
-            </span>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <PageHeader
+        title="Geographic Disease Risk & Hotspots"
+        description="Spatial epidemiology overlay mapping high-transmission clusters, sentinel facility buffers, and environmental hazard zones across LGUs."
+        badge={
+          <Badge variant="primary">
+            <Layers size={12} className="mr-1" />
+            Geospatial Outbreak Matrix
+          </Badge>
+        }
+        actions={
+          <div className="flex items-center gap-2">
+            <Button
+              variant={showDensity ? "primary" : "outline"}
+              size="sm"
+              onClick={() => setShowDensity(!showDensity)}
+            >
+              <span>Transmission Buffers: {showDensity ? "ON" : "OFF"}</span>
+            </Button>
           </div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight m-0">Geographic Disease Risk & Hotspots</h1>
-          <p className="text-xs text-muted-foreground m-0 mt-0.5">
-            Spatial epidemiology overlay mapping high-transmission clusters and environmental hazard zones across LGUs.
-          </p>
-        </div>
-      </div>
+        }
+      />
 
-      {/* Disease Layer Filter & Overlay Toolbar */}
-      <div className="section-card p-3 flex items-center justify-between gap-3 flex-wrap">
+      {/* Disease Layer Filter Toolbar */}
+      <Card className="p-3.5 flex items-center justify-between gap-3 flex-wrap bg-card shadow-xs">
         <div className="flex items-center gap-2 overflow-x-auto">
-          <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider mr-1 shrink-0">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mr-1 shrink-0">
             Disease Layer:
           </span>
           <div className="flex gap-1.5 items-center flex-wrap">
@@ -96,16 +109,20 @@ export function RiskMaps() {
               return (
                 <button
                   key={d.id}
-                  className={`btn-pill text-xs px-3 py-1 flex items-center gap-1.5 ${isActive ? "" : "btn-pill--ghost"}`}
+                  type="button"
                   onClick={() => {
                     setFilter(d.id);
                     setSelected(null);
                   }}
-                  type="button"
+                  className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
+                    isActive
+                      ? "bg-primary text-primary-foreground shadow-xs"
+                      : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
                 >
                   <span>{d.label}</span>
                   <span
-                    className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
+                    className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full ${
                       isActive ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"
                     }`}
                   >
@@ -117,133 +134,150 @@ export function RiskMaps() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            className={`btn-pill text-xs px-3 py-1 gap-1.5 ${showDensity ? "" : "btn-pill--ghost"}`}
-            onClick={() => setShowDensity(!showDensity)}
-            title="Toggle outbreak transmission density zone buffers"
-          >
-            <span>Transmission Zones</span>
-            <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${showDensity ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"}`}>
-              {showDensity ? "ON" : "OFF"}
-            </span>
-          </button>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Radio size={13} className="text-emerald-500 animate-pulse" />
+          <span>Active Leaflet Geospatial Engine</span>
         </div>
-      </div>
+      </Card>
 
+      {/* Error Alert */}
       {error && (
-        <div className="flex items-center gap-2 p-3 bg-destructive/10 text-destructive border border-destructive/20 rounded-md text-xs font-semibold">
-          <AlertCircle size={16} strokeWidth={2.2} />
-          <span>{error}</span>
-          <button type="button" className="btn-pill text-xs ml-auto" onClick={() => window.location.reload()}>Retry</button>
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-xs font-medium text-destructive">
+          <div className="flex items-center gap-2">
+            <AlertCircle size={16} className="shrink-0" />
+            <span>{error}</span>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+            Retry
+          </Button>
         </div>
       )}
 
-      {/* Map + Hotspot Details Drawer */}
-      <div className={`maplayout${selected ? " maplayout--open" : ""}`}>
-        <div className="section-card overflow-hidden" style={{ minHeight: 520 }}>
-          {filteredSpots.length === 0 && !error ? (
-            <div className="py-12 text-center text-xs text-muted-foreground">
-              No active hotspots found for the selected disease filter.
-            </div>
-          ) : (
-            <PHMap
-              spots={filteredSpots}
-              selected={selected}
-              onSelect={setSelected}
-              showDensity={showDensity}
-            />
-          )}
+      {/* Geospatial Map + Hotspot Inspector Split Canvas */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-start">
+        {/* Map Container */}
+        <div className={`${selected ? "lg:col-span-8" : "lg:col-span-12"} transition-all duration-200`}>
+          <Card className="overflow-hidden p-0 relative shadow-sm border border-border">
+            {loading ? (
+              <Skeleton className="h-[560px] w-full" />
+            ) : filteredSpots.length === 0 && !error ? (
+              <div className="py-24 text-center text-xs text-muted-foreground">
+                No active hotspots found for the selected disease filter.
+              </div>
+            ) : (
+              <div className="h-[560px] w-full">
+                <PHMap
+                  spots={filteredSpots}
+                  selected={selected}
+                  onSelect={setSelected}
+                  showDensity={showDensity}
+                />
+              </div>
+            )}
+          </Card>
         </div>
 
+        {/* Hotspot Inspector Side Drawer */}
         {selected && (
-          <div
-            className="section-card border-l-4 border-l-primary p-5 sticky top-20 shadow-lg space-y-4"
-            key={`${selected.muni}-${selected.disease}`}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
-                  {selected.province || "Philippine National Surveillance"}
-                </span>
-                <h3 className="text-lg font-bold text-foreground mt-0.5 mb-0">{selected.muni}</h3>
-              </div>
-              <button
-                className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted"
-                onClick={() => setSelected(null)}
-                aria-label="Close hotspot panel"
-                title="Close hotspot panel"
-              >
-                <X size={15} strokeWidth={2} />
-              </button>
-            </div>
-
-            <div>
-              {levelPill(selected.level)}
-            </div>
-
-            <div className="divide-y divide-border text-xs">
-              <div className="py-2.5 flex items-center justify-between">
-                <span className="text-muted-foreground flex items-center gap-1.5">
-                  <MapPin size={14} />
-                  Target Disease
-                </span>
-                <span className="font-semibold text-foreground">
-                  {selected.diseaseName || selected.disease}
-                </span>
-              </div>
-              {selected.sentinelFacility && (
-                <div className="py-2.5 flex items-center justify-between">
-                  <span className="text-muted-foreground flex items-center gap-1.5">
-                    <Building2 size={14} />
-                    Sentinel Facility
-                  </span>
-                  <span className="font-medium text-foreground text-right max-w-[190px] truncate" title={selected.sentinelFacility}>
-                    {selected.sentinelFacility}
-                  </span>
+          <div className="lg:col-span-4 space-y-4 animate-in fade-in-0 duration-150">
+            <Card className="border-l-4 border-l-primary p-5 shadow-md">
+              <CardHeader className="p-0 pb-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-primary block">
+                      {selected.province || "Philippine National Surveillance"}
+                    </span>
+                    <CardTitle className="text-xl mt-0.5">{selected.muni}</CardTitle>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelected(null)}
+                    aria-label="Close hotspot panel"
+                    className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
-              )}
-              {selected.cases !== undefined && (
-                <div className="py-2.5 flex items-center justify-between">
-                  <span className="text-muted-foreground flex items-center gap-1.5">
-                    <Activity size={14} />
-                    Active Cases
-                  </span>
-                  <span className="font-bold text-foreground tabular-nums">
-                    {selected.cases} cases
-                  </span>
-                </div>
-              )}
-              {selected.probability !== undefined && (
-                <div className="py-2.5 flex items-center justify-between">
-                  <span className="text-muted-foreground flex items-center gap-1.5">
-                    <TrendingUp size={14} />
-                    Surge Probability
-                  </span>
-                  <span className="font-bold text-destructive tabular-nums">
-                    {Math.round(selected.probability * 100)}%
-                  </span>
-                </div>
-              )}
-              <div className="py-2.5 flex items-center justify-between">
-                <span className="text-muted-foreground flex items-center gap-1.5">
-                  <Compass size={14} />
-                  Centroid
-                </span>
-                <span className="text-foreground font-medium tabular-nums">{selected.lat.toFixed(4)}° N, {selected.lng.toFixed(4)}° E</span>
-              </div>
-            </div>
+              </CardHeader>
 
-            <div className="grid gap-2 pt-2 border-t border-border">
-              <Link
-                className="btn-pill text-xs justify-center py-2 no-underline"
-                to={selected.id ? `/intelligence/${selected.id}?disease=${encodeURIComponent(selected.disease)}` : `/intelligence`}
-              >
-                <span>View Disease Intelligence Details</span>
-                <ArrowRight size={13} strokeWidth={2.2} />
-              </Link>
-            </div>
+              <div className="space-y-4">
+                <div>{levelBadge(selected.level)}</div>
+
+                <div className="divide-y divide-border/60 text-xs">
+                  <div className="py-2.5 flex items-center justify-between">
+                    <span className="text-muted-foreground flex items-center gap-1.5">
+                      <MapPin size={14} />
+                      Target Disease
+                    </span>
+                    <span className="font-bold text-foreground">
+                      {selected.diseaseName || selected.disease}
+                    </span>
+                  </div>
+
+                  {selected.sentinelFacility && (
+                    <div className="py-2.5 flex items-center justify-between">
+                      <span className="text-muted-foreground flex items-center gap-1.5">
+                        <Building2 size={14} />
+                        Sentinel Facility
+                      </span>
+                      <span className="font-medium text-foreground text-right max-w-[180px] truncate" title={selected.sentinelFacility}>
+                        {selected.sentinelFacility}
+                      </span>
+                    </div>
+                  )}
+
+                  {selected.cases !== undefined && (
+                    <div className="py-2.5 flex items-center justify-between">
+                      <span className="text-muted-foreground flex items-center gap-1.5">
+                        <Activity size={14} />
+                        Active Cases
+                      </span>
+                      <span className="font-extrabold font-mono tabular-nums text-foreground">
+                        {selected.cases} cases
+                      </span>
+                    </div>
+                  )}
+
+                  {selected.probability !== undefined && (
+                    <div className="py-2.5 flex items-center justify-between">
+                      <span className="text-muted-foreground flex items-center gap-1.5">
+                        <TrendingUp size={14} />
+                        Surge Probability
+                      </span>
+                      <span className="font-extrabold font-mono tabular-nums text-destructive">
+                        {Math.round(selected.probability * 100)}%
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="py-2.5 flex items-center justify-between">
+                    <span className="text-muted-foreground flex items-center gap-1.5">
+                      <Compass size={14} />
+                      Coordinates
+                    </span>
+                    <span className="text-foreground font-mono text-[11px] tabular-nums">
+                      {selected.lat.toFixed(4)}° N, {selected.lng.toFixed(4)}° E
+                    </span>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-border/60">
+                  <Link
+                    to={
+                      selected.id
+                        ? `/intelligence/${selected.id}?disease=${encodeURIComponent(selected.disease)}`
+                        : `/intelligence`
+                    }
+                    className="block"
+                  >
+                    <Button variant="primary" size="md" className="w-full justify-between">
+                      <span>View Sentinel Deep-Dive</span>
+                      <ArrowRight size={14} />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </Card>
           </div>
         )}
       </div>
