@@ -11,7 +11,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       <div className="relative inline-flex items-center w-full">
         <select
           ref={ref}
-          className={`flex h-9 w-full appearance-none rounded-lg border border-input bg-card pl-3 pr-8 py-1.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-primary disabled:cursor-not-allowed disabled:opacity-50 shadow-xs cursor-pointer transition-colors ${className}`}
+          className={`flex h-9 w-full appearance-none rounded-lg border border-input bg-card pl-3 pr-8 py-1.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-primary disabled:cursor-not-allowed disabled:opacity-50 shadow-xs cursor-pointer transition-all duration-150 ease-out hover:border-primary/50 ${className}`}
           {...props}
         >
           {children}

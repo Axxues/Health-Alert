@@ -62,7 +62,7 @@ function Profile() {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-border bg-card p-1.5 shadow-lg z-50 text-xs animate-in fade-in-0 zoom-in-95 duration-100"
+          className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-border bg-card p-1.5 shadow-xl z-50 text-xs animate-in fade-in-0 zoom-in-95 slide-in-from-top-1 duration-150 ease-out"
         >
           <div className="px-3 py-2 border-b border-border/60 mb-1">
             <div className="font-bold text-foreground">{fullName}</div>
@@ -259,7 +259,7 @@ export function Layout() {
 
         {/* Main Content Area */}
         <main className="flex-1 min-w-0 overflow-y-auto bg-muted/15 p-4 sm:p-6 lg:p-8">
-          <div className="mx-auto max-w-7xl animate-in fade-in-0 duration-200" key={pathname}>
+          <div className="mx-auto max-w-7xl page-transition" key={pathname}>
             <Outlet />
           </div>
         </main>

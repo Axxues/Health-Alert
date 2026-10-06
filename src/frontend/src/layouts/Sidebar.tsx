@@ -10,7 +10,6 @@ import {
   Users,
   PanelLeftClose,
   PanelLeftOpen,
-  Radio,
 } from "lucide-react";
 import { MenuItem, MenuSection } from "@/constants/layout/menu/menu";
 
@@ -46,7 +45,7 @@ export function Sidebar({
   return (
     <aside
       aria-label="Primary navigation"
-      className={`relative flex flex-col h-full bg-card/95 backdrop-blur-md border-r border-border transition-all duration-200 select-none z-20 ${
+      className={`relative flex flex-col h-full bg-card/95 backdrop-blur-md border-r border-border transition-all duration-300 ease-in-out select-none z-20 ${
         collapsed ? "w-16 min-w-16" : "w-60 min-w-60"
       }`}
     >
@@ -74,8 +73,8 @@ export function Sidebar({
                   onClick={onNavigate}
                   title={collapsed ? m.name : undefined}
                   className={({ isActive }) =>
-                    `group relative flex items-center gap-3 rounded-lg text-xs font-semibold transition-all duration-150 ${
-                      collapsed ? "justify-center p-2.5" : "px-3 py-2"
+                    `group relative flex items-center gap-3 rounded-lg text-xs font-semibold transition-all duration-200 ease-out active:scale-[0.98] ${
+                      collapsed ? "justify-center p-2.5" : "px-3 py-2 hover:translate-x-1"
                     } ${
                       isActive
                         ? "bg-primary/10 text-primary font-bold shadow-xs"
@@ -87,7 +86,7 @@ export function Sidebar({
                     <>
                       {/* Active indicator rail */}
                       {isActive && (
-                        <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r-md bg-primary" />
+                        <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r-md bg-primary transition-all duration-200 ease-out" />
                       )}
 
                       <span
@@ -112,18 +111,6 @@ export function Sidebar({
 
       {/* Footer Area with Telemetry Status & Collapse Toggle */}
       <div className="p-3 border-t border-border/80 bg-muted/20 space-y-2">
-        {!collapsed && (
-          <div className="rounded-lg border border-border/60 bg-card p-2.5 text-xs">
-            <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]">
-              <Radio size={12} className="animate-pulse" />
-              <span>PIDSR Sync Online</span>
-            </div>
-            <div className="text-[10px] text-muted-foreground mt-0.5 truncate">
-              Region I · DOH Sentinel Feed
-            </div>
-          </div>
-        )}
-
         {onToggleCollapse && (
           <button
             type="button"

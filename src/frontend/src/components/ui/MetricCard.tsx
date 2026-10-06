@@ -34,7 +34,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
 
   return (
     <div
-      className={`rounded-xl border bg-card p-4 shadow-xs transition-all duration-150 hover:shadow-sm ${borderStyles} ${className}`}
+      className={`rounded-xl border bg-card p-4 shadow-xs transition-all duration-200 ease-out hover:shadow-md hover:-translate-y-0.5 ${borderStyles} ${className}`}
     >
       <div className="flex items-center justify-between gap-2">
         <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground truncate">

@@ -35,7 +35,7 @@ export const Dialog: React.FC<DialogProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-background/80 backdrop-blur-xs transition-opacity animate-in fade-in-0 duration-150"
+        className="fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity animate-in fade-in-0 duration-200"
         onClick={onClose}
       />
 
@@ -43,7 +43,7 @@ export const Dialog: React.FC<DialogProps> = ({
       <div
         role="dialog"
         aria-modal="true"
-        className={`relative z-50 w-full ${maxWidth} rounded-xl border border-border bg-card p-6 shadow-xl animate-in zoom-in-95 duration-150 text-card-foreground`}
+        className={`relative z-50 w-full ${maxWidth} rounded-xl border border-border bg-card p-6 shadow-2xl modal-enter text-card-foreground`}
       >
         <button
           type="button"

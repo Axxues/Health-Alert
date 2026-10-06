@@ -115,7 +115,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose })
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-background/80 backdrop-blur-xs transition-opacity animate-in fade-in-0 duration-150"
+        className="fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity animate-in fade-in-0 duration-200"
         onClick={onClose}
       />
 
@@ -123,7 +123,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose })
       <div
         role="dialog"
         aria-modal="true"
-        className="relative z-50 w-full max-w-xl overflow-hidden rounded-xl border border-border bg-card shadow-2xl animate-in zoom-in-95 duration-150"
+        className="relative z-50 w-full max-w-xl overflow-hidden rounded-xl border border-border bg-card shadow-2xl modal-enter"
       >
         <div className="flex items-center gap-3 border-b border-border/80 px-4 py-3 bg-muted/20">
           <Search size={16} className="text-muted-foreground shrink-0" />

@@ -32,7 +32,7 @@ export function Tabs<T extends string = string>({
               key={tab.id}
               type="button"
               onClick={() => onChange(tab.id)}
-              className={`flex items-center gap-2 pb-2.5 text-xs font-semibold transition-all relative border-b-2 -mb-px cursor-pointer ${
+              className={`flex items-center gap-2 pb-2.5 text-xs font-semibold transition-all duration-200 ease-out active:scale-95 relative border-b-2 -mb-px cursor-pointer ${
                 isActive
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
@@ -65,7 +65,7 @@ export function Tabs<T extends string = string>({
             key={tab.id}
             type="button"
             onClick={() => onChange(tab.id)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all duration-200 ease-out active:scale-95 cursor-pointer ${
               isActive
                 ? "bg-card text-foreground shadow-xs border border-border/50"
                 : "text-muted-foreground hover:text-foreground hover:bg-card/40"
