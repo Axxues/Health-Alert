@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router";
 import {
   X,
@@ -96,13 +97,15 @@ export const DashboardDetailDrawer: React.FC<DashboardDetailDrawerProps> = ({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [target, onClose]);
 
-  // Lock background scroll when drawer is open
+  // Lock background scroll and blur entire page (header, sidenav, content) when drawer is open
   useEffect(() => {
     if (!target) return;
     const orig = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    document.body.classList.add("dashboard-drawer-open");
     return () => {
       document.body.style.overflow = orig;
+      document.body.classList.remove("dashboard-drawer-open");
     };
   }, [target]);
 
@@ -111,7 +114,7 @@ export const DashboardDetailDrawer: React.FC<DashboardDetailDrawerProps> = ({
   const highCount = spots.filter((s) => /high/i.test(s.level)).length;
   const medCount = spots.filter((s) => /med|moderate/i.test(s.level)).length;
 
-  return (
+  const drawerContent = (
     <div className="fixed inset-0 z-50">
       {/* 
         Full-Screen Backdrop Blur:
@@ -600,4 +603,10 @@ export const DashboardDetailDrawer: React.FC<DashboardDetailDrawerProps> = ({
       </aside>
     </div>
   );
+
+  if (typeof document !== "undefined" && document.body) {
+    return createPortal(drawerContent, document.body);
+  }
+
+  return drawerContent;
 };

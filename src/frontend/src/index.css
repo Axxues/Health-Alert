@@ -1715,4 +1715,11 @@ html {
   scroll-behavior: smooth;
 }
 
+body.dashboard-drawer-open #root {
+  filter: blur(6px);
+  pointer-events: none;
+  user-select: none;
+  transition: filter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 
