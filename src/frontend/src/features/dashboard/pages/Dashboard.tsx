@@ -79,7 +79,6 @@ export function Dashboard() {
   const medCount = spots.filter((s) => sev(s) === 2).length;
 
   const ranked = [...spots].sort((a, b) => sev(b) - sev(a));
-  const topSpot = ranked[0] ?? null;
   const targets = ranked.slice(0, 6);
 
   const outlookRows = [...DISEASES]
@@ -123,49 +122,6 @@ export function Dashboard() {
           <span>{error}</span>
         </div>
       )}
-
-      {/* Hero Threat Surge Alert Strip */}
-      {loading ? (
-        <Skeleton className="h-28 w-full" />
-      ) : topSpot ? (
-        <Card className="border-l-4 border-l-destructive bg-gradient-to-r from-card via-card to-destructive/5 overflow-hidden">
-          <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <Badge variant="danger" pulse>
-                  Priority Surge Threat
-                </Badge>
-                <span className="text-xs text-muted-foreground">
-                  Highest forecasted outbreak vector right now
-                </span>
-              </div>
-              <h2 className="text-xl font-extrabold text-foreground tracking-tight">
-                {diseaseName(topSpot.disease)} in {topSpot.muni}
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                Status: <span className="font-semibold text-foreground">{levelLabel(sev(topSpot))}</span> ({topSpot.level}) · {highCount} high-risk zones and {medCount} watch areas in regional cluster.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-6 sm:border-l sm:border-border/80 sm:pl-6">
-              <div className="text-right sm:text-left">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
-                  Peak Surge Probability
-                </span>
-                <span className="text-4xl font-extrabold tabular-nums font-mono text-destructive leading-none block mt-1">
-                  {topProb}%
-                </span>
-              </div>
-              <Link to={`/intelligence/${topSpot.id || "loc-launion-sfc"}`}>
-                <Button size="md" variant="primary">
-                  <span>Inspect Station</span>
-                  <ArrowRight size={14} />
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </Card>
-      ) : null}
 
       {/* 4-Column KPI Telemetry Metrics */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
