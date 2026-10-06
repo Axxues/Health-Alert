@@ -101,10 +101,16 @@ export const DashboardDetailDrawer: React.FC<DashboardDetailDrawerProps> = ({
   useEffect(() => {
     if (!target) return;
     const orig = document.body.style.overflow;
+    const mainEl = document.querySelector("main");
+    const origMain = mainEl ? mainEl.style.overflow : "";
+
     document.body.style.overflow = "hidden";
+    if (mainEl) mainEl.style.overflow = "hidden";
     document.body.classList.add("dashboard-drawer-open");
+
     return () => {
       document.body.style.overflow = orig;
+      if (mainEl) mainEl.style.overflow = origMain;
       document.body.classList.remove("dashboard-drawer-open");
     };
   }, [target]);
@@ -122,6 +128,8 @@ export const DashboardDetailDrawer: React.FC<DashboardDetailDrawerProps> = ({
       */}
       <div
         onClick={onClose}
+        onWheel={(e) => e.preventDefault()}
+        onTouchMove={(e) => e.preventDefault()}
         aria-hidden="true"
         className="fixed inset-0 bg-background/70 backdrop-blur-md transition-opacity duration-200 cursor-pointer"
       />
@@ -131,7 +139,7 @@ export const DashboardDetailDrawer: React.FC<DashboardDetailDrawerProps> = ({
         role="dialog"
         aria-modal="true"
         aria-label="Dashboard Details Inspector"
-        className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-lg border-l border-border bg-card shadow-2xl flex flex-col transition-all duration-200 ease-out animate-in slide-in-from-right"
+        className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-lg border-l border-border bg-card shadow-2xl flex flex-col transition-all duration-200 ease-out animate-in slide-in-from-right overscroll-contain"
       >
         {/* Drawer Header */}
         <div className="flex items-center justify-between border-b border-border p-5 bg-card/90 backdrop-blur-xs shrink-0">
@@ -164,7 +172,7 @@ export const DashboardDetailDrawer: React.FC<DashboardDetailDrawerProps> = ({
         </div>
 
         {/* Drawer Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-6">
+        <div className="flex-1 overflow-y-auto overscroll-contain p-5 space-y-6">
           {/* DISEASE CARD DETAIL */}
           {target.type === "disease" && (() => {
             const disease = target.disease;

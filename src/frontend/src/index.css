@@ -1722,4 +1722,9 @@ body.dashboard-drawer-open #root {
   transition: filter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+body.dashboard-drawer-open main,
+body.dashboard-drawer-open {
+  overflow: hidden !important;
+}
+
 
