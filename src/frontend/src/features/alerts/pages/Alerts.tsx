@@ -1,16 +1,47 @@
 import { useEffect, useMemo, useState } from "react";
+import {
+  Send,
+  AlertTriangle,
+  CheckCircle2,
+  Radio,
+  Check,
+} from "lucide-react";
 import { ackAlert, broadcastAlert, listAlerts } from "@/services/alerts/api/alerts.api";
 import type { Alert } from "@/services/alerts/types/alerts.types";
 import { getRole } from "@/utils/auth";
+import {
+  Button,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  Badge,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  TableEmpty,
+  Dialog,
+  Input,
+  Select,
+  Tabs,
+  MetricCard,
+  PageHeader,
+} from "@/components/ui";
 
 const MUNIS = ["San Fernando City", "Agoo", "Bauang", "Bacnotan", "San Juan"];
+
+type StatusFilter = "all" | "new" | "acked" | "resolved";
 
 export function Alerts() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [kind, setKind] = useState("all");
-  const [status, setStatus] = useState("all");
+  const [status, setStatus] = useState<StatusFilter>("all");
+  const [broadcastOpen, setBroadcastOpen] = useState(false);
   const [muni, setMuni] = useState(MUNIS[0]);
   const [message, setMessage] = useState("");
   const [playbookCode, setPlaybookCode] = useState("");
@@ -39,8 +70,12 @@ export function Alerts() {
     [alerts, kind, status]
   );
 
-  const openAuto = alerts.filter((a) => a.kind.toLowerCase() === "auto" && a.status.toLowerCase() === "new").length;
-  const openManual = alerts.filter((a) => a.kind.toLowerCase() === "manual" && a.status.toLowerCase() === "new").length;
+  const openAuto = alerts.filter(
+    (a) => a.kind.toLowerCase() === "auto" && a.status.toLowerCase() === "new"
+  ).length;
+  const openManual = alerts.filter(
+    (a) => a.kind.toLowerCase() === "manual" && a.status.toLowerCase() === "new"
+  ).length;
 
   const handleAck = async (id: number) => {
     await ackAlert(id).catch(() => setError("Failed to acknowledge alert."));
@@ -54,124 +89,252 @@ export function Alerts() {
       .then(() => {
         setMessage("");
         setPlaybookCode("");
+        setBroadcastOpen(false);
         refresh();
       })
       .catch(() => setError("Failed to broadcast alert."))
       .finally(() => setSending(false));
   };
 
-  const selectClass =
-    "bg-transparent border border-input rounded-md text-xs text-foreground focus:outline-none cursor-pointer px-2.5 py-2 shadow-xs";
+  const statusBadge = (s: string) => {
+    const sl = s.toLowerCase();
+    if (sl === "new") return <Badge variant="danger" pulse>New Alert</Badge>;
+    if (sl === "acked") return <Badge variant="warning">Acknowledged</Badge>;
+    return <Badge variant="success">Resolved</Badge>;
+  };
+
+  const kindBadge = (k: string) => {
+    const kl = k.toLowerCase();
+    if (kl === "auto") return <Badge variant="primary">Model Surge</Badge>;
+    return <Badge variant="outline">Manual Broadcast</Badge>;
+  };
 
   return (
-    <div className="page-doc" style={{ display: "grid", gap: 20 }}>
-      <div>
-        <h1 style={{ margin: "0 0 4px", fontSize: "24px", fontWeight: 800, letterSpacing: "-0.02em" }}>
-          Alerts
-        </h1>
-        <p style={{ margin: 0, fontSize: "13px", color: "var(--mute)" }}>
-          {alerts.length} alerts, {openAuto} open auto, {openManual} open manual
-        </p>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <PageHeader
+        title="Outbreak Alert Triage Ledger"
+        description="Unified ledger tracking automated early-warning surge alerts and broadcast direct notifications across municipal health units."
+        badge={
+          <Badge variant="primary">
+            {alerts.length} Total Registered Alerts
+          </Badge>
+        }
+        actions={
+          isAdmin ? (
+            <Button
+              variant="destructive"
+              size="sm"
+              icon={<Send size={14} />}
+              onClick={() => setBroadcastOpen(true)}
+            >
+              Broadcast Alert
+            </Button>
+          ) : undefined
+        }
+      />
+
+      {/* KPI Triage Metrics */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <MetricCard
+          title="Active Model Outbreak Alerts"
+          value={openAuto}
+          subtitle="Model surge thresholds breached"
+          variant={openAuto > 0 ? "critical" : "default"}
+          icon={<AlertTriangle size={16} />}
+        />
+        <MetricCard
+          title="Manual Field Broadcasts"
+          value={openManual}
+          subtitle="Direct emergency notices pending review"
+          variant={openManual > 0 ? "warning" : "default"}
+          icon={<Radio size={16} />}
+        />
+        <MetricCard
+          title="Total Resolved Alerts"
+          value={alerts.filter((a) => a.status.toLowerCase() === "resolved").length}
+          subtitle="Closed epidemiological incidents"
+          variant="success"
+          icon={<CheckCircle2 size={16} />}
+        />
       </div>
 
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-        <select value={kind} onChange={(e) => setKind(e.target.value)} className={selectClass} aria-label="Kind">
-          <option value="all">All kinds</option>
-          <option value="auto">Auto</option>
-          <option value="manual">Manual</option>
-        </select>
-        <select value={status} onChange={(e) => setStatus(e.target.value)} className={selectClass} aria-label="Status">
-          <option value="all">All statuses</option>
-          <option value="new">New</option>
-          <option value="acked">Acked</option>
-          <option value="resolved">Resolved</option>
-        </select>
-      </div>
-
-      {error ? (
-        <p style={{ fontSize: "13px", color: "var(--red)" }}>{error}</p>
-      ) : loading ? (
-        <p style={{ padding: "32px 0", textAlign: "center", color: "var(--mute)", fontSize: "13px" }}>
-          Loading alert ledger...
-        </p>
-      ) : filtered.length === 0 ? (
-        <p style={{ padding: "32px 0", textAlign: "center", color: "var(--mute)", fontSize: "13px" }}>
-          No alerts match.
-        </p>
-      ) : (
-        <div style={{ border: "1px solid var(--hairline)", borderRadius: 12, overflowX: "auto", background: "var(--card)" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", minWidth: 760 }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid var(--hairline)", background: "var(--muted)" }}>
-                {(["Kind", "Place", "Disease", "Message", "Status"] as const).map((h) => (
-                  <th
-                    key={h}
-                    style={{
-                      textAlign: "left",
-                      fontSize: "11.5px",
-                      fontWeight: 600,
-                      color: "var(--mute)",
-                      padding: "10px 16px",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {h}
-                  </th>
-                ))}
-                <th style={{ width: 120 }} aria-label="Action" />
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((a) => (
-                <tr key={a.id} style={{ borderBottom: "1px solid var(--hairline)" }}>
-                  <td style={{ padding: "11px 16px", textTransform: "capitalize", whiteSpace: "nowrap" }}>{a.kind}</td>
-                  <td style={{ padding: "11px 16px", fontWeight: 700, color: "var(--ink)", whiteSpace: "nowrap" }}>{a.muni}</td>
-                  <td style={{ padding: "11px 16px", color: "var(--ink)", whiteSpace: "nowrap" }}>{a.disease}</td>
-                  <td style={{ padding: "11px 16px", color: "var(--ink)" }}>{a.message}</td>
-                  <td style={{ padding: "11px 16px", textTransform: "capitalize", whiteSpace: "nowrap" }}>{a.status}</td>
-                  <td style={{ padding: "11px 16px", textAlign: "right", whiteSpace: "nowrap" }}>
-                    {a.status.toLowerCase() === "new" && (
-                      <button type="button" className="btn-pill text-xs" onClick={() => handleAck(a.id)}>
-                        Acknowledge
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {isAdmin && (
-        <div className="section-card" style={{ padding: 20, display: "grid", gap: 12 }}>
-          <h3 style={{ margin: 0, fontSize: "14px", fontWeight: 700 }}>Broadcast alert</h3>
-          <select value={muni} onChange={(e) => setMuni(e.target.value)} className={selectClass} aria-label="Municipality">
-            {MUNIS.map((m) => (
-              <option key={m} value={m}>{m}</option>
-            ))}
-          </select>
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Alert message..."
-            rows={3}
-            style={{ width: "100%", boxSizing: "border-box", padding: 10, background: "var(--background)", border: "1px solid var(--input)", borderRadius: 8, fontSize: "13px", color: "var(--ink)" }}
+      {/* Triage Toolbar */}
+      <Card className="p-3.5 flex items-center justify-between gap-4 flex-wrap bg-card shadow-xs">
+        <div className="flex items-center gap-3 flex-wrap">
+          <Tabs<StatusFilter>
+            activeTab={status}
+            onChange={setStatus}
+            tabs={[
+              { id: "all", label: "All Alerts", count: alerts.length },
+              { id: "new", label: "New", count: alerts.filter((a) => a.status.toLowerCase() === "new").length },
+              { id: "acked", label: "Acknowledged", count: alerts.filter((a) => a.status.toLowerCase() === "acked").length },
+              { id: "resolved", label: "Resolved", count: alerts.filter((a) => a.status.toLowerCase() === "resolved").length },
+            ]}
           />
-          <input
-            type="text"
-            value={playbookCode}
-            onChange={(e) => setPlaybookCode(e.target.value)}
-            placeholder="SOP code (optional)"
-            style={{ width: "100%", boxSizing: "border-box", padding: 10, background: "var(--background)", border: "1px solid var(--input)", borderRadius: 8, fontSize: "13px", color: "var(--ink)" }}
-          />
-          <div>
-            <button type="button" className="btn-pill text-xs" onClick={handleSend} disabled={sending || !message.trim()}>
-              {sending ? "Sending..." : "Send"}
-            </button>
+
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Kind:</span>
+            <select
+              value={kind}
+              onChange={(e) => setKind(e.target.value)}
+              className="h-8 rounded-lg border border-input bg-card px-2.5 text-xs text-foreground focus-visible:outline-none"
+            >
+              <option value="all">All Kinds</option>
+              <option value="auto">Automated Model</option>
+              <option value="manual">Manual Broadcast</option>
+            </select>
           </div>
         </div>
+
+        <Button variant="outline" size="sm" onClick={refresh}>
+          Refresh Ledger
+        </Button>
+      </Card>
+
+      {/* Error Alert */}
+      {error && (
+        <div className="flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-xs font-medium text-destructive">
+          <AlertTriangle size={16} className="shrink-0" />
+          <span>{error}</span>
+        </div>
       )}
+
+      {/* Alert Ledger Table */}
+      <Card>
+        <CardHeader className="pb-3 border-b border-border/60">
+          <CardTitle>Active Incident Ledger</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Classification</TableHead>
+                <TableHead>Sentinel LGU</TableHead>
+                <TableHead>Disease Vector</TableHead>
+                <TableHead>Alert Directives / Message</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="py-12 text-center text-xs text-muted-foreground">
+                    Loading incident ledger...
+                  </TableCell>
+                </TableRow>
+              ) : filtered.length === 0 ? (
+                <TableEmpty colSpan={6} message="No alerts match the selected triage filter." />
+              ) : (
+                filtered.map((a) => {
+                  const isNew = a.status.toLowerCase() === "new";
+                  return (
+                    <TableRow
+                      key={a.id}
+                      className={isNew ? "bg-destructive/5 hover:bg-destructive/10" : ""}
+                    >
+                      <TableCell>{kindBadge(a.kind)}</TableCell>
+                      <TableCell className="font-bold text-foreground">{a.muni}</TableCell>
+                      <TableCell>
+                        <span className="font-semibold text-foreground capitalize">{a.disease}</span>
+                      </TableCell>
+                      <TableCell className="max-w-md text-foreground">
+                        <div className="space-y-0.5">
+                          <p className="text-xs leading-relaxed">{a.message}</p>
+                          {a.playbookCode && (
+                            <span className="text-[10px] font-mono text-muted-foreground">
+                              Ref: {a.playbookCode}
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{statusBadge(a.status)}</TableCell>
+                      <TableCell className="text-right">
+                        {isNew ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            icon={<Check size={13} />}
+                            onClick={() => handleAck(a.id)}
+                          >
+                            Acknowledge
+                          </Button>
+                        ) : (
+                          <span className="text-[11px] text-muted-foreground font-medium">Logged</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Broadcast Alert Dialog Modal */}
+      <Dialog
+        open={broadcastOpen}
+        onClose={() => setBroadcastOpen(false)}
+        title="Broadcast Municipal Emergency Alert"
+        description="Dispatch SMS broadcast and telemetry webhook to local health units and BHW officers."
+        footer={
+          <>
+            <Button variant="outline" size="sm" onClick={() => setBroadcastOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleSend}
+              loading={sending}
+              disabled={!message.trim()}
+            >
+              Dispatch Broadcast
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-3.5">
+          <div>
+            <label className="text-xs font-bold text-muted-foreground block mb-1">
+              Target Municipality / LGU
+            </label>
+            <Select value={muni} onChange={(e) => setMuni(e.target.value)}>
+              {MUNIS.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </Select>
+          </div>
+
+          <div>
+            <label className="text-xs font-bold text-muted-foreground block mb-1">
+              Alert Directives / Message Content *
+            </label>
+            <textarea
+              rows={3}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="e.g. Cluster of 14 acute fever cases identified. Initiate search-and-destroy cleanup and setup dedicated triage lane."
+              className="w-full rounded-lg border border-input bg-card p-2.5 text-xs text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-bold text-muted-foreground block mb-1">
+              Clinical SOP Playbook Code (Optional)
+            </label>
+            <Input
+              value={playbookCode}
+              onChange={(e) => setPlaybookCode(e.target.value)}
+              placeholder="e.g. SOP-VEC-01"
+            />
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 }

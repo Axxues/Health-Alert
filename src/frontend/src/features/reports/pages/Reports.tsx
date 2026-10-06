@@ -1,9 +1,43 @@
 import { useEffect, useState } from "react";
+import {
+  FileText,
+  Printer,
+  Download,
+  AlertTriangle,
+  Flame,
+  Bell,
+  RefreshCw,
+  FileSpreadsheet,
+} from "lucide-react";
 import { bulletin, exportRows } from "@/services/reports/api/reports.api";
 import type { WeeklyBulletin } from "@/services/reports/types/reports.types";
+import {
+  Button,
+  Card,
+  CardTitle,
+  Badge,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  TableEmpty,
+  Input,
+  Select,
+  Tabs,
+  PageHeader,
+  Skeleton,
+} from "@/components/ui";
 
 const MUNIS = ["San Fernando City", "Agoo", "Bauang", "Bacnotan", "San Juan"];
-const DISEASES = ["dengue", "leptospirosis", "ili", "asthma"];
+const DISEASES = [
+  { id: "all", label: "All Diseases" },
+  { id: "dengue", label: "Dengue" },
+  { id: "leptospirosis", label: "Leptospirosis" },
+  { id: "ili", label: "Flu-like (ILI)" },
+  { id: "asthma", label: "Bronchial Asthma" },
+];
 
 function currentMonday(): string {
   const d = new Date();
@@ -12,10 +46,10 @@ function currentMonday(): string {
   return d.toISOString().slice(0, 10);
 }
 
-type Tab = "bulletin" | "custom";
+type ReportTab = "bulletin" | "custom";
 
 export function Reports() {
-  const [tab, setTab] = useState<Tab>("bulletin");
+  const [tab, setTab] = useState<ReportTab>("bulletin");
   const [week, setWeek] = useState(currentMonday);
   const [data, setData] = useState<WeeklyBulletin | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,14 +62,16 @@ export function Reports() {
   const [to, setTo] = useState(() => new Date().toISOString().slice(0, 10));
   const [downloading, setDownloading] = useState(false);
 
-  useEffect(() => {
+  const fetchBulletin = () => {
     setLoading(true);
     setError("");
     bulletin(week)
       .then(setData)
-      .catch(() => setError("Failed to retrieve weekly bulletin."))
+      .catch(() => setError("Failed to retrieve weekly epidemiological bulletin."))
       .finally(() => setLoading(false));
-  }, [week]);
+  };
+
+  useEffect(fetchBulletin, [week]);
 
   const handleDownload = async () => {
     setDownloading(true);
@@ -50,7 +86,7 @@ export function Reports() {
       const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
       const a = document.createElement("a");
       a.href = url;
-      a.download = `cases-${from}_${to}.csv`;
+      a.download = `pidsr-cases-${from}_${to}.csv`;
       a.click();
       URL.revokeObjectURL(url);
     } finally {
@@ -58,138 +94,268 @@ export function Reports() {
     }
   };
 
-  const selectClass =
-    "bg-transparent border border-input rounded-md text-xs text-foreground focus:outline-none cursor-pointer px-2.5 py-2 shadow-xs";
-  const inputClass =
-    "bg-transparent border border-input rounded-md text-xs text-foreground focus:outline-none px-2.5 py-2 shadow-xs";
-
   return (
-    <div className="page-doc" style={{ display: "grid", gap: 20 }}>
-      <div>
-        <h1 style={{ margin: "0 0 4px", fontSize: "24px", fontWeight: 800, letterSpacing: "-0.02em" }}>
-          Reports
-        </h1>
-        <p style={{ margin: 0, fontSize: "13px", color: "var(--mute)" }}>
-          Weekly epidemiological bulletin and custom case exports
-        </p>
-      </div>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <PageHeader
+        title="Epidemiological Reports & Bulletins"
+        description="Weekly Philippine Integrated Disease Surveillance and Response (PIDSR) official bulletin generation and custom case linelist data exports."
+        badge={
+          <Badge variant="primary">
+            Region I Epidemiology Bureau
+          </Badge>
+        }
+        actions={
+          <Tabs<ReportTab>
+            activeTab={tab}
+            onChange={setTab}
+            tabs={[
+              { id: "bulletin", label: "Weekly PIDSR Bulletin", icon: <FileText size={14} /> },
+              { id: "custom", label: "Custom Linelist Export", icon: <FileSpreadsheet size={14} /> },
+            ]}
+          />
+        }
+      />
 
-      <div style={{ display: "flex", gap: 20, borderBottom: "1px solid var(--hairline)" }}>
-        {(
-          [
-            { id: "bulletin", label: "Bulletin" },
-            { id: "custom", label: "Custom export" },
-          ] as { id: Tab; label: string }[]
-        ).map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => setTab(t.id)}
-            style={{
-              background: "none",
-              border: "none",
-              borderBottom: tab === t.id ? "2px solid var(--primary)" : "2px solid transparent",
-              color: tab === t.id ? "var(--ink)" : "var(--mute)",
-              fontSize: "13px",
-              fontWeight: tab === t.id ? 700 : 500,
-              padding: "0 2px 8px",
-              marginBottom: -1,
-              cursor: "pointer",
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      {/* Error Alert */}
+      {error && (
+        <div className="flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-xs font-medium text-destructive">
+          <AlertTriangle size={16} className="shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
 
-      {tab === "bulletin" ? (
-        <div style={{ display: "grid", gap: 12 }}>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-            <input type="date" value={week} onChange={(e) => setWeek(e.target.value)} className={inputClass} aria-label="Week" />
-            <button type="button" className="btn-pill text-xs" onClick={() => window.print()}>
-              Print
-            </button>
-          </div>
-          {error ? (
-            <p style={{ fontSize: "13px", color: "var(--red)" }}>{error}</p>
-          ) : loading ? (
-            <p style={{ padding: "32px 0", textAlign: "center", color: "var(--mute)", fontSize: "13px" }}>
-              Loading weekly bulletin...
-            </p>
-          ) : (
-            <div className="print-area" style={{ border: "1px solid var(--hairline)", borderRadius: 12, background: "var(--card)", padding: 24, display: "grid", gap: 16 }}>
-              <div>
-                <h2 style={{ margin: "0 0 4px", fontSize: "18px", fontWeight: 800 }}>Weekly epidemiological bulletin</h2>
-                <p style={{ margin: 0, fontSize: "13px", color: "var(--mute)" }}>Week of {data?.week}</p>
-              </div>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
-                <thead>
-                  <tr style={{ borderBottom: "1px solid var(--hairline)", background: "var(--muted)" }}>
-                    {(["Disease", "Cases", "Prev", "Change %"] as const).map((h) => (
-                      <th key={h} style={{ textAlign: "left", fontSize: "11.5px", fontWeight: 600, color: "var(--mute)", padding: "10px 16px", whiteSpace: "nowrap" }}>
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {(data?.diseases ?? []).map((d) => (
-                    <tr key={d.disease} style={{ borderBottom: "1px solid var(--hairline)" }}>
-                      <td style={{ padding: "11px 16px", fontWeight: 700 }}>{d.disease}</td>
-                      <td className="tabular" style={{ padding: "11px 16px" }}>{d.cases}</td>
-                      <td className="tabular" style={{ padding: "11px 16px" }}>{d.prevCases}</td>
-                      <td className="tabular" style={{ padding: "11px 16px", color: d.changePct > 0 ? "var(--red)" : "var(--green)" }}>
-                        {d.changePct.toFixed(1)}%
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div>
-                <h3 style={{ margin: "0 0 6px", fontSize: "14px", fontWeight: 700 }}>Hotspots</h3>
-                {(data?.hotspots ?? []).length === 0 ? (
-                  <p style={{ margin: 0, fontSize: "13px", color: "var(--mute)" }}>No hotspots this week.</p>
-                ) : (
-                  <ul style={{ margin: 0, paddingLeft: 18, fontSize: "13px" }}>
-                    {data?.hotspots.map((h) => <li key={h}>{h}</li>)}
-                  </ul>
-                )}
-              </div>
-              <div>
-                <h3 style={{ margin: "0 0 6px", fontSize: "14px", fontWeight: 700 }}>Active alerts</h3>
-                {(data?.activeAlerts ?? []).length === 0 ? (
-                  <p style={{ margin: 0, fontSize: "13px", color: "var(--mute)" }}>No active alerts.</p>
-                ) : (
-                  <ul style={{ margin: 0, paddingLeft: 18, fontSize: "13px" }}>
-                    {data?.activeAlerts.map((a, i) => <li key={i}>{a}</li>)}
-                  </ul>
-                )}
-              </div>
-              <p style={{ margin: 0, fontSize: "12px", color: "var(--mute)" }}>Generated {generatedAt}</p>
+      {/* View 1: Weekly Bulletin */}
+      {tab === "bulletin" && (
+        <div className="space-y-4">
+          {/* Controls Bar */}
+          <Card className="p-3.5 flex items-center justify-between gap-3 flex-wrap bg-card shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                Surveillance Week:
+              </span>
+              <Input
+                type="date"
+                value={week}
+                onChange={(e) => setWeek(e.target.value)}
+                className="w-40"
+              />
+              <Button variant="outline" size="sm" onClick={fetchBulletin} icon={<RefreshCw size={12} />}>
+                Refresh
+              </Button>
             </div>
+
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<Printer size={14} />}
+              onClick={() => window.print()}
+            >
+              Print / Save PDF
+            </Button>
+          </Card>
+
+          {/* Bulletin Print Preview */}
+          {loading ? (
+            <Card className="p-8 space-y-4">
+              <Skeleton className="h-10 w-2/3" />
+              <Skeleton className="h-48 w-full" />
+              <Skeleton className="h-24 w-full" />
+            </Card>
+          ) : (
+            <Card className="p-8 space-y-6 bg-card border-border shadow-sm print:border-none print:shadow-none">
+              {/* Regional Header */}
+              <div className="border-b border-border/80 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="primary">Official DOH / LGU Surveillance Document</Badge>
+                    <span className="text-xs text-muted-foreground">Form PIDSR-W7</span>
+                  </div>
+                  <h2 className="text-xl font-extrabold tracking-tight text-foreground">
+                    Weekly Epidemiological Bulletin
+                  </h2>
+                  <p className="text-xs text-muted-foreground">
+                    Epidemiological surveillance summary for the week beginning <span className="font-semibold text-foreground">{data?.week}</span>
+                  </p>
+                </div>
+                <div className="text-left sm:text-right text-[11px] text-muted-foreground font-mono">
+                  <div>Region I Health Office</div>
+                  <div>Report Generated: {generatedAt}</div>
+                </div>
+              </div>
+
+              {/* Disease Incidence Table */}
+              <div className="space-y-2">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Disease Incidence Summary
+                </h3>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Disease Category</TableHead>
+                      <TableHead className="text-right">Observed Cases</TableHead>
+                      <TableHead className="text-right">Previous Week</TableHead>
+                      <TableHead className="text-right">Weekly Delta %</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {(data?.diseases ?? []).length === 0 ? (
+                      <TableEmpty colSpan={4} message="No disease incident rows reported for this week." />
+                    ) : (
+                      (data?.diseases ?? []).map((d) => (
+                        <TableRow key={d.disease}>
+                          <TableCell className="font-bold text-foreground capitalize">{d.disease}</TableCell>
+                          <TableCell className="text-right font-mono font-bold tabular-nums text-foreground">
+                            {d.cases}
+                          </TableCell>
+                          <TableCell className="text-right font-mono tabular-nums text-muted-foreground">
+                            {d.prevCases}
+                          </TableCell>
+                          <TableCell className="text-right font-mono font-bold tabular-nums">
+                            <span
+                              className={
+                                d.changePct > 0
+                                  ? "text-rose-600 dark:text-rose-400"
+                                  : d.changePct < 0
+                                  ? "text-emerald-600 dark:text-emerald-400"
+                                  : "text-muted-foreground"
+                              }
+                            >
+                              {d.changePct > 0 ? `+${d.changePct.toFixed(1)}%` : `${d.changePct.toFixed(1)}%`}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Hotspots & Active Alerts Dual Block */}
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 pt-2">
+                <Card className="p-4 bg-muted/20 border-border/60">
+                  <div className="flex items-center gap-2 mb-2 font-bold text-xs text-foreground">
+                    <Flame size={14} className="text-destructive" />
+                    <span>Identified Outbreak Clusters & Hotspots</span>
+                  </div>
+                  {(data?.hotspots ?? []).length === 0 ? (
+                    <p className="text-xs text-muted-foreground">No critical transmission hotspots detected this week.</p>
+                  ) : (
+                    <ul className="space-y-1.5 text-xs text-foreground list-disc list-inside">
+                      {data?.hotspots.map((h) => (
+                        <li key={h} className="font-medium">
+                          {h}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </Card>
+
+                <Card className="p-4 bg-muted/20 border-border/60">
+                  <div className="flex items-center gap-2 mb-2 font-bold text-xs text-foreground">
+                    <Bell size={14} className="text-amber-500" />
+                    <span>Active Municipal Advisories</span>
+                  </div>
+                  {(data?.activeAlerts ?? []).length === 0 ? (
+                    <p className="text-xs text-muted-foreground">No active municipal alerts for this period.</p>
+                  ) : (
+                    <ul className="space-y-1.5 text-xs text-foreground list-disc list-inside">
+                      {data?.activeAlerts.map((a, i) => (
+                        <li key={i} className="font-medium">
+                          {a}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </Card>
+              </div>
+
+              <div className="pt-4 border-t border-border/60 text-[11px] text-muted-foreground flex justify-between">
+                <span>Certified by: Regional Epidemiology & Surveillance Unit (RESU)</span>
+                <span>System: Health Alert / BantayHealthAI</span>
+              </div>
+            </Card>
           )}
         </div>
-      ) : (
-        <div style={{ display: "grid", gap: 12 }}>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-            <select value={muni} onChange={(e) => setMuni(e.target.value)} className={selectClass} aria-label="Municipality">
-              <option value="all">All municipalities</option>
-              {MUNIS.map((m) => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
-            <select value={disease} onChange={(e) => setDisease(e.target.value)} className={selectClass} aria-label="Disease">
-              <option value="all">All diseases</option>
-              {DISEASES.map((d) => (
-                <option key={d} value={d}>{d}</option>
-              ))}
-            </select>
-            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className={inputClass} aria-label="From" />
-            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className={inputClass} aria-label="To" />
-            <button type="button" className="btn-pill text-xs" onClick={handleDownload} disabled={downloading}>
-              {downloading ? "Preparing..." : "Download CSV"}
-            </button>
-          </div>
+      )}
+
+      {/* View 2: Custom Linelist Export */}
+      {tab === "custom" && (
+        <div className="space-y-6">
+          <Card className="p-6 space-y-5 max-w-2xl bg-card shadow-sm">
+            <div className="space-y-1 border-b border-border/60 pb-3">
+              <CardTitle>Custom Epidemiological Case Export</CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Query raw syndromic and laboratory-confirmed linelist entries for regional analysis or external reporting.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className="text-xs font-bold text-muted-foreground block mb-1">
+                  Municipality / Sentinel Area
+                </label>
+                <Select value={muni} onChange={(e) => setMuni(e.target.value)}>
+                  <option value="all">All Municipalities (Full Region)</option>
+                  {MUNIS.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-muted-foreground block mb-1">
+                  Disease Vector Filter
+                </label>
+                <Select value={disease} onChange={(e) => setDisease(e.target.value)}>
+                  {DISEASES.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.label}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-muted-foreground block mb-1">
+                  Start Date (From)
+                </label>
+                <Input
+                  type="date"
+                  value={from}
+                  onChange={(e) => setFrom(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-muted-foreground block mb-1">
+                  End Date (To)
+                </label>
+                <Input
+                  type="date"
+                  value={to}
+                  onChange={(e) => setTo(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-border/60 flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">
+                Output format: <span className="font-mono font-bold text-foreground">Comma-Separated Values (.csv)</span>
+              </span>
+              <Button
+                variant="primary"
+                size="md"
+                onClick={handleDownload}
+                loading={downloading}
+                icon={<Download size={14} />}
+              >
+                Export Linelist CSV
+              </Button>
+            </div>
+          </Card>
         </div>
       )}
     </div>
