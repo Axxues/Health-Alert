@@ -28,6 +28,8 @@ import {
   Select,
   MetricCard,
   PageHeader,
+  Skeleton,
+  TableRowSkeleton,
 } from "@/components/ui";
 
 export function Users() {
@@ -104,27 +106,37 @@ export function Users() {
 
       {/* KPI Account Metrics */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <MetricCard
-          title="Active Accounts"
-          value={activeCount}
-          subtitle={`${users.length - activeCount} deactivated`}
-          variant="success"
-          icon={<UserCheck size={16} />}
-        />
-        <MetricCard
-          title="System Administrators"
-          value={admins}
-          subtitle="Full model retraining & ingestion access"
-          variant="default"
-          icon={<Shield size={16} />}
-        />
-        <MetricCard
-          title="Surveillance Viewers"
-          value={viewers}
-          subtitle="Read-only dashboard & bulletin access"
-          variant="default"
-          icon={<UsersIcon size={16} />}
-        />
+        {loading ? (
+          <>
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+          </>
+        ) : (
+          <>
+            <MetricCard
+              title="Active Accounts"
+              value={activeCount}
+              subtitle={`${users.length - activeCount} deactivated`}
+              variant="success"
+              icon={<UserCheck size={16} />}
+            />
+            <MetricCard
+              title="System Administrators"
+              value={admins}
+              subtitle="Full model retraining & ingestion access"
+              variant="default"
+              icon={<Shield size={16} />}
+            />
+            <MetricCard
+              title="Surveillance Viewers"
+              value={viewers}
+              subtitle="Read-only dashboard & bulletin access"
+              variant="default"
+              icon={<UsersIcon size={16} />}
+            />
+          </>
+        )}
       </div>
 
       {/* Error Alert */}
@@ -155,11 +167,7 @@ export function Users() {
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="py-12 text-center text-xs text-muted-foreground">
-                    Loading user directory...
-                  </TableCell>
-                </TableRow>
+                <TableRowSkeleton columns={4} rows={5} />
               ) : users.length === 0 ? (
                 <TableEmpty colSpan={4} message="No registered users found in the system." />
               ) : (

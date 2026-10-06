@@ -4,6 +4,7 @@ import { Button } from "./Button";
 import { Badge } from "./Badge";
 import { MetricCard } from "./MetricCard";
 import { PageHeader } from "./PageHeader";
+import { Skeleton, PageSkeleton, TableRowSkeleton } from "./Skeleton";
 
 describe("UI Primitives", () => {
   it("renders Button with primary variant and content", () => {
@@ -41,4 +42,23 @@ describe("UI Primitives", () => {
     expect(html).toContain("Surveillance Console");
     expect(html).toContain("Real-time sentinel telemetry");
   });
+
+  it("renders Skeleton, PageSkeleton, and TableRowSkeleton correctly", () => {
+    const skeletonHtml = renderToStaticMarkup(<Skeleton className="h-6 w-24" />);
+    expect(skeletonHtml).toContain("animate-pulse");
+
+    const pageSkeletonHtml = renderToStaticMarkup(<PageSkeleton />);
+    expect(pageSkeletonHtml).toContain("animate-pulse");
+
+    const tableSkeletonHtml = renderToStaticMarkup(
+      <table>
+        <tbody>
+          <TableRowSkeleton columns={5} rows={3} />
+        </tbody>
+      </table>
+    );
+    expect(tableSkeletonHtml).toContain("<tr");
+    expect(tableSkeletonHtml).toContain("<td");
+  });
 });
+

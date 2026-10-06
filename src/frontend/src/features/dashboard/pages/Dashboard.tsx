@@ -30,6 +30,7 @@ import {
   MetricCard,
   PageHeader,
   Skeleton,
+  TableRowSkeleton,
 } from "@/components/ui";
 import { EpidemicBarGraph } from "@/features/dashboard/components/EpidemicBarGraph";
 
@@ -272,11 +273,7 @@ export function Dashboard() {
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="py-8 text-center text-xs text-muted-foreground">
-                    Loading sentinel telemetry...
-                  </TableCell>
-                </TableRow>
+                <TableRowSkeleton columns={5} rows={5} />
               ) : targets.length === 0 ? (
                 <TableEmpty colSpan={5} message="No priority hotspots detected." />
               ) : (

@@ -39,6 +39,8 @@ import {
   TableEmpty,
   Dialog,
   PageHeader,
+  Skeleton,
+  TableRowSkeleton,
 } from "@/components/ui";
 
 export function Uploads() {
@@ -303,11 +305,7 @@ export function Uploads() {
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="py-8 text-center text-xs text-muted-foreground">
-                    Loading submissions history...
-                  </TableCell>
-                </TableRow>
+                <TableRowSkeleton columns={7} rows={5} />
               ) : batches.length === 0 ? (
                 <TableEmpty colSpan={7} message="No weekly submissions uploaded yet." />
               ) : (
@@ -358,7 +356,17 @@ export function Uploads() {
         }
       >
         {issuesLoading ? (
-          <div className="py-8 text-center text-xs text-muted-foreground">Loading quarantined rows...</div>
+          <div className="space-y-2.5 py-2">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="flex items-center justify-between gap-4 p-3 rounded-lg border border-border/60 bg-muted/20 animate-pulse">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-5 w-10" />
+                  <Skeleton className="h-5 w-44" />
+                </div>
+                <Skeleton className="h-7 w-24" />
+              </div>
+            ))}
+          </div>
         ) : issues.length === 0 ? (
           <div className="py-8 text-center text-xs text-muted-foreground">No quarantined rows in this batch.</div>
         ) : (

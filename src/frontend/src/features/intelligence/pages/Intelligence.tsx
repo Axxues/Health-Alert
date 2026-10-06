@@ -40,6 +40,7 @@ import {
   TableRow,
   TableCell,
   TableEmpty,
+  TableRowSkeleton,
 } from "@/components/ui";
 
 const PROVINCES = [
@@ -62,8 +63,7 @@ const MUNICIPALITIES_BY_PROVINCE: Record<string, string[]> = {
   "La Union": ["All Municipalities", "San Fernando City", "Agoo", "Bauang", "Bacnotan", "Naguilian", "San Juan"],
   "Pangasinan": ["All Municipalities", "Dagupan City", "San Carlos City", "Urdaneta City", "Lingayen"],
   "Ilocos Sur": ["All Municipalities", "Vigan City", "Candon City", "Narvacan", "Tagudin"],
-  "Ilocos Norte": ["All Municipalities", "Laoag City", "Batac City", "San Nicolas"],
-  "Benguet": ["All Municipalities", "Baguio City", "La Trinidad"],
+  "Ilocos Norte": ["All Municipalities", "Laoag City", "Batac City", "San Nicolas"],  "Benguet": ["All Municipalities", "Baguio City", "La Trinidad"],
   "Metro Manila (NCR)": ["All Municipalities", "Quezon City", "City of Manila", "Caloocan City", "Pasig City"],
   "Pampanga": ["All Municipalities", "City of San Fernando", "Angeles City"],
   "Bulacan": ["All Municipalities", "Malolos City", "Meycauayan City"],
@@ -408,15 +408,22 @@ export function Intelligence() {
                 ))}
               </div>
             ) : (
-              <div className="w-full overflow-x-auto rounded-xl border border-border bg-card p-4 space-y-3">
-                <div className="flex justify-between items-center pb-2 border-b border-border">
-                  <Skeleton className="h-4 w-48" />
-                  <Skeleton className="h-4 w-24" />
-                </div>
-                {[...Array(5)].map((_, i) => (
-                  <Skeleton key={i} className="h-10 w-full" />
-                ))}
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Sentinel Location & Facility</TableHead>
+                    <TableHead>Disease Vector</TableHead>
+                    <TableHead>Surveillance Tier</TableHead>
+                    <TableHead className="text-right">Surge Probability</TableHead>
+                    <TableHead className="text-right">Active Cases</TableHead>
+                    <TableHead className="text-right">Weekly Delta</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRowSkeleton columns={7} rows={6} />
+                </TableBody>
+              </Table>
             )
           ) : sortedLocations.length === 0 ? (
             <Card className="py-16 text-center text-xs text-muted-foreground">
@@ -441,9 +448,9 @@ export function Intelligence() {
                       <div className="flex items-start justify-between gap-2">
                         <div>
                           <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                            {loc.province} · {loc.category}
+                            {loc.municipality}, {loc.province} · {loc.category}
                           </div>
-                          <CardTitle className="text-base mt-0.5">{loc.municipality}</CardTitle>
+                          <CardTitle className="text-base mt-0.5">{loc.barangay ? `Brgy. ${loc.barangay}` : loc.municipality}</CardTitle>
                         </div>
                         {riskBadge(loc.riskLevel)}
                       </div>
@@ -589,14 +596,14 @@ export function Intelligence() {
                         <TableCell>
                           <div>
                             <div className="font-bold text-foreground text-sm flex items-center gap-2">
-                              {loc.municipality}
+                              {loc.barangay ? `Brgy. ${loc.barangay}` : loc.municipality}
                               {isHigh && (
                                 <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
                               )}
                             </div>
                             <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
                               <span>
-                                {loc.province} · {loc.category}
+                                {loc.municipality}, {loc.province} · {loc.category}
                               </span>
                               <span>•</span>
                               <span className="truncate max-w-[200px]">

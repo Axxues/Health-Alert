@@ -29,6 +29,8 @@ import {
   Tabs,
   MetricCard,
   PageHeader,
+  Skeleton,
+  TableRowSkeleton,
 } from "@/components/ui";
 
 const MUNIS = ["San Fernando City", "Agoo", "Bauang", "Bacnotan", "San Juan"];
@@ -49,6 +51,9 @@ export function Alerts() {
 
   const isAdmin = getRole() === "Admin";
 
+  // ponytail: backend TblAlert fields are nullable; seed/system rows store null kind/status
+  const lc = (v: string | null | undefined) => (v ?? "").toLowerCase();
+
   const refresh = () => {
     setLoading(true);
     setError("");
@@ -64,17 +69,17 @@ export function Alerts() {
     () =>
       alerts.filter(
         (a) =>
-          (kind === "all" || a.kind.toLowerCase() === kind) &&
-          (status === "all" || a.status.toLowerCase() === status)
+          (kind === "all" || lc(a.kind) === kind) &&
+          (status === "all" || lc(a.status) === status)
       ),
     [alerts, kind, status]
   );
 
   const openAuto = alerts.filter(
-    (a) => a.kind.toLowerCase() === "auto" && a.status.toLowerCase() === "new"
+    (a) => lc(a.kind) === "auto" && lc(a.status) === "new"
   ).length;
   const openManual = alerts.filter(
-    (a) => a.kind.toLowerCase() === "manual" && a.status.toLowerCase() === "new"
+    (a) => lc(a.kind) === "manual" && lc(a.status) === "new"
   ).length;
 
   const handleAck = async (id: number) => {
@@ -96,15 +101,15 @@ export function Alerts() {
       .finally(() => setSending(false));
   };
 
-  const statusBadge = (s: string) => {
-    const sl = s.toLowerCase();
+  const statusBadge = (s: string | null | undefined) => {
+    const sl = lc(s);
     if (sl === "new") return <Badge variant="danger" pulse>New Alert</Badge>;
     if (sl === "acked") return <Badge variant="warning">Acknowledged</Badge>;
     return <Badge variant="success">Resolved</Badge>;
   };
 
-  const kindBadge = (k: string) => {
-    const kl = k.toLowerCase();
+  const kindBadge = (k: string | null | undefined) => {
+    const kl = lc(k);
     if (kl === "auto") return <Badge variant="primary">Model Surge</Badge>;
     return <Badge variant="outline">Manual Broadcast</Badge>;
   };
@@ -136,27 +141,37 @@ export function Alerts() {
 
       {/* KPI Triage Metrics */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <MetricCard
-          title="Active Model Outbreak Alerts"
-          value={openAuto}
-          subtitle="Model surge thresholds breached"
-          variant={openAuto > 0 ? "critical" : "default"}
-          icon={<AlertTriangle size={16} />}
-        />
-        <MetricCard
-          title="Manual Field Broadcasts"
-          value={openManual}
-          subtitle="Direct emergency notices pending review"
-          variant={openManual > 0 ? "warning" : "default"}
-          icon={<Radio size={16} />}
-        />
-        <MetricCard
-          title="Total Resolved Alerts"
-          value={alerts.filter((a) => a.status.toLowerCase() === "resolved").length}
-          subtitle="Closed epidemiological incidents"
-          variant="success"
-          icon={<CheckCircle2 size={16} />}
-        />
+        {loading ? (
+          <>
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+          </>
+        ) : (
+          <>
+            <MetricCard
+              title="Active Model Outbreak Alerts"
+              value={openAuto}
+              subtitle="Model surge thresholds breached"
+              variant={openAuto > 0 ? "critical" : "default"}
+              icon={<AlertTriangle size={16} />}
+            />
+            <MetricCard
+              title="Manual Field Broadcasts"
+              value={openManual}
+              subtitle="Direct emergency notices pending review"
+              variant={openManual > 0 ? "warning" : "default"}
+              icon={<Radio size={16} />}
+            />
+            <MetricCard
+              title="Total Resolved Alerts"
+              value={alerts.filter((a) => lc(a.status) === "resolved").length}
+              subtitle="Closed epidemiological incidents"
+              variant="success"
+              icon={<CheckCircle2 size={16} />}
+            />
+          </>
+        )}
       </div>
 
       {/* Triage Toolbar */}
@@ -167,9 +182,9 @@ export function Alerts() {
             onChange={setStatus}
             tabs={[
               { id: "all", label: "All Alerts", count: alerts.length },
-              { id: "new", label: "New", count: alerts.filter((a) => a.status.toLowerCase() === "new").length },
-              { id: "acked", label: "Acknowledged", count: alerts.filter((a) => a.status.toLowerCase() === "acked").length },
-              { id: "resolved", label: "Resolved", count: alerts.filter((a) => a.status.toLowerCase() === "resolved").length },
+              { id: "new", label: "New", count: alerts.filter((a) => lc(a.status) === "new").length },
+              { id: "acked", label: "Acknowledged", count: alerts.filter((a) => lc(a.status) === "acked").length },
+              { id: "resolved", label: "Resolved", count: alerts.filter((a) => lc(a.status) === "resolved").length },
             ]}
           />
 
@@ -219,16 +234,12 @@ export function Alerts() {
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="py-12 text-center text-xs text-muted-foreground">
-                    Loading incident ledger...
-                  </TableCell>
-                </TableRow>
+                <TableRowSkeleton columns={6} rows={6} />
               ) : filtered.length === 0 ? (
                 <TableEmpty colSpan={6} message="No alerts match the selected triage filter." />
               ) : (
                 filtered.map((a) => {
-                  const isNew = a.status.toLowerCase() === "new";
+                  const isNew = lc(a.status) === "new";
                   return (
                     <TableRow
                       key={a.id}

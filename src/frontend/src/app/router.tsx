@@ -2,6 +2,7 @@ import { Suspense, lazy } from "react";
 import { Navigate, Outlet, createBrowserRouter } from "react-router";
 import { hasPermission, getRole, isAuthenticated } from "@/utils/auth";
 import { PERMISSIONS } from "@/constants/permissions";
+import { PageSkeleton } from "@/components/ui";
 
 const Layout = lazy(() => import("@/layouts/Layout").then((m) => ({ default: m.Layout })));
 const Login = lazy(() => import("@/features/auth/pages/Login").then((m) => ({ default: m.Login })));
@@ -44,7 +45,7 @@ function IntelligenceGate() {
 }
 
 const slice = (el: React.ReactNode) => (
-  <Suspense fallback={<p className="muted" style={{ padding: "32px", textAlign: "center" }}>Loading surveillance telemetry…</p>}>{el}</Suspense>
+  <Suspense fallback={<PageSkeleton />}>{el}</Suspense>
 );
 
 const guard = (permission: string, el: React.ReactNode) => ({
@@ -59,7 +60,7 @@ export const router = createBrowserRouter([
     element: <ProtectedRoute />,
     children: [
       {
-        element: <Suspense fallback={null}><Layout /></Suspense>,
+        element: <Suspense fallback={<PageSkeleton />}><Layout /></Suspense>,
         children: [
           { index: true, element: slice(<PermissionRoute permission={PERMISSIONS.dashboardView}><Dashboard /></PermissionRoute>) },
           {

@@ -157,10 +157,35 @@ export function Reports() {
 
           {/* Bulletin Print Preview */}
           {loading ? (
-            <Card className="p-8 space-y-4">
-              <Skeleton className="h-10 w-2/3" />
-              <Skeleton className="h-48 w-full" />
-              <Skeleton className="h-24 w-full" />
+            <Card className="p-8 space-y-6 bg-card border-border shadow-sm">
+              <div className="border-b border-border/80 pb-4 flex items-start gap-3.5">
+                <Skeleton className="h-11 w-11 rounded-md" />
+                <div className="space-y-2 flex-1">
+                  <Skeleton className="h-4 w-48" />
+                  <Skeleton className="h-6 w-72" />
+                  <Skeleton className="h-3 w-56" />
+                </div>
+              </div>
+              <div className="space-y-3">
+                <Skeleton className="h-4 w-36" />
+                <div className="rounded-xl border border-border p-3 space-y-2">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="flex justify-between py-1.5 border-b border-border/40">
+                      <Skeleton className="h-4 w-28" />
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-4 w-16" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-3 pt-2">
+                <Skeleton className="h-4 w-32" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Skeleton className="h-20 w-full" />
+                  <Skeleton className="h-20 w-full" />
+                </div>
+              </div>
             </Card>
           ) : (
             <Card className="p-8 space-y-6 bg-card border-border shadow-sm print:border-none print:shadow-none">
