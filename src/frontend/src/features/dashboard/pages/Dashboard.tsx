@@ -31,6 +31,7 @@ import {
   PageHeader,
   Skeleton,
 } from "@/components/ui";
+import { EpidemicBarGraph } from "@/features/dashboard/components/EpidemicBarGraph";
 
 const DISEASES = ["dengue", "leptospirosis", "ili", "asthma"] as const;
 
@@ -212,6 +213,13 @@ export function Dashboard() {
           </>
         )}
       </div>
+
+      {/* Full-Width Multi-Week Epidemiological Curve Bar Graph */}
+      {loading ? (
+        <Skeleton className="h-64 w-full" />
+      ) : (
+        <EpidemicBarGraph />
+      )}
 
       {/* Disease Surge Matrix Grid */}
       <div className="space-y-3">
