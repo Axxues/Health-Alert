@@ -5,7 +5,6 @@ import { isServerUnreachable, setSession } from "@/utils/auth";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import {
   Check,
-  Shield,
   Lock,
   User,
   ArrowRight,
@@ -34,7 +33,7 @@ export function Login() {
     setBusy(true);
     try {
       const data = await authApi.login({ username: "guest", password: "" });
-      setSession(data.token, data.role, data.permissions ?? []);
+      setSession(data.token, data.role, data.permissions ?? [], "guest");
       navigate("/");
     } catch (e) {
       fail(e);
@@ -47,7 +46,7 @@ export function Login() {
     setBusy(true);
     try {
       const data = await authApi.login({ username, password });
-      setSession(data.token, data.role, data.permissions ?? []);
+      setSession(data.token, data.role, data.permissions ?? [], username);
       navigate("/");
     } catch (err) {
       fail(err);
@@ -64,9 +63,11 @@ export function Login() {
 
         <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md shadow-primary/20">
-              <Shield size={20} strokeWidth={2.5} />
-            </div>
+            <img
+              src="/Health-Nology_StartupLogo_PSC11_2.png"
+              alt="HealthAlert Logo"
+              className="h-10 w-10 object-contain drop-shadow-md"
+            />
             <div>
               <span className="text-lg font-black tracking-tight text-foreground block">
                 HealthAlert
@@ -124,9 +125,11 @@ export function Login() {
       <div className="flex-1 flex flex-col justify-between p-6 sm:p-12 lg:p-16 relative bg-card">
         <div className="flex justify-between items-center md:justify-end">
           <div className="flex md:hidden items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-xs">
-              <Shield size={16} strokeWidth={2.5} />
-            </div>
+            <img
+              src="/Health-Nology_StartupLogo_PSC11_2.png"
+              alt="HealthAlert Logo"
+              className="h-8 w-8 object-contain"
+            />
             <span className="font-extrabold text-sm text-foreground">HealthAlert</span>
           </div>
           <ThemeToggle />

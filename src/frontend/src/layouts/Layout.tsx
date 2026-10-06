@@ -5,15 +5,13 @@ import {
   Search,
   LogOut,
   ChevronDown,
-  Shield,
   BookOpenCheck,
   ChevronRight,
-  Radio,
   User,
 } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { menuItems } from "@/constants/layout/menu/menu";
-import { clearSession, getRole, hasPermission } from "@/utils/auth";
+import { clearSession, getRole, getUsername, hasPermission } from "@/utils/auth";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { GuidelinesPanel } from "@/features/rag/components/GuidelinesPanel";
 import { CommandPalette } from "@/components/ui/CommandPalette";
@@ -32,6 +30,13 @@ function Profile() {
   }, []);
 
   const role = getRole() || "Surveillance Officer";
+  // ponytail: guest logs in as Admin role; label by username so header reads Guest Mode
+  const isGuest = (getUsername() ?? "").toLowerCase() === "guest";
+  const shortName = isGuest ? "Guest Mode" : "Dr. M. Santos";
+  const fullName = isGuest ? "Guest Mode" : "Dr. Maria Santos";
+  const email = isGuest ? "Demo access" : "mho.sanfernando@doh.gov.ph";
+  const initials = isGuest ? "G" : "MS";
+  const roleLabel = isGuest ? "Guest Mode" : role;
 
   return (
     <div ref={ref} className="relative">
@@ -42,11 +47,11 @@ function Profile() {
         className="flex items-center gap-2.5 rounded-lg border border-border/80 bg-card px-2.5 py-1.5 text-xs text-foreground hover:bg-muted/60 transition-colors cursor-pointer shadow-xs"
       >
         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
-          MS
+          {initials}
         </span>
         <div className="hidden sm:flex flex-col text-left leading-tight">
-          <span className="font-bold text-xs text-foreground">Dr. M. Santos</span>
-          <span className="text-[10px] text-muted-foreground">{role}</span>
+          <span className="font-bold text-xs text-foreground">{shortName}</span>
+          <span className="text-[10px] text-muted-foreground">{roleLabel}</span>
         </div>
         <ChevronDown
           size={13}
@@ -60,11 +65,11 @@ function Profile() {
           className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-border bg-card p-1.5 shadow-lg z-50 text-xs animate-in fade-in-0 zoom-in-95 duration-100"
         >
           <div className="px-3 py-2 border-b border-border/60 mb-1">
-            <div className="font-bold text-foreground">Dr. Maria Santos</div>
-            <div className="text-[11px] text-muted-foreground truncate">mho.sanfernando@doh.gov.ph</div>
+            <div className="font-bold text-foreground">{fullName}</div>
+            <div className="text-[11px] text-muted-foreground truncate">{email}</div>
             <div className="mt-1 inline-flex items-center gap-1 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
               <User size={10} />
-              {role}
+              {roleLabel}
             </div>
           </div>
           <button
@@ -172,17 +177,13 @@ export function Layout() {
 
           {/* Brand Logo */}
           <Link to="/" className="flex items-center gap-2.5 font-extrabold text-sm tracking-tight text-foreground hover:opacity-90 transition-opacity">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20 shadow-xs">
-              <Shield size={16} strokeWidth={2.5} />
-            </div>
+            <img
+              src="/Health-Nology_StartupLogo_PSC11_2.png"
+              alt="HealthAlert Logo"
+              className="h-7 w-7 object-contain drop-shadow-2xs"
+            />
             <span className="font-extrabold tracking-tight">HealthAlert</span>
           </Link>
-
-          {/* Operational Area Badge */}
-          <div className="hidden lg:flex items-center gap-1.5 rounded-full bg-muted/60 border border-border/80 px-2.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Region I · PIDSR Live</span>
-          </div>
 
           <div className="hidden md:flex h-4 w-px bg-border/80 mx-1" />
 
@@ -224,11 +225,6 @@ export function Layout() {
 
         {/* Right Section: Ticker, Theme Toggle, Profile */}
         <div className="flex items-center gap-3">
-          <div className="hidden xl:flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground">
-            <Radio size={12} className="text-emerald-500" />
-            <span>30 Sentinel Nodes Active</span>
-          </div>
-
           <ThemeToggle />
 
           <Profile />

@@ -166,17 +166,24 @@ export function Reports() {
             <Card className="p-8 space-y-6 bg-card border-border shadow-sm print:border-none print:shadow-none">
               {/* Regional Header */}
               <div className="border-b border-border/80 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="primary">Official DOH / LGU Surveillance Document</Badge>
-                    <span className="text-xs text-muted-foreground">Form PIDSR-W7</span>
+                <div className="flex items-start gap-3.5">
+                  <img
+                    src="/Health-Nology_StartupLogo_PSC11_2.png"
+                    alt="HealthAlert Logo"
+                    className="h-11 w-11 object-contain shrink-0 mt-0.5"
+                  />
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="primary">Official DOH / LGU Surveillance Document</Badge>
+                      <span className="text-xs text-muted-foreground">Form PIDSR-W7</span>
+                    </div>
+                    <h2 className="text-xl font-extrabold tracking-tight text-foreground">
+                      Weekly Epidemiological Bulletin
+                    </h2>
+                    <p className="text-xs text-muted-foreground">
+                      Epidemiological surveillance summary for the week beginning <span className="font-semibold text-foreground">{data?.week}</span>
+                    </p>
                   </div>
-                  <h2 className="text-xl font-extrabold tracking-tight text-foreground">
-                    Weekly Epidemiological Bulletin
-                  </h2>
-                  <p className="text-xs text-muted-foreground">
-                    Epidemiological surveillance summary for the week beginning <span className="font-semibold text-foreground">{data?.week}</span>
-                  </p>
                 </div>
                 <div className="text-left sm:text-right text-[11px] text-muted-foreground font-mono">
                   <div>Region I Health Office</div>
