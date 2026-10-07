@@ -43,9 +43,7 @@ const TILE_SERVERS: Record<"clean" | "dark" | "satellite", TileConfig> = {
   },
 };
 
-export {
-  getProvinceForSpot,
-  getMunicipalityForSpot,
+import {
   barangayCount,
   groupByMunicipality,
   groupByProvince,
@@ -53,7 +51,7 @@ export {
   shortForDisease,
 } from "./phMapUtils";
 
-import {
+export {
   getProvinceForSpot,
   getMunicipalityForSpot,
   barangayCount,
