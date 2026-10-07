@@ -1617,6 +1617,58 @@ a:hover {
   opacity: 0.92;
 }
 
+/* Barangay-specific compact node sizing to prevent collision */
+.gis-pulse-marker--brgy .gis-pulse-ring {
+  width: 26px;
+  height: 26px;
+}
+
+.gis-pulse-marker--brgy .gis-marker-badge {
+  width: 24px;
+  height: 24px;
+  border-width: 1.5px;
+}
+
+.gis-pulse-marker--brgy .gis-badge-code {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* Side-aligned label for barangay nodes to eliminate vertical overlap */
+.gis-marker-label--side {
+  position: absolute;
+  left: calc(100% + 5px);
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  background: var(--card);
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--hairline);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
+  pointer-events: none;
+  line-height: 1.35;
+  transition: all 0.15s ease;
+  backdrop-filter: blur(4px);
+  z-index: 10;
+}
+
+.gis-pulse--selected .gis-marker-label--side {
+  background: var(--primary, #2563eb);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+  font-weight: 800;
+}
+
 @keyframes gis-beacon {
   0% {
     transform: scale(0.6);
@@ -1713,18 +1765,25 @@ a:hover {
 
 html {
   scroll-behavior: smooth;
+  scrollbar-gutter: stable;
 }
 
 body.dashboard-drawer-open #root {
-  filter: blur(6px);
   pointer-events: none;
   user-select: none;
-  transition: filter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 body.dashboard-drawer-open main,
 body.dashboard-drawer-open {
   overflow: hidden !important;
+}
+
+/* ponytail: paint-level guarantee — no background scrollbar while drawer open */
+body.dashboard-drawer-open main {
+  scrollbar-width: none;
+}
+body.dashboard-drawer-open main::-webkit-scrollbar {
+  display: none;
 }
 
 

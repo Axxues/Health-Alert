@@ -28,11 +28,18 @@ public class DynamicHotspotTest
     }
 
     [Fact]
-    public async Task Quiet_places_drop_out()
+    public async Task Quiet_places_stay_visible_as_low_for_map_parity()
     {
         var ctx = TestDb.Create();
         await Seed.RunAsync(ctx);
         var spots = await HotspotsOf(ctx);
-        Assert.Empty(spots);
+        // ponytail: parity with LocationsAsync directory so intelligence rows always exist on the map
+        Assert.Equal(DemoHistorySeeder.Places.Length * DemoHistorySeeder.Diseases.Length, spots.Count);
+        Assert.All(spots, s => Assert.Equal("low", s.Level));
+        // barangay follows the directory row so the map can label nodes per barangay
+        var agoo = spots.Where(s => s.Muni == "Agoo" && s.Disease == "dengue").ToList();
+        var expected = DemoHistorySeeder.Places.Where(p => p.Municipality == "Agoo").Select(p => p.Barangay).ToHashSet();
+        Assert.Equal(expected, agoo.Select(s => s.Barangay).ToHashSet());
+        Assert.Contains("\"barangay\"", System.Text.Json.JsonSerializer.Serialize(agoo[0]));
     }
 }

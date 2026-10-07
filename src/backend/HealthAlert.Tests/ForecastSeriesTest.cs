@@ -98,14 +98,39 @@ public class ForecastSeriesTest
     {
         var (_, tools) = await SetupAsync();
         var rows = await tools.LocationsAsync(null, null, null, null, null);
-        var agoo = Assert.Single(rows, r => r.Municipality == "Agoo" && r.Disease == "dengue");
-        var dir = DemoHistorySeeder.Places.First(p => p.Municipality == "Agoo");
-        Assert.Equal(dir.Lat, agoo.Lat);
-        Assert.Equal(dir.Lng, agoo.Lng);
-        Assert.Equal(16.3217, agoo.Lat);
-        Assert.Equal(120.3647, agoo.Lng);
-        Assert.Contains("\"lat\"", JsonSerializer.Serialize(agoo));
-        Assert.Contains("\"lng\"", JsonSerializer.Serialize(agoo));
+        var agoo = rows.Where(r => r.Municipality == "Agoo" && r.Disease == "dengue").ToList();
+        Assert.NotEmpty(agoo);
+        Assert.All(agoo, r =>
+        {
+            var dir = DemoHistorySeeder.Places.First(p => p.Municipality == "Agoo" && p.Barangay == r.Barangay);
+            Assert.Equal(dir.Lat, r.Lat);
+            Assert.Equal(dir.Lng, r.Lng);
+            Assert.Contains("\"lat\"", JsonSerializer.Serialize(r));
+            Assert.Contains("\"lng\"", JsonSerializer.Serialize(r));
+        });
+        var sanNicolas = Assert.Single(agoo, r => r.Barangay == "San Nicolas");
+        Assert.Equal(16.3217, sanNicolas.Lat);
+        Assert.Equal(120.3647, sanNicolas.Lng);
+    }
+
+    [Fact]
+    public async Task Series_barangay_filter_sums_only_matching_barangay()
+    {
+        var (ctx, tools) = await SetupAsync();
+        var did = await ctx.Diseases.Where(d => d.Code == "dengue").Select(d => d.Id).FirstAsync();
+        var today = DateTime.UtcNow.Date;
+        var monday = today.AddDays(-(((int)today.DayOfWeek + 6) % 7));
+        for (int i = 0; i < 3; i++)
+        {
+            var weekStart = monday.AddDays(-7 * (2 - i));
+            ctx.Cases.Add(new TblCase { DiseaseId = did, SourceKey = $"Agoo|San Nicolas|RHU|2026-W3{8 + i}|dengue", Count = 4, ReportedAt = weekStart });
+            ctx.Cases.Add(new TblCase { DiseaseId = did, SourceKey = $"Agoo|Poblacion|RHU|2026-W3{8 + i}|dengue", Count = 6, ReportedAt = weekStart });
+        }
+        await ctx.SaveChangesAsync();
+        var filtered = await tools.SeriesAsync("Agoo", "dengue", "San Nicolas");
+        var all = await tools.SeriesAsync("Agoo", "dengue");
+        Assert.Equal(12, filtered.Weeks.Where(w => !w.IsFuture).Sum(w => w.Actual ?? 0));
+        Assert.Equal(30, all.Weeks.Where(w => !w.IsFuture).Sum(w => w.Actual ?? 0));
     }
 
     [Fact]

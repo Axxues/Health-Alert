@@ -1,1 +1,90 @@
-﻿{"name":"alert-fanout","nodes":[{"name":"webhook-forecast-done","type":"n8n-nodes-base.webhook","parameters":{"path":"alert-fanout","httpMethod":"POST"},"position":[0,0],"typeVersion":1,"id":"2663b804-2563-466d-b474-039a29102b72"},{"name":"fetch-normalize","type":"n8n-nodes-base.set","parameters":{"values":{"string":[{"name":"channel","value":"sms,email,signalr"}]}},"position":[200,0],"typeVersion":1,"id":"8da56b58-28ed-4eb6-80fc-f0a1c27d4053"},{"name":"POST alerts fanout","type":"n8n-nodes-base.httpRequest","parameters":{"method":"GET","url":"http://host.docker.internal:5109/api/alerts"},"position":[400,0],"typeVersion":1,"id":"8b105d5c-550a-4b1e-8f29-6aead68ee405"}],"connections":{"fetch-normalize":{"main":[[{"node":"POST alerts fanout","type":"main","index":0}]]},"webhook-forecast-done":{"main":[[{"node":"fetch-normalize","type":"main","index":0}]]}},"settings":{"executionOrder":"v1"}}
+{
+  "name": "alert-fanout",
+  "nodes": [
+    {
+      "id": "fanout-cron",
+      "name": "cron-10min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 10
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "fanout-webhook",
+      "name": "webhook-trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        150
+      ],
+      "parameters": {
+        "path": "alert-fanout",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      }
+    },
+    {
+      "id": "fanout-fetch",
+      "name": "GET Active Alerts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        300,
+        50
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "http://host.docker.internal:5109/api/alerts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Cron-Key",
+              "value": "dev-cron-key"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "cron-10min": {
+      "main": [
+        [
+          {
+            "node": "GET Active Alerts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "webhook-trigger": {
+      "main": [
+        [
+          {
+            "node": "GET Active Alerts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

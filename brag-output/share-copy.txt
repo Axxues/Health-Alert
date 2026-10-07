@@ -1,0 +1,2 @@
+Health Alert (BantayHealthAI): real-time outbreak prediction for Philippine LGUs.
+276 sentinel nodes, bi-LSTM surge forecasts, and a triage ledger that gets the alert out. Today's outbreak outlook, before the clinic opens.

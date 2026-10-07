@@ -3,9 +3,9 @@ import { computeChartScales } from "./PredictionGraph";
 import type { TimelineWeek } from "@/services/forecast/types/forecast.types";
 
 const mockTimeline: TimelineWeek[] = [
-  { weekNumber: 31, weekLabel: "W31", isFuture: false, actualCases: 12, predictedCases: 11, ciLower: 9, ciUpper: 14 },
-  { weekNumber: 32, weekLabel: "W32", isFuture: false, actualCases: 18, predictedCases: 17, ciLower: 14, ciUpper: 21 },
-  { weekNumber: 33, weekLabel: "W33", isFuture: true, actualCases: null, predictedCases: 25, ciLower: 20, ciUpper: 30 },
+  { weekNumber: 31, weekLabel: "Aug 4–10 · Observed", shortLabel: "Aug 4", isFuture: false, actualCases: 12, predictedCases: 11, ciLower: 9, ciUpper: 14 },
+  { weekNumber: 32, weekLabel: "Aug 11–17 · Observed", shortLabel: "Aug 11", isFuture: false, actualCases: 18, predictedCases: 17, ciLower: 14, ciUpper: 21 },
+  { weekNumber: 33, weekLabel: "Aug 18–24 · Projected", shortLabel: "Aug 18", isFuture: true, actualCases: null, predictedCases: 25, ciLower: 20, ciUpper: 30 },
 ];
 
 describe("PredictionGraph helpers", () => {

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en" data-resolution="landscape">
+  <head><script data-hf-gsap-fallback>
+(function(){
+  var cdnBase="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/";
+  var loaded={};
+  function loadFallback(file){
+    if(loaded[file])return loaded[file];
+    return loaded[file]=new Promise(function(ok,fail){
+      var s=document.createElement("script");
+      s.src=cdnBase+file;s.onload=ok;s.onerror=fail;
+      document.head.appendChild(s);
+    });
+  }
+  document.addEventListener("error",function(e){
+    var t=e.target;
+    if(!t||t.tagName!=="SCRIPT"||!t.src)return;
+    var m=t.src.match(/gsap[^/]*\/dist\/(.+\.js)/);
+    if(m)loadFallback(m[1]);
+  },true);
+})();
+</script>
+<meta name="hyperframes-studio-preview">
+<base href="/api/projects/composition/preview/"><style data-hyperframes-text-rendering="true">html,body,*{text-rendering:geometricPrecision}</style><script data-hf-after-fonts-fallback="">document.addEventListener("DOMContentLoaded", function () {
+  if (window.__hfAfterFontsClaimed) return;
+  var T = "text/hf-after-fonts";
+  var all = [].slice.call(document.querySelectorAll('script[type="text/hf-after-fonts"], script[type="text/hf-after-fonts+module"]'));
+  if (!all.length) return;
+  console.warn("[hyperframes] the runtime has no web-font gate; composition scripts run without waiting for fonts");
+  var late = function (el) { return el.type !== T || el.matches('[defer][src], [defer][data-hf-inlined-src]'); };
+  var queue = all.filter(function (el) { return !late(el); }).concat(all.filter(late));
+  (function next() {
+    var el = queue.shift();
+    if (!el) return;
+    var s = document.createElement("script");
+    for (var i = 0; i < el.attributes.length; i++) s.setAttribute(el.attributes[i].name, el.attributes[i].value);
+    if (el.type === T) s.removeAttribute("type"); else s.type = "module";
+    s.async = el.hasAttribute("async");
+    s.text = el.text;
+    var waits = s.type !== "module" && s.hasAttribute("src") && !s.async && !s.noModule;
+    if (waits) { s.addEventListener("load", next); s.addEventListener("error", next); }
+    el.replaceWith(s);
+    if (!waits) next();
+  })();
+});
+//# sourceURL=hyperframes://after-fonts-fallback</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Plus Jakarta Sans";
+        src: url("assets/fonts/plus-jakarta-sans.woff2") format("woff2");
+        font-weight: 200 800;
+        font-display: swap;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        margin: 0; width: 1920px; height: 1080px; overflow: hidden;
+        background: #111726;
+        font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+      }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; }
+      .clip { position: absolute; inset: 0; }
+      .scene-inner { position: absolute; inset: 0; }
+
+      /* ---------- Scene 1 : threat ---------- */
+      #s1-bg { position: absolute; inset: 0; background: #111726; }
+      #s1-ring {
+        position: absolute; left: 896px; top: 216px; width: 128px; height: 128px;
+        border-radius: 50%; border: 3px solid #dc2626; display: block;
+      }
+      #s1-core {
+        position: absolute; left: 948px; top: 268px; width: 24px; height: 24px;
+        border-radius: 50%; background: #dc2626; display: block;
+        box-shadow: 0 0 40px rgba(220, 38, 38, 0.8);
+      }
+      #s1-hook {
+        position: absolute; left: 0; top: 420px; width: 1920px; text-align: center;
+        color: #f8fafc; font-size: 72px; font-weight: 800; letter-spacing: -0.02em;
+        display: block;
+      }
+      #s1-sub {
+        position: absolute; left: 0; top: 530px; width: 1920px; text-align: center;
+        color: #94a3b8; font-size: 26px; font-weight: 500; letter-spacing: 0.06em;
+        display: block;
+      }
+
+      /* ---------- Shared light chrome ---------- */
+      .light-bg { position: absolute; inset: 0; background: #f8fafc; }
+      .topbar {
+        position: absolute; left: 80px; top: 36px; width: 1760px; height: 72px;
+        display: flex; align-items: center; gap: 16px;
+      }
+      .brand-dot { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #2563eb, #3b82f6); display: block; }
+      .brand-name { color: #020617; font-size: 30px; font-weight: 800; letter-spacing: -0.015em; }
+      .live-badge {
+        display: inline-flex; align-items: center; gap: 8px;
+        font-size: 18px; font-weight: 700; letter-spacing: 0.05em;
+        padding: 6px 18px; border-radius: 9999px;
+        background: rgba(21, 128, 61, 0.1); color: #147a3a;
+        border: 1px solid rgba(21, 128, 61, 0.25);
+      }
+      .live-dot { width: 12px; height: 12px; border-radius: 50%; background: #15803d; display: block; }
+
+      /* ---------- Scene 2 : command center ---------- */
+      #s2-title {
+        position: absolute; left: 80px; top: 150px; width: 1760px;
+        color: #020617; font-size: 64px; font-weight: 800; letter-spacing: -0.025em;
+        display: block;
+      }
+      #s2-desc {
+        position: absolute; left: 80px; top: 240px; width: 1760px;
+        color: #64748b; font-size: 26px; font-weight: 500; display: block;
+      }
+      .stat-card {
+        position: absolute; top: 330px; width: 520px; height: 210px;
+        background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px;
+        border-left-width: 8px; padding: 32px 36px; display: block;
+      }
+      #s2-c1 { left: 80px; border-left-color: #2563eb; }
+      #s2-c2 { left: 700px; border-left-color: #dc2626; }
+      #s2-c3 { left: 1320px; border-left-color: #d97706; }
+      .stat-num { color: #020617; font-size: 84px; font-weight: 800; letter-spacing: -0.025em; line-height: 1; display: block; }
+      .stat-lbl { color: #64748b; font-size: 24px; font-weight: 600; margin-top: 12px; display: block; }
+      #s2-bars {
+        position: absolute; left: 80px; top: 600px; width: 1760px; height: 340px;
+        background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px;
+        padding: 36px 48px; display: block;
+      }
+      #s2-bars-title { color: #020617; font-size: 28px; font-weight: 700; display: block; }
+      #s2-bar-row { display: flex; align-items: flex-end; gap: 28px; height: 200px; margin-top: 20px; }
+      .ebar { display: block; flex: 1; border-radius: 10px 10px 4px 4px; transform-origin: bottom; }
+      .ebar.red { background: linear-gradient(180deg, #dc2626, #b91c1c); }
+      .ebar.amber { background: linear-gradient(180deg, #d97706, #b45309); }
+
+      /* ---------- Scene 3 : map + broadcast ---------- */
+      #s3-map {
+        position: absolute; left: 80px; top: 140px; width: 1060px; height: 860px;
+        background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; display: block;
+      }
+      #s3-map-title { position: absolute; left: 40px; top: 28px; color: #020617; font-size: 30px; font-weight: 700; }
+      .marker { position: absolute; width: 0; height: 0; display: block; }
+      .marker-ring {
+        position: absolute; left: -32px; top: -32px; width: 64px; height: 64px;
+        border-radius: 50%; border: 3px solid currentColor; display: block;
+      }
+      .marker-badge {
+        position: absolute; left: -22px; top: -22px; width: 44px; height: 44px;
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        color: #ffffff; font-size: 17px; font-weight: 800; border: 3px solid #ffffff;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+      }
+      .marker-lbl {
+        position: absolute; left: 30px; top: -20px; white-space: nowrap;
+        font-size: 22px; font-weight: 700; color: #020617; background: #ffffff;
+        padding: 4px 12px; border-radius: 8px; border: 1px solid #e2e8f0;
+      }
+      #s3-rail { position: absolute; left: 1220px; top: 140px; width: 620px; display: block; }
+      #s3-flag {
+        background: #ffffff; border: 2px solid rgba(220, 38, 38, 0.4); border-radius: 16px;
+        padding: 32px 36px; display: block;
+      }
+      #s3-flag-tag {
+        display: inline-block; font-size: 22px; font-weight: 800; letter-spacing: 0.05em;
+        color: #b91c1c; background: #fee2e2; border: 1px solid rgba(220,38,38,0.3);
+        padding: 6px 18px; border-radius: 9999px;
+      }
+      #s3-flag-place { color: #020617; font-size: 44px; font-weight: 800; letter-spacing: -0.02em; margin-top: 16px; display: block; }
+      #s3-flag-sub { color: #64748b; font-size: 26px; font-weight: 500; margin-top: 8px; display: block; }
+      #s3-btn {
+        margin-top: 32px; width: 420px; height: 88px; border-radius: 9999px;
+        background: #2563eb; color: #ffffff; font-size: 30px; font-weight: 700;
+        display: flex; align-items: center; justify-content: center;
+      }
+      #s3-status { position: relative; margin-top: 28px; height: 64px; display: block; }
+      .status-pill {
+        position: absolute; left: 0; top: 0;
+        display: inline-flex; align-items: center; gap: 10px;
+        font-size: 24px; font-weight: 700; padding: 12px 28px; border-radius: 9999px;
+      }
+      #s3-sent { color: #1d4ed8; background: #dbeafe; border: 1px solid rgba(37,99,235,0.3); }
+      #s3-acked { color: #15803d; background: #dcfce7; border: 1px solid rgba(21,128,61,0.3); opacity: 0; }
+      #s3-cursor {
+        position: absolute; left: 900px; top: 720px; width: 34px; height: 34px;
+        border-radius: 50%; background: #2563eb; border: 4px solid #ffffff;
+        box-shadow: 0 4px 16px rgba(37, 99, 235, 0.5); display: block;
+      }
+
+      /* ---------- Scene 4 : lockup ---------- */
+      #s4-diseases {
+        position: absolute; left: 0; top: 300px; width: 1920px; text-align: center;
+        color: #64748b; font-size: 28px; font-weight: 600; letter-spacing: 0.14em; display: block;
+      }
+      #s4-glow {
+        position: absolute; left: 460px; top: 380px; width: 1000px; height: 220px;
+        background: radial-gradient(ellipse at center, rgba(37,99,235,0.16), rgba(37,99,235,0) 70%);
+        display: block; opacity: 0;
+      }
+      #s4-name {
+        position: absolute; left: 0; top: 400px; width: 1920px; text-align: center;
+        color: #020617; font-size: 150px; font-weight: 800; letter-spacing: -0.03em;
+        display: block;
+      }
+      #s4-tag {
+        position: absolute; left: 0; top: 600px; width: 1920px; text-align: center;
+        color: #2563eb; font-size: 44px; font-weight: 700; letter-spacing: -0.01em; display: block;
+      }
+    </style>
+  
+<script data-hyperframes-preview-runtime="1" src="/api/runtime.js"></script>
+<meta name="hyperframes-project-signature" content="19dd885f79d3f826e3b9017f">
+</head>
+  <body>
+    <div data-hf-id="hf-at0g" id="root" data-composition-id="main" data-start="0" data-width="1920" data-height="1080" data-duration="20">
+
+      <!-- Scene 1 : threat 0-3 -->
+      <section data-hf-id="hf-cp1n" id="s1" class="clip" data-start="0" data-duration="3" data-track-index="0">
+        <div data-hf-id="hf-bbya" class="scene-inner" id="s1-inner">
+          <div data-hf-id="hf-g82b" id="s1-bg"></div>
+          <div data-hf-id="hf-8wys" id="s1-ring"></div>
+          <div data-hf-id="hf-ipkj" id="s1-core"></div>
+          <div data-hf-id="hf-sd4i" id="s1-hook">Outbreaks don’t announce themselves.</div>
+          <div data-hf-id="hf-fo3z" id="s1-sub">PHILIPPINE NATIONAL SENTINEL NETWORK · PIDSR/EDCS</div>
+        </div>
+      </section>
+
+      <!-- Scene 2 : command center 3-8 -->
+      <section data-hf-id="hf-dw7r" id="s2" class="clip" data-start="3" data-duration="5" data-track-index="0">
+        <div data-hf-id="hf-gs0d" class="scene-inner" id="s2-inner">
+          <div data-hf-id="hf-8drw" class="light-bg"></div>
+          <div data-hf-id="hf-mndw" class="topbar">
+            <span data-hf-id="hf-i9p2" class="brand-dot"></span>
+            <span data-hf-id="hf-bxho" class="brand-name">Health Alert</span>
+            <span data-hf-id="hf-a2kz" class="live-badge"><span data-hf-id="hf-d399" class="live-dot"></span>LIVE</span>
+          </div>
+          <div data-hf-id="hf-xbn0" id="s2-title">Surveillance Command Center</div>
+          <div data-hf-id="hf-93m8" id="s2-desc">Multi-syndromic telemetry across the sentinel network — dengue, leptospirosis, flu-like illness, asthma.</div>
+          <div data-hf-id="hf-fqpx" class="stat-card" id="s2-c1"><span data-hf-id="hf-mfwk" class="stat-num">4</span><span data-hf-id="hf-neeg" class="stat-lbl">Diseases under watch</span></div>
+          <div data-hf-id="hf-lwfq" class="stat-card" id="s2-c2"><span data-hf-id="hf-mu7l" class="stat-num">3</span><span data-hf-id="hf-9380" class="stat-lbl">High Outbreak Risk</span></div>
+          <div data-hf-id="hf-pujr" class="stat-card" id="s2-c3"><span data-hf-id="hf-m1lj" class="stat-num">5</span><span data-hf-id="hf-3uw7" class="stat-lbl">Elevated Watch</span></div>
+          <div data-hf-id="hf-9jg1" id="s2-bars">
+            <span data-hf-id="hf-fnfo" id="s2-bars-title">Epidemic curve — this week</span>
+            <div data-hf-id="hf-6of5" id="s2-bar-row">
+              <span data-hf-id="hf-hzp5" class="ebar amber" style="height: 42px"></span>
+              <span data-hf-id="hf-6jo9" class="ebar amber" style="height: 68px"></span>
+              <span data-hf-id="hf-6wod" class="ebar amber" style="height: 55px"></span>
+              <span data-hf-id="hf-dn7g" class="ebar amber" style="height: 90px"></span>
+              <span data-hf-id="hf-m7au" class="ebar red" style="height: 120px"></span>
+              <span data-hf-id="hf-r87j" class="ebar red" style="height: 150px"></span>
+              <span data-hf-id="hf-tzjh" class="ebar red" style="height: 185px"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scene 3 : catch it, broadcast it 8-16 -->
+      <section data-hf-id="hf-7ymu" id="s3" class="clip" data-start="8" data-duration="8" data-track-index="0">
+        <div data-hf-id="hf-tktc" class="scene-inner" id="s3-inner">
+          <div data-hf-id="hf-8pbo" class="light-bg"></div>
+          <div data-hf-id="hf-qwf0" class="topbar">
+            <span data-hf-id="hf-k48q" class="brand-dot"></span>
+            <span data-hf-id="hf-4twk" class="brand-name">Health Alert</span>
+            <span data-hf-id="hf-d62b" class="live-badge"><span data-hf-id="hf-3a35" class="live-dot"></span>LIVE</span>
+          </div>
+          <div data-hf-id="hf-yldm" id="s3-map">
+            <span data-hf-id="hf-lkir" id="s3-map-title">Risk map — La Union sentinel cluster</span>
+            <svg data-hf-id="hf-kfuz" id="s3-dots" width="1060" height="860" viewBox="0 0 1060 860">
+              <g data-hf-id="hf-m7hy" fill="#cbd5e1">
+                <circle data-hf-id="hf-8f4f" cx="520" cy="120" r="9" /><circle data-hf-id="hf-4pqk" cx="560" cy="170" r="9" />
+                <circle data-hf-id="hf-lyuq" cx="505" cy="230" r="9" /><circle data-hf-id="hf-gnm1" cx="555" cy="290" r="9" />
+                <circle data-hf-id="hf-oht7" cx="600" cy="350" r="9" /><circle data-hf-id="hf-nbs1" cx="540" cy="410" r="9" />
+                <circle data-hf-id="hf-ur5m" cx="590" cy="470" r="9" /><circle data-hf-id="hf-acc0" cx="520" cy="530" r="9" />
+                <circle data-hf-id="hf-xsss" cx="580" cy="590" r="9" /><circle data-hf-id="hf-tyfs" cx="505" cy="650" r="9" />
+                <circle data-hf-id="hf-ny5o" cx="560" cy="710" r="9" /><circle data-hf-id="hf-7vbg" cx="620" cy="760" r="9" />
+              </g>
+            </svg>
+            <div data-hf-id="hf-iz11" class="marker" id="s3-m1" style="left: 520px; top: 230px; color: #dc2626;">
+              <span data-hf-id="hf-al2m" class="marker-ring"></span>
+              <span data-hf-id="hf-tbp7" class="marker-badge" style="background: #b91c1c;">SF</span>
+              <span data-hf-id="hf-5xku" class="marker-lbl">San Fernando City</span>
+            </div>
+            <div data-hf-id="hf-z4o3" class="marker" id="s3-m2" style="left: 590px; top: 470px; color: #d97706;">
+              <span data-hf-id="hf-u1wy" class="marker-ring"></span>
+              <span data-hf-id="hf-08lv" class="marker-badge" style="background: #92400e;">AG</span>
+              <span data-hf-id="hf-q6ks" class="marker-lbl">Agoo</span>
+            </div>
+            <div data-hf-id="hf-2xna" class="marker" id="s3-m3" style="left: 560px; top: 710px; color: #2563eb;">
+              <span data-hf-id="hf-ug7z" class="marker-ring"></span>
+              <span data-hf-id="hf-xiyf" class="marker-badge" style="background: #2563eb;">SJ</span>
+              <span data-hf-id="hf-76ce" class="marker-lbl">San Juan</span>
+            </div>
+          </div>
+          <div data-hf-id="hf-8zyo" id="s3-rail">
+            <div data-hf-id="hf-vfse" id="s3-flag">
+              <span data-hf-id="hf-ly2u" id="s3-flag-tag">HIGH OUTBREAK RISK</span>
+              <span data-hf-id="hf-bmdq" id="s3-flag-place">Dengue · San Fernando City</span>
+              <span data-hf-id="hf-b97c" id="s3-flag-sub">Probability 92% — review today</span>
+            </div>
+            <div data-hf-id="hf-k8bp" id="s3-btn">Broadcast alert</div>
+            <div data-hf-id="hf-9sr6" id="s3-status" data-layout-allow-overlap="">
+              <span data-hf-id="hf-gl9v" class="status-pill" id="s3-sent">Sent to LGU</span>
+              <span data-hf-id="hf-asvz" class="status-pill" id="s3-acked">Acknowledged ✓</span>
+            </div>
+          </div>
+          <div data-hf-id="hf-xmsm" id="s3-cursor"></div>
+        </div>
+      </section>
+
+      <!-- Scene 4 : lockup 16-20 -->
+      <section data-hf-id="hf-p7om" id="s4" class="clip" data-start="16" data-duration="4" data-track-index="0">
+        <div data-hf-id="hf-qvcj" class="scene-inner" id="s4-inner">
+          <div data-hf-id="hf-7iel" class="light-bg"></div>
+          <div data-hf-id="hf-prgp" id="s4-diseases">DENGUE · LEPTOSPIROSIS · ILI · ASTHMA</div>
+          <div data-hf-id="hf-cl7a" id="s4-glow"></div>
+          <div data-hf-id="hf-i752" id="s4-name">Health Alert.</div>
+          <div data-hf-id="hf-878v" id="s4-tag">See it before it spreads.</div>
+        </div>
+      </section>
+
+      <!-- Audio -->
+      <audio data-hf-id="hf-l277" id="music" src="assets/music/happy-beats-business-moves-vol-12-by-ende-dot-app.mp3" data-start="0" data-duration="20" data-track-index="10" data-automation="{&quot;version&quot;:1,&quot;lanes&quot;:[{&quot;target&quot;:&quot;volume&quot;,&quot;points&quot;:[{&quot;t&quot;:0,&quot;v&quot;:0},{&quot;t&quot;:1.2,&quot;v&quot;:0.3},{&quot;t&quot;:18,&quot;v&quot;:0.3},{&quot;t&quot;:20,&quot;v&quot;:0}]}]}" data-end="20"></audio>
+      <audio data-hf-id="hf-8sb4" id="sfx-pulse" src="assets/sfx/impactSoft_medium_004.ogg" data-start="0.15" data-duration="0.15" data-track-index="11" data-volume="0.6" data-end="0.3"></audio>
+      <audio data-hf-id="hf-338f" id="sfx-dash" src="assets/sfx/impactSoft_medium_001.ogg" data-start="2.95" data-duration="0.19" data-track-index="12" data-volume="0.6" data-end="3.14"></audio>
+      <audio data-hf-id="hf-n6b3" id="sfx-click" src="assets/sfx/click_003.ogg" data-start="11.5" data-duration="0.05" data-track-index="13" data-volume="0.7" data-end="11.55"></audio>
+      <audio data-hf-id="hf-jf1n" id="sfx-bell" src="assets/sfx/impactBell_heavy_000.ogg" data-start="13.2" data-duration="1.49" data-track-index="14" data-volume="0.65" data-end="14.69"></audio>
+      <audio data-hf-id="hf-kqdn" id="sfx-outro" src="assets/sfx/bong_001.ogg" data-start="16.5" data-duration="0.13" data-track-index="15" data-volume="0.6" data-end="16.63"></audio>
+
+    </div>
+    
+  <script type="text/hf-after-fonts">const tl = gsap.timeline({ paused: true });
+tl.fromTo("#s1-ring", { scale: 0.5, opacity: 0.9 }, { scale: 1.6, opacity: 0, duration: 1, ease: "power1.out", repeat: 2 }, 0.2);
+tl.fromTo("#s1-core", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "power2.out" }, 0.2);
+tl.fromTo("#s1-hook", { y: 28, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.4);
+tl.fromTo("#s1-sub", { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.9);
+tl.to("#s1-inner", { opacity: 0, duration: 0.4, ease: "power1.in" }, 2.6);
+tl.fromTo("#s2-inner", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power1.out" }, 3);
+tl.fromTo("#s2-title", { y: 26, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 3.1);
+tl.fromTo("#s2-desc", { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 3.25);
+tl.fromTo("#s2-c1", { y: 34, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 3.27);
+tl.fromTo("#s2-c2", { y: 34, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 3.82);
+tl.fromTo("#s2-c3", { y: 34, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 4.39);
+tl.fromTo(".ebar", { scaleY: 0 }, { scaleY: 1, duration: 0.7, ease: "power3.out", stagger: 0.09 }, 5.2);
+tl.to("#s2-inner", { opacity: 0, duration: 0.4, ease: "power1.in" }, 7.6);
+tl.fromTo("#s3-inner", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power1.out" }, 8);
+tl.fromTo("#s3-m1", { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.6)" }, 8.3);
+tl.fromTo("#s3-m2", { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.6)" }, 8.5);
+tl.fromTo("#s3-m3", { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.6)" }, 8.7);
+tl.fromTo("#s3-flag", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 8.74);
+tl.fromTo("#s3-m1 .marker-ring", { scale: 0.5, opacity: 0.9 }, { scale: 1.6, opacity: 0, duration: 1.8, ease: "power1.out", repeat: 3 }, 8.8);
+tl.fromTo("#s3-btn", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 9.4);
+tl.fromTo("#s3-cursor", { x: 0, y: 0, opacity: 0 }, { x: 0, y: 0, opacity: 1, duration: 0.3, ease: "power1.out" }, 10.6);
+tl.to("#s3-cursor", { x: 520, y: -214, duration: 0.8, ease: "power2.inOut" }, 10.9);
+tl.to("#s3-btn", { scale: 0.94, duration: 0.12, ease: "power2.in", transformOrigin: "center" }, 11.7);
+tl.to("#s3-btn", { scale: 1, duration: 0.2, ease: "power2.out" }, 11.82);
+tl.fromTo("#s3-sent", { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 12.1);
+tl.to("#s3-sent", { opacity: 0, duration: 0.25, ease: "power1.in" }, 13.3);
+tl.fromTo("#s3-acked", { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 13.35);
+tl.to("#s3-inner", { opacity: 0, duration: 0.4, ease: "power1.in" }, 15.6);
+tl.fromTo("#s4-inner", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power1.out" }, 16);
+tl.fromTo("#s4-diseases", { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 16.3);
+tl.fromTo("#s4-name", { y: 34, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 16.6);
+tl.fromTo("#s4-glow", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power1.out" }, 17.47);
+tl.fromTo("#s4-tag", { y: 22, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 17.7);
+window.__timelines["main"] = tl;</script></body>
+</html>

@@ -81,4 +81,13 @@ public class ForecastGetTools(HealthAlertDbContext ctx, ModelRegistryTools reg)
         "asthma" => new(0.6, new HiAqiForecaster().Band(103, 60), ["aqi", "heat-index"]),
         _ => new(new DengueForecaster().Probability([10, 12, 11], [30, 70]), "Caution", ["cases", "temperature", "rainfall"]),
     };
+
+    // ponytail: naive no-model fallback wired to the row's real counts + live covariates (zero activity -> near zero); train/promote a fitted model when accuracy matters
+    internal static double FallbackProbability(string? disease, double cur, double prv, double rain, double temp, double aqi) => disease switch
+    {
+        "ili" => new ArgoForecaster().Probability([prv, cur], [prv, cur]),
+        "leptospirosis" => Math.Min(0.97, ((cur + prv) / 2 + rain * 0.05) / 50),
+        "asthma" => Math.Min(0.97, ((cur + prv) / 2 + aqi * 0.05) / 50),
+        _ => new DengueForecaster().Probability([prv, cur], [rain, temp]),
+    };
 }

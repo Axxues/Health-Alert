@@ -1,1 +1,122 @@
-﻿{"name":"forecast-orchestrator","nodes":[{"name":"webhook-ingest-done","type":"n8n-nodes-base.webhook","parameters":{"path":"forecast-run","httpMethod":"POST"},"position":[0,0],"typeVersion":1,"id":"f27d718d-77e6-43be-868e-05425b8685d4"},{"name":"fetch-normalize","type":"n8n-nodes-base.set","parameters":{"values":{"string":[{"name":"disease","value":"={{$json.disease}}"}]}},"position":[200,0],"typeVersion":1,"id":"b94b714e-556b-4355-b5c3-54c4b101bf35"},{"name":"POST forecast/run","type":"n8n-nodes-base.httpRequest","parameters":{"method":"POST","url":"http://host.docker.internal:5109/api/forecast/run","sendBody":true,"specifyBody":"json","jsonBody":"={{$json}}"},"position":[400,0],"typeVersion":1,"id":"7b798485-4979-40f6-940d-0e3377c16dac"}],"connections":{"webhook-ingest-done":{"main":[[{"node":"fetch-normalize","type":"main","index":0}]]},"fetch-normalize":{"main":[[{"node":"POST forecast/run","type":"main","index":0}]]}},"settings":{"executionOrder":"v1"}}
+{
+  "name": "forecast-orchestrator",
+  "nodes": [
+    {
+      "id": "forecast-cron",
+      "name": "cron-daily",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "forecast-webhook",
+      "name": "webhook-trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        150
+      ],
+      "parameters": {
+        "path": "forecast-run",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      }
+    },
+    {
+      "id": "forecast-plan",
+      "name": "Plan Nationwide Forecast Matrix",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        250,
+        50
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "\n// Orchestrate predictive forecast across all 4 diseases for key metropolitan hubs in the Philippines\nconst runs = [\n  // NCR\n  { disease: 'dengue', muni: 'Quezon City' },\n  { disease: 'leptospirosis', muni: 'City of Manila' },\n  { disease: 'ili', muni: 'Caloocan City' },\n  { disease: 'asthma', muni: 'Pasig City' },\n\n  // Visayas\n  { disease: 'dengue', muni: 'Cebu City' },\n  { disease: 'dengue', muni: 'Iloilo City' },\n  { disease: 'leptospirosis', muni: 'Mandaue City' },\n\n  // Mindanao\n  { disease: 'dengue', muni: 'Davao City' },\n  { disease: 'ili', muni: 'Davao City' },\n  { disease: 'dengue', muni: 'Cagayan de Oro City' },\n\n  // Luzon\n  { disease: 'dengue', muni: 'City of San Fernando (Pampanga)' },\n  { disease: 'ili', muni: 'Baguio City' },\n  { disease: 'asthma', muni: 'Baguio City' },\n  { disease: 'dengue', muni: 'San Fernando City (La Union)' },\n  { disease: 'leptospirosis', muni: 'Agoo' },\n  { disease: 'ili', muni: 'Laoag City' }\n];\n\nreturn runs.map(r => ({ json: r }));\n"
+      }
+    },
+    {
+      "id": "forecast-post",
+      "name": "POST Run Forecast",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        550,
+        50
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5109/api/forecast/run",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Cron-Key",
+              "value": "dev-cron-key"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}"
+      }
+    }
+  ],
+  "connections": {
+    "cron-daily": {
+      "main": [
+        [
+          {
+            "node": "Plan Nationwide Forecast Matrix",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "webhook-trigger": {
+      "main": [
+        [
+          {
+            "node": "Plan Nationwide Forecast Matrix",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Plan Nationwide Forecast Matrix": {
+      "main": [
+        [
+          {
+            "node": "POST Run Forecast",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

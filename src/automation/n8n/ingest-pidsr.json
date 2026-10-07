@@ -1,1 +1,122 @@
-{"name":"ingest-pidsr","nodes":[{"name":"cron-fri-weekly","type":"n8n-nodes-base.scheduleTrigger","parameters":{"rule":{"interval":[{"field":"weeks","triggerAtDay":[5],"triggerAtHour":3}]}},"position":[0,0],"typeVersion":1,"id":"65378d4c-a813-490d-8ca7-380471fa850e"},{"name":"fetch-normalize","type":"n8n-nodes-base.set","parameters":{"values":{"string":[{"name":"sourceKey","value":"pidsr-{{$now.weekNumber}}"},{"name":"feed","value":"pidsr"}]}},"position":[200,0],"typeVersion":1,"id":"598e5d6a-fd5e-401c-8249-927ba537ef6c"},{"name":"POST ingest/pidsr","type":"n8n-nodes-base.httpRequest","parameters":{"method":"POST","url":"http://host.docker.internal:5109/api/surveillance/ingest/pidsr","sendHeaders":true,"headerParameters":{"parameters":[{"name":"X-Cron-Key","value":"={{$env.CRON_KEY || 'dev-cron-key'}}"}]},"sendBody":true,"specifyBody":"json","jsonBody":"={{$json}}"},"position":[400,0],"typeVersion":1,"id":"b90c5217-e8c8-418f-a067-9501ada5d157"}],"connections":{"fetch-normalize":{"main":[[{"node":"POST ingest/pidsr","type":"main","index":0}]]},"cron-fri-weekly":{"main":[[{"node":"fetch-normalize","type":"main","index":0}]]}},"settings":{"executionOrder":"v1"}}
+{
+  "name": "ingest-pidsr",
+  "nodes": [
+    {
+      "id": "pidsr-cron",
+      "name": "cron-daily",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "pidsr-webhook",
+      "name": "webhook-trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        150
+      ],
+      "parameters": {
+        "path": "ingest-pidsr",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      }
+    },
+    {
+      "id": "pidsr-normalize",
+      "name": "Extract DOH National 4-Disease Reports",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        50
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "\n// DOH National Epidemiology Bureau (EB) Statutory PIDSR Morbidity Week Surveillance Data\n// Covering all island groups: National Capital Region (NCR), Luzon, Visayas, and Mindanao\nconst nationalData = [\n  // === NATIONAL CAPITAL REGION (NCR) ===\n  { disease: 'dengue', count: 64, sourceKey: 'pidsr-doh-dengue-mw38-ncr-qc', facility: 'East Avenue Medical Center', province: 'Metro Manila (NCR)', muni: 'Quezon City', week: 38 },\n  { disease: 'leptospirosis', count: 38, sourceKey: 'pidsr-doh-lepto-mw38-ncr-slh', facility: 'San Lazaro Hospital', province: 'Metro Manila (NCR)', muni: 'City of Manila', week: 38 },\n  { disease: 'ili', count: 45, sourceKey: 'pidsr-doh-ili-mw38-ncr-ccmc', facility: 'Caloocan City Medical Center', province: 'Metro Manila (NCR)', muni: 'Caloocan City', week: 38 },\n  { disease: 'asthma', count: 28, sourceKey: 'pidsr-doh-asthma-mw38-ncr-pcgh', facility: 'Pasig City General Hospital', province: 'Metro Manila (NCR)', muni: 'Pasig City', week: 38 },\n\n  // === CENTRAL LUZON (REGION 3) ===\n  { disease: 'dengue', count: 44, sourceKey: 'pidsr-doh-dengue-mw38-r3-jblmgh', facility: 'Jose B. Lingad Memorial Hospital', province: 'Pampanga', muni: 'City of San Fernando', week: 38 },\n  { disease: 'leptospirosis', count: 26, sourceKey: 'pidsr-doh-lepto-mw38-r3-bmc', facility: 'Bulacan Medical Center', province: 'Bulacan', muni: 'Malolos City', week: 38 },\n\n  // === CALABARZON (REGION 4A) ===\n  { disease: 'dengue', count: 50, sourceKey: 'pidsr-doh-dengue-mw38-r4a-dasma', facility: 'Pagamusan ng Dasmari\u00f1as', province: 'Cavite', muni: 'Dasmari\u00f1as City', week: 38 },\n  { disease: 'asthma', count: 32, sourceKey: 'pidsr-doh-asthma-mw38-r4a-starosa', facility: 'Santa Rosa Community Hospital', province: 'Laguna', muni: 'Santa Rosa City', week: 38 },\n  { disease: 'ili', count: 28, sourceKey: 'pidsr-doh-ili-mw38-r4a-batmc', facility: 'Batangas Medical Center', province: 'Batangas', muni: 'Batangas City', week: 38 },\n\n  // === CENTRAL VISAYAS (REGION 7) ===\n  { disease: 'dengue', count: 58, sourceKey: 'pidsr-doh-dengue-mw38-r7-vsmmc', facility: 'Vicente Sotto Memorial Medical Center', province: 'Cebu', muni: 'Cebu City', week: 38 },\n  { disease: 'leptospirosis', count: 22, sourceKey: 'pidsr-doh-lepto-mw38-r7-mandaue', facility: 'Mandaue City District Hospital', province: 'Cebu', muni: 'Mandaue City', week: 38 },\n  { disease: 'ili', count: 19, sourceKey: 'pidsr-doh-ili-mw38-r7-bohol', facility: 'Gov. Celestino Gallares Hospital', province: 'Bohol', muni: 'Tagbilaran City', week: 38 },\n\n  // === WESTERN VISAYAS (REGION 6) ===\n  { disease: 'dengue', count: 42, sourceKey: 'pidsr-doh-dengue-mw38-r6-wvmc', facility: 'Western Visayas Medical Center', province: 'Iloilo', muni: 'Iloilo City', week: 38 },\n  { disease: 'leptospirosis', count: 20, sourceKey: 'pidsr-doh-lepto-mw38-r6-clmmrh', facility: 'Corazon Locsin Regional Hospital', province: 'Negros Occidental', muni: 'Bacolod City', week: 38 },\n\n  // === DAVAO REGION (REGION 11) ===\n  { disease: 'dengue', count: 48, sourceKey: 'pidsr-doh-dengue-mw38-r11-spmc', facility: 'Southern Philippines Medical Center', province: 'Davao del Sur', muni: 'Davao City', week: 38 },\n  { disease: 'ili', count: 30, sourceKey: 'pidsr-doh-ili-mw38-r11-davao', facility: 'Davao City Health Office', province: 'Davao del Sur', muni: 'Davao City', week: 38 },\n\n  // === NORTHERN MINDANAO (REGION 10) ===\n  { disease: 'dengue', count: 35, sourceKey: 'pidsr-doh-dengue-mw38-r10-nmmc', facility: 'Northern Mindanao Medical Center', province: 'Misamis Oriental', muni: 'Cagayan de Oro City', week: 38 },\n\n  // === CORDILLERA (CAR) ===\n  { disease: 'ili', count: 34, sourceKey: 'pidsr-doh-ili-mw38-car-bghmc', facility: 'Baguio General Hospital', province: 'Benguet', muni: 'Baguio City', week: 38 },\n  { disease: 'asthma', count: 24, sourceKey: 'pidsr-doh-asthma-mw38-car-baguio', facility: 'BGHMC / Baguio Health Office', province: 'Benguet', muni: 'Baguio City', week: 38 },\n\n  // === NORTHERN LUZON (REGION 1) ===\n  { disease: 'dengue', count: 48, sourceKey: 'pidsr-doh-dengue-mw38-itrmc-sfc', facility: 'ITRMC San Fernando', province: 'La Union', muni: 'San Fernando City', week: 38 },\n  { disease: 'dengue', count: 52, sourceKey: 'pidsr-doh-dengue-mw38-r1mc-dagupan', facility: 'R1MC Dagupan', province: 'Pangasinan', muni: 'Dagupan City', week: 38 },\n  { disease: 'leptospirosis', count: 24, sourceKey: 'pidsr-doh-lepto-mw38-lumc-agoo', facility: 'La Union Medical Center', province: 'La Union', muni: 'Agoo', week: 38 },\n  { disease: 'ili', count: 38, sourceKey: 'pidsr-doh-ili-mw38-sfc-station2', facility: 'San Fernando City Health Station', province: 'La Union', muni: 'San Fernando City', week: 38 },\n  { disease: 'asthma', count: 20, sourceKey: 'pidsr-doh-asthma-mw38-bauang-clinic', facility: 'Bauang Rural Clinic', province: 'La Union', muni: 'Bauang', week: 38 }\n];\n\nreturn nationalData.map(d => ({\n  json: {\n    sourceKey: d.sourceKey,\n    feed: 'pidsr',\n    disease: d.disease,\n    count: d.count,\n    metadata: {\n      surveillanceSystem: 'DOH National PIDSR-EDCS',\n      reportingFacility: d.facility,\n      province: d.province,\n      municipality: d.muni,\n      morbidityWeek: d.week,\n      statutoryStandard: 'RA 11332 Mandatory National Disease Notification'\n    }\n  }\n}));\n"
+      }
+    },
+    {
+      "id": "pidsr-post",
+      "name": "POST Ingest PIDSR",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        50
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5109/api/surveillance/ingest/pidsr",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Cron-Key",
+              "value": "dev-cron-key"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}"
+      }
+    }
+  ],
+  "connections": {
+    "cron-daily": {
+      "main": [
+        [
+          {
+            "node": "Extract DOH National 4-Disease Reports",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "webhook-trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract DOH National 4-Disease Reports",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract DOH National 4-Disease Reports": {
+      "main": [
+        [
+          {
+            "node": "POST Ingest PIDSR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

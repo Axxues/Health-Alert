@@ -1,1 +1,122 @@
-﻿{"name":"ingest-itis","nodes":[{"name":"cron-quarterly","type":"n8n-nodes-base.scheduleTrigger","parameters":{"rule":{"interval":[{"field":"months","monthsInterval":3,"triggerAtDay":1,"triggerAtHour":4}]}},"position":[0,0],"typeVersion":1,"id":"a2a1e3ee-f091-473d-9985-42d2325c8f49"},{"name":"fetch-normalize","type":"n8n-nodes-base.set","parameters":{"values":{"string":[{"name":"sourceKey","value":"itis-{{$now.quarter}}"},{"name":"feed","value":"itis"}]}},"position":[200,0],"typeVersion":1,"id":"5efdb80b-1b3b-4b67-973f-c15a2767314a"},{"name":"POST ingest/itis","type":"n8n-nodes-base.httpRequest","parameters":{"method":"POST","url":"http://host.docker.internal:5109/api/surveillance/ingest/itis","sendHeaders":true,"headerParameters":{"parameters":[{"name":"X-Cron-Key","value":"={{$env.CRON_KEY || 'dev-cron-key'}}"}]},"sendBody":true,"specifyBody":"json","jsonBody":"={{$json}}"},"position":[400,0],"typeVersion":1,"id":"4763d461-74f3-497d-ab70-63a758bab358"}],"connections":{"cron-quarterly":{"main":[[{"node":"fetch-normalize","type":"main","index":0}]]},"fetch-normalize":{"main":[[{"node":"POST ingest/itis","type":"main","index":0}]]}},"settings":{"executionOrder":"v1"}}
+{
+  "name": "ingest-itis",
+  "nodes": [
+    {
+      "id": "itis-cron",
+      "name": "cron-daily",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "itis-webhook",
+      "name": "webhook-trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        150
+      ],
+      "parameters": {
+        "path": "ingest-itis",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      }
+    },
+    {
+      "id": "itis-normalize",
+      "name": "Extract ITIS Respiratory Records",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        50
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "\nconst d = new Date().toISOString().slice(0, 10);\nconst itisRecords = [\n  { disease: 'ili', count: 28, sourceKey: 'itis-ili-national-' + d, feed: 'itis', metadata: { jurisdiction: 'National', scope: 'Philippines' } },\n  { disease: 'asthma', count: 22, sourceKey: 'itis-asthma-national-' + d, feed: 'itis', metadata: { jurisdiction: 'National', scope: 'Philippines' } },\n  { disease: 'ili', count: 16, sourceKey: 'itis-ili-ncr-' + d, feed: 'itis', metadata: { jurisdiction: 'NCR', scope: 'Metro Manila' } },\n  { disease: 'asthma', count: 12, sourceKey: 'itis-asthma-ncr-' + d, feed: 'itis', metadata: { jurisdiction: 'NCR', scope: 'Metro Manila' } },\n  { disease: 'ili', count: 12, sourceKey: 'itis-ili-r7-' + d, feed: 'itis', metadata: { jurisdiction: 'Region 7', scope: 'Central Visayas' } },\n  { disease: 'asthma', count: 10, sourceKey: 'itis-asthma-r11-' + d, feed: 'itis', metadata: { jurisdiction: 'Region 11', scope: 'Davao Region' } },\n  { disease: 'ili', count: 14, sourceKey: 'itis-ili-r1-' + d, feed: 'itis', metadata: { jurisdiction: 'Region 1', scope: 'Ilocos' } },\n  { disease: 'asthma', count: 11, sourceKey: 'itis-asthma-r1-' + d, feed: 'itis', metadata: { jurisdiction: 'Region 1', scope: 'Ilocos' } }\n];\n\nreturn itisRecords.map(r => ({ json: r }));\n"
+      }
+    },
+    {
+      "id": "itis-post",
+      "name": "POST Ingest ITIS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        50
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5109/api/surveillance/ingest/itis",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Cron-Key",
+              "value": "dev-cron-key"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}"
+      }
+    }
+  ],
+  "connections": {
+    "cron-daily": {
+      "main": [
+        [
+          {
+            "node": "Extract ITIS Respiratory Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "webhook-trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract ITIS Respiratory Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract ITIS Respiratory Records": {
+      "main": [
+        [
+          {
+            "node": "POST Ingest ITIS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

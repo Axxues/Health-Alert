@@ -17,7 +17,7 @@ public class DemoHistoryTest
         var ctx = TestDb.Create();
         await DemoHistorySeeder.EnsureAsync(ctx);
         var n = await ctx.Cases.CountAsync();
-        Assert.Equal(7 * 4 * DemoHistorySeeder.DemoWeeks, n);
+        Assert.Equal(DemoHistorySeeder.Places.Length * 4 * DemoHistorySeeder.DemoWeeks, n);
         // provenance: every seeded case traceable to the demo source, never a real submission tag
         Assert.All(await ctx.Cases.Select(c => c.SourceKey).ToListAsync(), k => Assert.Contains("|", k!));
         var feedCodes = await ctx.Cases.Join(ctx.Feeds, c => c.FeedId, f => f.Id, (c, f) => f.Code).Distinct().ToListAsync();
@@ -42,7 +42,7 @@ public class DemoHistoryTest
             new RiskMapsGetTools(ctx, new ModelRegistryTools(ctx), new MemoryCache(new MemoryCacheOptions())));
         var ok = Assert.IsType<OkObjectResult>(r);
         var rows = Assert.IsType<List<LocationRow>>(Assert.IsType<ApiResponse<List<LocationRow>>>(ok.Value).Data);
-        Assert.Equal(28, rows.Count);
+        Assert.Equal(DemoHistorySeeder.Places.Length * 4, rows.Count);
         Assert.All(rows, x => Assert.Contains(x.RiskLevel, new[] { "high", "moderate", "low" }));
         Assert.True(rows.Where(x => x.Disease == "dengue").Sum(x => x.ActiveCases) > 0);
     }

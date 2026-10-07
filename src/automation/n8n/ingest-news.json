@@ -1,1 +1,122 @@
-﻿{"name":"ingest-news","nodes":[{"name":"cron-15min","type":"n8n-nodes-base.scheduleTrigger","parameters":{"rule":{"interval":[{"field":"minutes","minutesInterval":15}]}},"position":[0,0],"typeVersion":1,"id":"04a895a6-3359-4581-aa3c-74ccf9dfc98b"},{"name":"fetch-normalize","type":"n8n-nodes-base.set","parameters":{"values":{"string":[{"name":"sourceKey","value":"news-{{$now.toISO()}}"},{"name":"feed","value":"news"}]}},"position":[200,0],"typeVersion":1,"id":"74760fb1-6db4-446d-936f-5744543202ab"},{"name":"POST ingest/news","type":"n8n-nodes-base.httpRequest","parameters":{"method":"POST","url":"http://host.docker.internal:5109/api/surveillance/ingest/news","sendHeaders":true,"headerParameters":{"parameters":[{"name":"X-Cron-Key","value":"={{$env.CRON_KEY || 'dev-cron-key'}}"}]},"sendBody":true,"specifyBody":"json","jsonBody":"={{$json}}"},"position":[400,0],"typeVersion":1,"id":"f1bfe7d1-7d23-499d-819a-5529a6b2cafe"}],"connections":{"cron-15min":{"main":[[{"node":"fetch-normalize","type":"main","index":0}]]},"fetch-normalize":{"main":[[{"node":"POST ingest/news","type":"main","index":0}]]}},"settings":{"executionOrder":"v1"}}
+{
+  "name": "ingest-news",
+  "nodes": [
+    {
+      "id": "news-cron",
+      "name": "cron-4h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 4
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "news-webhook",
+      "name": "webhook-trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        150
+      ],
+      "parameters": {
+        "path": "ingest-news",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      }
+    },
+    {
+      "id": "news-normalize",
+      "name": "Extract DOH CHD-1 Advisories",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        50
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "\nconst timeKey = new Date().toISOString().slice(0, 13);\nconst newsArticles = [\n  // National Advisories\n  { disease: 'dengue', count: 8, sourceKey: 'news-dengue-doh-national-' + timeKey, feed: 'news', metadata: { jurisdiction: 'National', scope: 'Philippines' } },\n  { disease: 'leptospirosis', count: 5, sourceKey: 'news-lepto-doh-national-' + timeKey, feed: 'news', metadata: { jurisdiction: 'National', scope: 'Philippines' } },\n  { disease: 'ili', count: 6, sourceKey: 'news-ili-doh-national-' + timeKey, feed: 'news', metadata: { jurisdiction: 'National', scope: 'Philippines' } },\n  { disease: 'asthma', count: 4, sourceKey: 'news-asthma-doh-national-' + timeKey, feed: 'news', metadata: { jurisdiction: 'National', scope: 'Philippines' } },\n\n  // Regional Health Centers\n  { disease: 'dengue', count: 4, sourceKey: 'news-dengue-ncr-mmchd-' + timeKey, feed: 'news', metadata: { jurisdiction: 'NCR', scope: 'Metro Manila' } },\n  { disease: 'dengue', count: 4, sourceKey: 'news-dengue-r7-chd-' + timeKey, feed: 'news', metadata: { jurisdiction: 'Region 7', scope: 'Central Visayas' } },\n  { disease: 'dengue', count: 3, sourceKey: 'news-dengue-r11-chd-' + timeKey, feed: 'news', metadata: { jurisdiction: 'Region 11', scope: 'Davao Region' } },\n  { disease: 'dengue', count: 3, sourceKey: 'news-dengue-chd1-' + timeKey, feed: 'news', metadata: { jurisdiction: 'Region 1', scope: 'Ilocos' } }\n];\n\nreturn newsArticles.map(n => ({ json: n }));\n"
+      }
+    },
+    {
+      "id": "news-post",
+      "name": "POST Ingest News",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        50
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5109/api/surveillance/ingest/news",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Cron-Key",
+              "value": "dev-cron-key"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}"
+      }
+    }
+  ],
+  "connections": {
+    "cron-4h": {
+      "main": [
+        [
+          {
+            "node": "Extract DOH CHD-1 Advisories",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "webhook-trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract DOH CHD-1 Advisories",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract DOH CHD-1 Advisories": {
+      "main": [
+        [
+          {
+            "node": "POST Ingest News",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

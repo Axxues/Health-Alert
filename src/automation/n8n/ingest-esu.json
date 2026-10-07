@@ -1,1 +1,122 @@
-﻿{"name":"ingest-esu","nodes":[{"name":"cron-daily","type":"n8n-nodes-base.scheduleTrigger","parameters":{"rule":{"interval":[{"field":"days","triggerAtDay":2}]}},"position":[0,0],"typeVersion":1,"id":"6a2c9a74-8f34-4351-aa01-d03a4815434a"},{"name":"fetch-normalize","type":"n8n-nodes-base.set","parameters":{"values":{"string":[{"name":"sourceKey","value":"esu-{{$now.toISODate()}}"},{"name":"feed","value":"esu"}]}},"position":[200,0],"typeVersion":1,"id":"64f3056b-d96c-42be-9320-56744df0cc65"},{"name":"POST ingest/esu","type":"n8n-nodes-base.httpRequest","parameters":{"method":"POST","url":"http://host.docker.internal:5109/api/surveillance/ingest/esu","sendHeaders":true,"headerParameters":{"parameters":[{"name":"X-Cron-Key","value":"={{$env.CRON_KEY || 'dev-cron-key'}}"}]},"sendBody":true,"specifyBody":"json","jsonBody":"={{$json}}"},"position":[400,0],"typeVersion":1,"id":"fd93953b-290a-4849-b7a0-c5de44d62219"}],"connections":{"fetch-normalize":{"main":[[{"node":"POST ingest/esu","type":"main","index":0}]]},"cron-daily":{"main":[[{"node":"fetch-normalize","type":"main","index":0}]]}},"settings":{"executionOrder":"v1"}}
+{
+  "name": "ingest-esu",
+  "nodes": [
+    {
+      "id": "esu-cron",
+      "name": "cron-daily",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 12
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "esu-webhook",
+      "name": "webhook-trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        150
+      ],
+      "parameters": {
+        "path": "ingest-esu",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      }
+    },
+    {
+      "id": "esu-normalize",
+      "name": "Extract ESU 4-Disease Cluster Verifications",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        50
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "\nconst d = new Date().toISOString().slice(0, 10);\nconst esuClusters = [\n  // NCR\n  { disease: 'dengue', count: 22, sourceKey: 'esu-cluster-dengue-ncr-qc-' + d, feed: 'esu', muni: 'Quezon City', brgy: 'Batasan Hills', province: 'Metro Manila (NCR)' },\n  { disease: 'leptospirosis', count: 15, sourceKey: 'esu-cluster-lepto-ncr-mnl-' + d, feed: 'esu', muni: 'City of Manila', brgy: 'Tondo', province: 'Metro Manila (NCR)' },\n  { disease: 'ili', count: 18, sourceKey: 'esu-cluster-ili-ncr-cal-' + d, feed: 'esu', muni: 'Caloocan City', brgy: 'Bagong Silang', province: 'Metro Manila (NCR)' },\n\n  // Central Luzon & CALABARZON\n  { disease: 'dengue', count: 16, sourceKey: 'esu-cluster-dengue-r3-pampanga-' + d, feed: 'esu', muni: 'City of San Fernando', brgy: 'Dolores', province: 'Pampanga' },\n  { disease: 'dengue', count: 19, sourceKey: 'esu-cluster-dengue-r4a-cavite-' + d, feed: 'esu', muni: 'Dasmari\u00f1as City', brgy: 'Salitran', province: 'Cavite' },\n\n  // Visayas\n  { disease: 'dengue', count: 24, sourceKey: 'esu-cluster-dengue-r7-cebu-' + d, feed: 'esu', muni: 'Cebu City', brgy: 'Guadalupe', province: 'Cebu' },\n  { disease: 'leptospirosis', count: 9, sourceKey: 'esu-cluster-lepto-r7-mandaue-' + d, feed: 'esu', muni: 'Mandaue City', brgy: 'Subangdaku', province: 'Cebu' },\n  { disease: 'dengue', count: 14, sourceKey: 'esu-cluster-dengue-r6-iloilo-' + d, feed: 'esu', muni: 'Iloilo City', brgy: 'Mandurriao', province: 'Iloilo' },\n\n  // Mindanao\n  { disease: 'dengue', count: 17, sourceKey: 'esu-cluster-dengue-r11-davao-' + d, feed: 'esu', muni: 'Davao City', brgy: 'Buhangin', province: 'Davao del Sur' },\n  { disease: 'ili', count: 12, sourceKey: 'esu-cluster-ili-r11-davao-' + d, feed: 'esu', muni: 'Davao City', brgy: 'Talomo', province: 'Davao del Sur' },\n\n  // CAR\n  { disease: 'ili', count: 14, sourceKey: 'esu-cluster-ili-car-baguio-' + d, feed: 'esu', muni: 'Baguio City', brgy: 'Irisan', province: 'Benguet' },\n\n  // Region 1\n  { disease: 'dengue', count: 14, sourceKey: 'esu-cluster-dengue-sevilla-' + d, feed: 'esu', muni: 'San Fernando City', brgy: 'Sevilla', province: 'La Union' },\n  { disease: 'leptospirosis', count: 5, sourceKey: 'esu-cluster-lepto-agoo-' + d, feed: 'esu', muni: 'Agoo', brgy: 'San Nicolas', province: 'La Union' },\n  { disease: 'ili', count: 16, sourceKey: 'esu-cluster-ili-lingsat-' + d, feed: 'esu', muni: 'San Fernando City', brgy: 'Lingsat', province: 'La Union' },\n  { disease: 'asthma', count: 8, sourceKey: 'esu-cluster-asthma-bauang-' + d, feed: 'esu', muni: 'Bauang', brgy: 'Parian Oeste', province: 'La Union' }\n];\n\nreturn esuClusters.map(c => ({ json: c }));\n"
+      }
+    },
+    {
+      "id": "esu-post",
+      "name": "POST Ingest ESU",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        50
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5109/api/surveillance/ingest/esu",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Cron-Key",
+              "value": "dev-cron-key"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}"
+      }
+    }
+  ],
+  "connections": {
+    "cron-daily": {
+      "main": [
+        [
+          {
+            "node": "Extract ESU 4-Disease Cluster Verifications",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "webhook-trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract ESU 4-Disease Cluster Verifications",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract ESU 4-Disease Cluster Verifications": {
+      "main": [
+        [
+          {
+            "node": "POST Ingest ESU",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

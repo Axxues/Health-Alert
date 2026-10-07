@@ -1,15 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import {
-  MapPin,
   Layers,
   X,
   Compass,
   ArrowRight,
-  TrendingUp,
   AlertCircle,
-  Building2,
-  Activity,
   Radio,
 } from "lucide-react";
 import { listHotspots } from "@/services/riskmaps/api";
@@ -66,6 +62,18 @@ export function RiskMaps() {
   }, []);
 
   const filteredSpots = filter === "all" ? spots : spots.filter((s) => s.disease.toLowerCase() === filter);
+
+  // ponytail: one node = one barangay; the panel lists every disease sharing it
+  const selectedGroup = selected
+    ? filteredSpots.filter(
+        (s) => s.muni === selected.muni && (s.barangay || "") === (selected.barangay || "")
+      )
+    : [];
+  const worstLevel = selectedGroup.some((s) => /high/i.test(s.level))
+    ? "high"
+    : selectedGroup.some((s) => /med|moderate/i.test(s.level))
+    ? "medium"
+    : "low";
 
   return (
     <div className="space-y-6">
@@ -187,7 +195,12 @@ export function RiskMaps() {
                     <span className="text-[10px] font-bold uppercase tracking-wider text-primary block">
                       {selected.province || "Philippine National Surveillance"}
                     </span>
-                    <CardTitle className="text-xl mt-0.5">{selected.muni}</CardTitle>
+                    <CardTitle className="text-xl mt-0.5">
+                      {selected.barangay ? `Brgy. ${selected.barangay}` : selected.muni}
+                    </CardTitle>
+                    {selected.barangay && (
+                      <span className="text-xs text-muted-foreground">{selected.muni}</span>
+                    )}
                   </div>
                   <button
                     type="button"
@@ -201,54 +214,33 @@ export function RiskMaps() {
               </CardHeader>
 
               <div className="space-y-4">
-                <div>{levelBadge(selected.level)}</div>
+                <div>{levelBadge(worstLevel)}</div>
 
                 <div className="divide-y divide-border/60 text-xs">
-                  <div className="py-2.5 flex items-center justify-between">
-                    <span className="text-muted-foreground flex items-center gap-1.5">
-                      <MapPin size={14} />
-                      Target Disease
-                    </span>
-                    <span className="font-bold text-foreground">
-                      {selected.diseaseName || selected.disease}
-                    </span>
-                  </div>
-
-                  {selected.sentinelFacility && (
-                    <div className="py-2.5 flex items-center justify-between">
-                      <span className="text-muted-foreground flex items-center gap-1.5">
-                        <Building2 size={14} />
-                        Sentinel Facility
-                      </span>
-                      <span className="font-medium text-foreground text-right max-w-[180px] truncate" title={selected.sentinelFacility}>
-                        {selected.sentinelFacility}
-                      </span>
+                  {selectedGroup.map((s) => (
+                    <div key={s.id ?? s.disease} className="py-2.5 flex items-center justify-between gap-2">
+                      <div>
+                        <span className="font-bold text-foreground block">
+                          {s.diseaseName || s.disease}
+                        </span>
+                        <span className="text-muted-foreground tabular-nums">
+                          {s.cases ?? 0} cases · {Math.round((s.probability ?? 0) * 100)}% surge
+                        </span>
+                      </div>
+                      <Link
+                        to={
+                          s.id
+                            ? `/intelligence/${s.id}?disease=${encodeURIComponent(s.disease)}`
+                            : `/intelligence`
+                        }
+                      >
+                        <Button variant="outline" size="sm">
+                          <span>Deep-Dive</span>
+                          <ArrowRight size={14} />
+                        </Button>
+                      </Link>
                     </div>
-                  )}
-
-                  {selected.cases !== undefined && (
-                    <div className="py-2.5 flex items-center justify-between">
-                      <span className="text-muted-foreground flex items-center gap-1.5">
-                        <Activity size={14} />
-                        Active Cases
-                      </span>
-                      <span className="font-extrabold font-mono tabular-nums text-foreground">
-                        {selected.cases} cases
-                      </span>
-                    </div>
-                  )}
-
-                  {selected.probability !== undefined && (
-                    <div className="py-2.5 flex items-center justify-between">
-                      <span className="text-muted-foreground flex items-center gap-1.5">
-                        <TrendingUp size={14} />
-                        Surge Probability
-                      </span>
-                      <span className="font-extrabold font-mono tabular-nums text-destructive">
-                        {Math.round(selected.probability * 100)}%
-                      </span>
-                    </div>
-                  )}
+                  ))}
 
                   <div className="py-2.5 flex items-center justify-between">
                     <span className="text-muted-foreground flex items-center gap-1.5">
@@ -259,22 +251,6 @@ export function RiskMaps() {
                       {selected.lat.toFixed(4)}° N, {selected.lng.toFixed(4)}° E
                     </span>
                   </div>
-                </div>
-
-                <div className="pt-2 border-t border-border/60">
-                  <Link
-                    to={
-                      selected.id
-                        ? `/intelligence/${selected.id}?disease=${encodeURIComponent(selected.disease)}`
-                        : `/intelligence`
-                    }
-                    className="block"
-                  >
-                    <Button variant="primary" size="md" className="w-full justify-between">
-                      <span>View Sentinel Deep-Dive</span>
-                      <ArrowRight size={14} />
-                    </Button>
-                  </Link>
                 </div>
               </div>
             </Card>

@@ -89,13 +89,29 @@ export async function getLocationDetail(id: string, disease?: string): Promise<L
 
   // Forgiving fallback chain mirroring the old mock resolver: disease match first,
   // then exact id, then municipality-in-id fuzzy, then first of disease, then first overall.
-  const diseaseHint = disease ?? (id.includes("|") ? id.split("|")[1] : undefined);
+  const KNOWN_DISEASES = ["dengue", "leptospirosis", "ili", "asthma"];
+  const parts = id.split("|");
+  const last = parts[parts.length - 1].toLowerCase().replace(/-/g, "");
+  const diseaseHint =
+    disease ?? (KNOWN_DISEASES.includes(last) && parts.length > 1 ? parts[parts.length - 1] : undefined);
   const pool = diseaseHint ? entries.filter((e) => e.disease === diseaseHint) : entries;
   const scope = pool.length > 0 ? pool : entries;
   const norm = (s: string) => s.toLowerCase().replace(/[-_]+/g, " ");
   const needle = norm(id);
+  const isLastDisease = diseaseHint ? parts[parts.length - 1] === diseaseHint : false;
+  const brgySlug = diseaseHint
+    ? isLastDisease
+      ? parts.slice(1, -1).join("|")
+      : parts.slice(1).join("|")
+    : parts.slice(1).join("|");
   const entry =
     scope.find((e) => norm(e.id) === needle) ??
+    scope.find(
+      (e) =>
+        norm(e.municipality) === norm(parts[0]) &&
+        (brgySlug ? norm(e.barangay ?? "") === norm(brgySlug) : true) &&
+        (!diseaseHint || e.disease === diseaseHint)
+    ) ??
     scope.find((e) => needle.includes(norm(e.municipality)) || norm(e.municipality).includes(needle)) ??
     scope[0];
 
@@ -103,7 +119,7 @@ export async function getLocationDetail(id: string, disease?: string): Promise<L
   try {
     const res = await httpClient<SeriesResponse>("/forecast/series", {
       method: "get",
-      params: { muni: entry.municipality, disease: entry.disease },
+      params: { muni: entry.municipality, disease: entry.disease, brgy: entry.barangay || undefined },
     });
     series = res.data;
   } catch (err) {
@@ -117,7 +133,8 @@ export async function getLocationDetail(id: string, disease?: string): Promise<L
   // ponytail: week labels derived from backend weekStart dates; same "range · phase" convention as the old mock.
   const fmtDay = (d: Date) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   const timeline: TimelineWeek[] = weeks.map((w, i) => {
-    const start = new Date(`${w.weekStart}T00:00:00`);
+    // ponytail: backend sends full ISO datetime ("2026-09-28T00:00:00"), date part only or double-suffix = Invalid Date
+    const start = new Date(`${String(w.weekStart).slice(0, 10)}T00:00:00`);
     const end = new Date(start);
     end.setDate(end.getDate() + 6);
     const shortLabel = fmtDay(start);

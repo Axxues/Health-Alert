@@ -26,6 +26,15 @@ builder.Services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSch
         IssuerSigningKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(CronAuth.JwtKey(builder.Configuration, builder.Environment.IsDevelopment()))),
     });
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
 builder.Services.AddMemoryCache();
@@ -58,6 +67,7 @@ builder.Services.AddHttpClient<CovariateFeedService>();
 builder.Services.AddHostedService<IngestTickerService>();
 var app = builder.Build();
 
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

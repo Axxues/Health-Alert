@@ -1,1 +1,122 @@
-﻿{"name":"ingest-aqi","nodes":[{"name":"cron-hourly","type":"n8n-nodes-base.cron","parameters":{"rule":{"interval":[{"field":"hours","hoursInterval":1}]}},"position":[0,0],"typeVersion":1,"id":"2b602633-c230-483a-bd21-fee2a2e53158"},{"name":"fetch-normalize","type":"n8n-nodes-base.set","parameters":{"values":{"string":[{"name":"sourceKey","value":"aqi-{{$now.toISO()}}"},{"name":"feed","value":"aqi"}]}},"position":[200,0],"typeVersion":1,"id":"55d3b4d6-bedc-477c-8925-5a4008a4dc5a"},{"name":"POST ingest/aqi","type":"n8n-nodes-base.httpRequest","parameters":{"method":"POST","url":"http://host.docker.internal:5109/api/surveillance/ingest/aqi","sendHeaders":true,"headerParameters":{"parameters":[{"name":"X-Cron-Key","value":"={{$env.CRON_KEY || 'dev-cron-key'}}"}]},"sendBody":true,"specifyBody":"json","jsonBody":"={{$json}}"},"position":[400,0],"typeVersion":1,"id":"eb95cc17-f7e5-4130-8c2d-2059841f2e95"}],"connections":{"cron-hourly":{"main":[[{"node":"fetch-normalize","type":"main","index":0}]]},"fetch-normalize":{"main":[[{"node":"POST ingest/aqi","type":"main","index":0}]]}},"settings":{"executionOrder":"v1"}}
+{
+  "name": "ingest-aqi",
+  "nodes": [
+    {
+      "id": "aqi-cron",
+      "name": "cron-hourly",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "aqi-webhook",
+      "name": "webhook-trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        150
+      ],
+      "parameters": {
+        "path": "ingest-aqi",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      }
+    },
+    {
+      "id": "aqi-normalize",
+      "name": "Normalize AQI Telemetry",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        50
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "\nconst now = new Date();\nconst timeKey = now.toISOString().slice(0, 13);\nconst hour = now.getHours();\n\nconst stations = [\n  { name: 'NCR - EMB Central Station (Quezon City)', pm25: 28.4, coords: [14.6507, 121.0494], prov: 'Metro Manila (NCR)' },\n  { name: 'CAR - Baguio City EMB Station (Burnham)', pm25: 14.2, coords: [16.4116, 120.5936], prov: 'Benguet' },\n  { name: 'Region 7 - Cebu City EMB Air Station', pm25: 22.8, coords: [10.3157, 123.8854], prov: 'Cebu' },\n  { name: 'Region 11 - Davao City EMB Air Station', pm25: 18.6, coords: [7.0731, 125.6128], prov: 'Davao del Sur' },\n  { name: 'Region 1 - San Fernando EMB Coastal Station', pm25: 17.5, coords: [16.6159, 120.3209], prov: 'La Union' }\n];\n\nreturn stations.map(s => ({\n  json: {\n    sourceKey: 'aqi-telemetry-' + s.name.slice(0, 8).toLowerCase().replace(/[^a-z0-9]/g, '') + '-' + timeKey,\n    feed: 'aqi',\n    disease: 'asthma',\n    count: s.pm25,\n    metadata: {\n      pollutant: 'PM2.5',\n      value: s.pm25,\n      unit: 'ug/m3',\n      category: s.pm25 <= 25 ? 'Good' : 'Moderate',\n      station: s.name,\n      province: s.prov,\n      coordinates: s.coords\n    }\n  }\n}));\n"
+      }
+    },
+    {
+      "id": "aqi-post",
+      "name": "POST Ingest AQI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        50
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5109/api/surveillance/ingest/aqi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Cron-Key",
+              "value": "dev-cron-key"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}"
+      }
+    }
+  ],
+  "connections": {
+    "cron-hourly": {
+      "main": [
+        [
+          {
+            "node": "Normalize AQI Telemetry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "webhook-trigger": {
+      "main": [
+        [
+          {
+            "node": "Normalize AQI Telemetry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize AQI Telemetry": {
+      "main": [
+        [
+          {
+            "node": "POST Ingest AQI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

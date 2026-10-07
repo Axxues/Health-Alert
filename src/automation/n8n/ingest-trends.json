@@ -1,1 +1,122 @@
-﻿{"name":"ingest-trends","nodes":[{"name":"cron-daily","type":"n8n-nodes-base.scheduleTrigger","parameters":{"rule":{"interval":[{"field":"days","triggerAtDay":2}]}},"position":[0,0],"typeVersion":1,"id":"7edfdd77-be61-408f-b691-d77f49608393"},{"name":"fetch-normalize","type":"n8n-nodes-base.set","parameters":{"values":{"string":[{"name":"sourceKey","value":"trends-{{$now.toISODate()}}"},{"name":"feed","value":"trends"}]}},"position":[200,0],"typeVersion":1,"id":"1349a943-c768-43fc-b092-51318adfa440"},{"name":"POST ingest/trends","type":"n8n-nodes-base.httpRequest","parameters":{"method":"POST","url":"http://host.docker.internal:5109/api/surveillance/ingest/trends","sendHeaders":true,"headerParameters":{"parameters":[{"name":"X-Cron-Key","value":"={{$env.CRON_KEY || 'dev-cron-key'}}"}]},"sendBody":true,"specifyBody":"json","jsonBody":"={{$json}}"},"position":[400,0],"typeVersion":1,"id":"8ef45a8c-d76f-43dc-9c46-bd46a8a9970f"}],"connections":{"fetch-normalize":{"main":[[{"node":"POST ingest/trends","type":"main","index":0}]]},"cron-daily":{"main":[[{"node":"fetch-normalize","type":"main","index":0}]]}},"settings":{"executionOrder":"v1"}}
+{
+  "name": "ingest-trends",
+  "nodes": [
+    {
+      "id": "trends-cron",
+      "name": "cron-6h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "trends-webhook",
+      "name": "webhook-trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        150
+      ],
+      "parameters": {
+        "path": "ingest-trends",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      }
+    },
+    {
+      "id": "trends-normalize",
+      "name": "Extract 4-Disease Search Trends",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        50
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "\nconst timeKey = new Date().toISOString().slice(0, 13);\nconst searchTrends = [\n  { disease: 'dengue', count: 78.4, term: 'gamot sa dengue / lagnat rash', sourceKey: 'trends-dengue-' + timeKey, feed: 'trends' },\n  { disease: 'leptospirosis', count: 46.2, term: 'baha lagnat / doxycycline reseta', sourceKey: 'trends-lepto-' + timeKey, feed: 'trends' },\n  { disease: 'ili', count: 62.0, term: 'trangkaso ubo sipon gamot', sourceKey: 'trends-ili-' + timeKey, feed: 'trends' },\n  { disease: 'asthma', count: 54.5, term: 'hika nebulizer / hirap huminga', sourceKey: 'trends-asthma-' + timeKey, feed: 'trends' }\n];\n\nreturn searchTrends.map(t => ({ json: t }));\n"
+      }
+    },
+    {
+      "id": "trends-post",
+      "name": "POST Ingest Trends",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        50
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5109/api/surveillance/ingest/trends",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Cron-Key",
+              "value": "dev-cron-key"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}"
+      }
+    }
+  ],
+  "connections": {
+    "cron-6h": {
+      "main": [
+        [
+          {
+            "node": "Extract 4-Disease Search Trends",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "webhook-trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract 4-Disease Search Trends",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract 4-Disease Search Trends": {
+      "main": [
+        [
+          {
+            "node": "POST Ingest Trends",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

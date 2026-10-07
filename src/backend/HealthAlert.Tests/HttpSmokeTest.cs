@@ -70,7 +70,7 @@ public class HttpSmokeTest
         var r = await c.PostAsJsonAsync("/api/auth/login", new { username = "guest", password = "" });
         r.EnsureSuccessStatusCode();
         var data = JsonDocument.Parse(await r.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
-        Assert.Equal("Guest", data.GetProperty("role").GetString());
+        Assert.Equal("Admin", data.GetProperty("role").GetString());
         var perms = data.GetProperty("permissions").EnumerateArray().Select(x => x.GetString()).ToHashSet();
         Assert.Equal(8, perms.Count);
         Assert.Contains("alerts:list:view", perms);

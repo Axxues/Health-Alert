@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Plus Jakarta Sans";
+        src: url("assets/fonts/plus-jakarta-sans.woff2") format("woff2");
+        font-weight: 200 800;
+        font-display: swap;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        margin: 0; width: 1920px; height: 1080px; overflow: hidden;
+        background: #111726;
+        font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+      }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; }
+      .clip { position: absolute; inset: 0; }
+      .scene-inner { position: absolute; inset: 0; }
+      .dark-bg { position: absolute; inset: 0; background: #111726; }
+
+      /* user-recorded tour (1918x880): contain on dark, letterboxed */
+      video.reel {
+        position: absolute; inset: 0; width: 1920px; height: 1080px;
+        object-fit: contain; display: block; background: #111726;
+      }
+
+      /* lower-third chips: solid panels, contrast-safe */
+      .chipclip { position: absolute; inset: 0; }
+      .chipbox {
+        position: absolute; left: 80px; bottom: 64px; max-width: 1500px;
+        background: #1b243b; border: 1px solid #2a3348; border-radius: 14px;
+        padding: 20px 32px; display: block;
+      }
+      .chipbox b { color: #f1f5f9; font-size: 30px; font-weight: 700; letter-spacing: -0.01em; display: block; }
+      .chipbox span { color: #cbd5e1; font-size: 24px; font-weight: 500; margin-top: 4px; display: block; }
+
+      /* scene 1 */
+      #s1-ring {
+        position: absolute; left: 896px; top: 240px; width: 128px; height: 128px;
+        border-radius: 50%; border: 3px solid #dc2626; display: block;
+      }
+      #s1-core {
+        position: absolute; left: 948px; top: 292px; width: 24px; height: 24px;
+        border-radius: 50%; background: #dc2626; display: block;
+        box-shadow: 0 0 40px rgba(220, 38, 38, 0.8);
+      }
+      #s1-hook {
+        position: absolute; left: 0; top: 440px; width: 1920px; text-align: center;
+        color: #f1f5f9; font-size: 68px; font-weight: 800; letter-spacing: -0.02em;
+        display: block; padding: 0 180px;
+      }
+      #s1-brand {
+        position: absolute; left: 0; top: 640px; width: 1920px; text-align: center;
+        color: #94a3b8; font-size: 26px; font-weight: 600; letter-spacing: 0.12em;
+        display: block;
+      }
+
+      /* scene 6 */
+      #s6-kicker {
+        position: absolute; left: 0; top: 320px; width: 1920px; text-align: center;
+        color: #94a3b8; font-size: 28px; font-weight: 600; letter-spacing: 0.14em; display: block;
+      }
+      #s6-glow {
+        position: absolute; left: 460px; top: 400px; width: 1000px; height: 220px;
+        background: radial-gradient(ellipse at center, rgba(37,99,235,0.18), rgba(37,99,235,0) 70%);
+        display: block; opacity: 0;
+      }
+      #s6-name {
+        position: absolute; left: 0; top: 420px; width: 1920px; text-align: center;
+        color: #f1f5f9; font-size: 150px; font-weight: 800; letter-spacing: -0.03em;
+        display: block;
+      }
+      #s6-tag {
+        position: absolute; left: 0; top: 620px; width: 1920px; text-align: center;
+        color: #60a5fa; font-size: 44px; font-weight: 700; letter-spacing: -0.01em; display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-width="1920" data-height="1080" data-duration="30">
+
+      <!-- Scene 1 : promise 0-3 -->
+      <section id="s1" class="clip" data-start="0" data-duration="3" data-track-index="0">
+        <div class="scene-inner" id="s1-inner">
+          <div class="dark-bg"></div>
+          <div id="s1-ring"></div>
+          <div id="s1-core"></div>
+          <div id="s1-hook">Today&#8217;s outbreak outlook, before the clinic opens.</div>
+          <div id="s1-brand">HEALTHALERT &#183; BANTAYHEALTHAI</div>
+        </div>
+      </section>
+
+      <!-- User-recorded tour (root-level; no timed ancestors) -->
+      <video id="v-user" class="reel" src="assets/live/u-user.mp4" playsinline muted data-start="3" data-duration="23.21" data-media-start="0.3" data-track-index="1"></video>
+
+      <!-- Chips -->
+      <div class="chipclip" id="c-dash" data-start="3.5" data-duration="3.7" data-track-index="2">
+        <div class="chipbox" id="c-dash-box"><b>Surveillance Command Center</b><span>276 active sentinel nodes &#183; live Epi-Curve</span></div>
+      </div>
+      <div class="chipclip" id="c-intel" data-start="7.6" data-duration="3.9" data-track-index="2">
+        <div class="chipbox" id="c-intel-box"><b>Epidemiological Intelligence Matrix</b><span>Surge trajectories &#183; sentinel deep-dives</span></div>
+      </div>
+      <div class="chipclip" id="c-map" data-start="16.5" data-duration="6" data-track-index="2">
+        <div class="chipbox" id="c-map-box"><b>All diseases: 276 hotspots &#183; 13 high &#183; 35 watch</b><span>Night-Ops geospatial risk matrix &#8212; down to the barangay</span></div>
+      </div>
+      <div class="chipclip" id="c-brgy" data-start="22.8" data-duration="3.2" data-track-index="2">
+        <div class="chipbox" id="c-brgy-box"><b>Brgy. Poblacion &#183; High Outbreak Risk</b><span>Dengue 80 cases &#183; 35% surge &#8212; San Carlos City</span></div>
+      </div>
+
+      <!-- Scene 6 : lockup 26.21-30 -->
+      <section id="s6" class="clip" data-start="26.21" data-duration="3.79" data-track-index="0">
+        <div class="scene-inner" id="s6-inner">
+          <div class="dark-bg"></div>
+          <div id="s6-kicker">DENGUE &#183; LEPTOSPIROSIS &#183; ILI &#183; ASTHMA</div>
+          <div id="s6-glow"></div>
+          <div id="s6-name">Health Alert.</div>
+          <div id="s6-tag">See it before it spreads.</div>
+        </div>
+      </section>
+
+      <!-- Audio -->
+      <audio id="music" src="assets/music/happy-beats-business-moves-vol-12-by-ende-dot-app.mp3"
+        data-start="0" data-duration="30" data-track-index="10"
+        data-automation="{&quot;version&quot;:1,&quot;lanes&quot;:[{&quot;target&quot;:&quot;volume&quot;,&quot;points&quot;:[{&quot;t&quot;:0,&quot;v&quot;:0},{&quot;t&quot;:1.5,&quot;v&quot;:0.3},{&quot;t&quot;:27.5,&quot;v&quot;:0.3},{&quot;t&quot;:30,&quot;v&quot;:0}]}]}"></audio>
+      <audio id="sfx-pulse" src="assets/sfx/impactSoft_medium_004.ogg" data-start="0.15" data-duration="0.15" data-track-index="11" data-volume="0.6"></audio>
+      <audio id="sfx-cut1" src="assets/sfx/impactSoft_medium_001.ogg" data-start="3" data-duration="0.19" data-track-index="12" data-volume="0.55"></audio>
+      <audio id="sfx-cut2" src="assets/sfx/impactSoft_medium_004.ogg" data-start="12" data-duration="0.15" data-track-index="13" data-volume="0.55"></audio>
+      <audio id="sfx-cut3" src="assets/sfx/impactSoft_medium_001.ogg" data-start="20.5" data-duration="0.19" data-track-index="14" data-volume="0.55"></audio>
+      <audio id="sfx-outro" src="assets/sfx/bong_001.ogg" data-start="26.15" data-duration="0.13" data-track-index="15" data-volume="0.6"></audio>
+
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      /* S1 : 0-3 */
+      tl.fromTo("#s1-ring", { scale: 0.5, opacity: 0.9 }, { scale: 1.6, opacity: 0, duration: 1.0, ease: "power1.out", repeat: 2 }, 0.2);
+      tl.fromTo("#s1-core", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "power2.out" }, 0.2);
+      tl.fromTo("#s1-hook", { y: 28, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 0.45);
+      tl.fromTo("#s1-brand", { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 1.0);
+      tl.to("#s1-inner", { opacity: 0, duration: 0.4, ease: "power1.in" }, 2.6);
+
+      /* chips ride over the user tour */
+      tl.fromTo("#c-dash-box", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 3.6);
+      tl.to("#c-dash-box", { opacity: 0, duration: 0.3, ease: "power1.in" }, 6.8);
+      tl.fromTo("#c-intel-box", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 7.7);
+      tl.to("#c-intel-box", { opacity: 0, duration: 0.3, ease: "power1.in" }, 11.1);
+      tl.fromTo("#c-map-box", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 16.6);
+      tl.to("#c-map-box", { opacity: 0, duration: 0.35, ease: "power1.in" }, 22.0);
+      tl.fromTo("#c-brgy-box", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 22.9);
+      tl.to("#c-brgy-box", { opacity: 0, duration: 0.3, ease: "power1.in" }, 25.6);
+
+      /* S6 lockup : 26.21-30 (beat-locked entry) */
+      tl.fromTo("#s6-inner", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power1.out" }, 26.21);
+      tl.fromTo("#s6-kicker", { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 26.5);
+      tl.fromTo("#s6-name", { y: 34, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 26.8);
+      tl.fromTo("#s6-glow", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power1.out" }, 27.2);
+      tl.fromTo("#s6-tag", { y: 22, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 27.4);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

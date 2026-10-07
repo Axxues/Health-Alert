@@ -84,4 +84,32 @@ public class UploadPipelineTest
         var r = await c.Upload(null, new UploadTools(ctx));
         Assert.IsType<ForbidResult>(r);
     }
+
+    [Fact]
+    public async Task Barangay_column_writes_five_part_key()
+    {
+        var ctx = TestDb.Create();
+        await Seed.RunAsync(ctx);
+        var t = new UploadTools(ctx);
+        var csv = string.Join("\n", Header,
+            Row(39, 2026, "Agoo", "Agoo RHU", "dengue", 5, 0, barangay: "Lucao"));
+        var r = await t.IngestAsync(csv, "brgy.csv", "encoder1");
+        Assert.Equal(1, r.Accepted);
+        Assert.Equal("Agoo|Lucao|Agoo RHU|2026-W39|dengue",
+            await ctx.Cases.Where(c => c.SourceKey != null).Select(c => c.SourceKey!).FirstAsync());
+    }
+
+    [Fact]
+    public async Task Empty_barangay_keeps_legacy_four_part_key()
+    {
+        var ctx = TestDb.Create();
+        await Seed.RunAsync(ctx);
+        var t = new UploadTools(ctx);
+        var csv = string.Join("\n", Header,
+            Row(39, 2026, "Agoo", "Agoo RHU", "dengue", 5, 0, barangay: ""));
+        var r = await t.IngestAsync(csv, "legacy.csv", "encoder1");
+        Assert.Equal(1, r.Accepted);
+        Assert.Equal("Agoo|Agoo RHU|2026-W39|dengue",
+            await ctx.Cases.Where(c => c.SourceKey != null).Select(c => c.SourceKey!).FirstAsync());
+    }
 }

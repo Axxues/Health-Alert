@@ -4,9 +4,9 @@ import "leaflet/dist/leaflet.css";
 import { ZoomIn, ZoomOut, RotateCcw, MapPin, Building, Map as MapIcon } from "lucide-react";
 import type { Hotspot } from "@/services/riskmaps/types";
 
-// Region 1 Default Centroid (Pangasinan through Ilocos Norte corridor)
-const REGION_1_CENTER: [number, number] = [16.85, 120.45];
-const DEFAULT_ZOOM = 8;
+// Philippine Archipelago Centroid & Extent
+const PH_CENTER: [number, number] = [12.8797, 121.7740];
+const DEFAULT_ZOOM = 6;
 
 type BasemapType = "auto" | "clean" | "dark" | "satellite";
 type GranularityLevel = "province" | "municipality" | "barangay";
@@ -43,108 +43,25 @@ const TILE_SERVERS: Record<"clean" | "dark" | "satellite", TileConfig> = {
   },
 };
 
-export function getProvinceForSpot(spot: Hotspot): string {
-  if (spot.province && spot.province.trim()) return spot.province.trim();
-  // Geolocation inference based on latitude and longitude coordinates
-  if (spot.lat < 14.95 && spot.lng > 120.8 && spot.lng < 121.4) return "Metro Manila (NCR)";
-  if (spot.lat < 15.2) return "CALABARZON";
-  if (spot.lat < 15.8) return "Central Luzon";
-  if (spot.lat < 16.25) return "Pangasinan";
-  if (spot.lat < 16.9) return "La Union";
-  if (spot.lat < 17.8) return "Ilocos Sur";
-  return "Ilocos Norte";
-}
+export {
+  getProvinceForSpot,
+  getMunicipalityForSpot,
+  barangayCount,
+  groupByMunicipality,
+  groupByProvince,
+  getBarangayDensityRadius,
+  shortForDisease,
+} from "./phMapUtils";
 
-export function getMunicipalityForSpot(spot: Hotspot): string {
-  if (spot.municipality && spot.municipality.trim()) return spot.municipality.trim();
-  const parts = spot.muni.split(",");
-  if (parts.length > 1) {
-    return parts[1].trim();
-  }
-  return spot.muni.replace(/^Brgy\.\s*/i, "").trim();
-}
-
-interface GeoGroup {
-  id: string;
-  name: string;
-  parentName?: string;
-  lat: number;
-  lng: number;
-  items: Hotspot[];
-  level: string;
-  diseaseSummary: string;
-  cases: number;
-}
-
-function groupByMunicipality(spots: Hotspot[]): GeoGroup[] {
-  const groups: Record<string, Hotspot[]> = {};
-
-  spots.forEach((spot) => {
-    const muni = getMunicipalityForSpot(spot);
-    const prov = getProvinceForSpot(spot);
-    const key = `${muni}__${prov}`;
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(spot);
-  });
-
-  return Object.entries(groups).map(([key, items]) => {
-    const [muniName, provName] = key.split("__");
-    const avgLat = items.reduce((acc, s) => acc + s.lat, 0) / items.length;
-    const avgLng = items.reduce((acc, s) => acc + s.lng, 0) / items.length;
-    const hasHigh = items.some((s) => /high/i.test(s.level));
-    const hasMed = items.some((s) => /med|moderate/i.test(s.level));
-    const level = hasHigh ? "high" : hasMed ? "medium" : "low";
-    const totalCases = items.reduce((acc, s) => acc + (s.cases || 0), 0);
-
-    const diseaseSet = Array.from(new Set(items.map((s) => s.disease)));
-    const diseaseSummary =
-      diseaseSet.length === 1
-        ? diseaseSet[0].toUpperCase()
-        : `${diseaseSet.length} Diseases`;
-
-    return {
-      id: `muni-${muniName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
-      name: muniName,
-      parentName: provName,
-      lat: avgLat,
-      lng: avgLng,
-      items,
-      level,
-      diseaseSummary,
-      cases: totalCases,
-    };
-  });
-}
-
-function groupByProvince(spots: Hotspot[]): GeoGroup[] {
-  const groups: Record<string, Hotspot[]> = {};
-
-  spots.forEach((spot) => {
-    const prov = getProvinceForSpot(spot);
-    if (!groups[prov]) groups[prov] = [];
-    groups[prov].push(spot);
-  });
-
-  return Object.entries(groups).map(([provName, items]) => {
-    const avgLat = items.reduce((acc, s) => acc + s.lat, 0) / items.length;
-    const avgLng = items.reduce((acc, s) => acc + s.lng, 0) / items.length;
-    const hasHigh = items.some((s) => /high/i.test(s.level));
-    const hasMed = items.some((s) => /med|moderate/i.test(s.level));
-    const level = hasHigh ? "high" : hasMed ? "medium" : "low";
-    const totalCases = items.reduce((acc, s) => acc + (s.cases || 0), 0);
-
-    return {
-      id: `prov-${provName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
-      name: provName,
-      lat: avgLat,
-      lng: avgLng,
-      items,
-      level,
-      diseaseSummary: `${items.length} Hotspots`,
-      cases: totalCases,
-    };
-  });
-}
+import {
+  getProvinceForSpot,
+  getMunicipalityForSpot,
+  barangayCount,
+  groupByMunicipality,
+  groupByProvince,
+  getBarangayDensityRadius,
+  shortForDisease,
+} from "./phMapUtils";
 
 interface PHMapProps {
   spots: Hotspot[];
@@ -177,7 +94,7 @@ export function PHMap({
   // Dynamic granularity level based on zoom
   const granularity: GranularityLevel = useMemo(() => {
     if (currentZoom <= 8.5) return "province";
-    if (currentZoom < 12) return "municipality";
+    if (currentZoom < 12.5) return "municipality";
     return "barangay";
   }, [currentZoom]);
 
@@ -203,7 +120,7 @@ export function PHMap({
     if (!containerRef.current || mapRef.current) return;
 
     const map = L.map(containerRef.current, {
-      center: REGION_1_CENTER,
+      center: PH_CENTER,
       zoom: DEFAULT_ZOOM,
       zoomControl: false,
       attributionControl: false,
@@ -292,6 +209,7 @@ export function PHMap({
         const isHigh = /high/i.test(prov.level);
         const isMed = /med|moderate/i.test(prov.level);
         const colorHex = isHigh ? "#ef4444" : isMed ? "#f59e0b" : "#2563eb";
+        const brgyN = barangayCount(prov.items);
 
         // Province Buffer Circle (regional envelope)
         if (showDensity) {
@@ -317,9 +235,9 @@ export function PHMap({
           <div class="gis-pulse-marker ${isHigh ? "gis-pulse--high" : isMed ? "gis-pulse--med" : "gis-pulse--baseline"} ${isSelected ? "gis-pulse--selected" : ""}">
             <div class="gis-pulse-ring"></div>
             <div class="gis-marker-badge" style="width: 32px; height: 32px;">
-              <span class="gis-badge-code" style="font-size: 11px;">${prov.items.length}</span>
+              <span class="gis-badge-code" style="font-size: 11px;">${brgyN}</span>
             </div>
-            <div class="gis-marker-label" style="top: 34px; font-weight: 800;">${prov.name} (${prov.items.length})</div>
+            <div class="gis-marker-label" style="top: 34px; font-weight: 800;">${prov.name} (${brgyN})</div>
           </div>
         `;
 
@@ -340,7 +258,7 @@ export function PHMap({
         marker.bindTooltip(
           `<div class="p-1 font-sans text-xs">
             <div class="font-bold text-foreground">${prov.name}</div>
-            <div class="text-muted-foreground">${prov.items.length} Monitored Hotspots · <span class="font-bold ${isHigh ? "text-destructive" : isMed ? "text-amber-500" : "text-primary"}">${prov.level.toUpperCase()} RISK</span></div>
+            <div class="text-muted-foreground">${brgyN} Barangay${brgyN > 1 ? "s" : ""} monitored · <span class="font-bold ${isHigh ? "text-destructive" : isMed ? "text-amber-500" : "text-primary"}">${prov.level.toUpperCase()} RISK</span></div>
             <div class="text-[11px] font-semibold text-foreground mt-0.5">${prov.cases} Total Active Cases</div>
             <div class="text-[10px] text-primary font-semibold mt-1">Click to zoom into municipalities &rarr;</div>
           </div>`,
@@ -361,6 +279,7 @@ export function PHMap({
         const isHigh = /high/i.test(muni.level);
         const isMed = /med|moderate/i.test(muni.level);
         const colorHex = isHigh ? "#ef4444" : isMed ? "#f59e0b" : "#2563eb";
+        const brgyN = barangayCount(muni.items);
 
         // Municipality Buffer Circle (calibrated to municipal envelope)
         if (showDensity) {
@@ -392,7 +311,7 @@ export function PHMap({
                 : muni.items[0].disease === "ili"
                 ? "ILI"
                 : muni.items[0].disease.slice(0, 3).toUpperCase())
-            : `${muni.items.length}`;
+            : `${brgyN}`;
 
         const iconHtml = `
           <div class="gis-pulse-marker ${isHigh ? "gis-pulse--high" : isMed ? "gis-pulse--med" : "gis-pulse--baseline"} ${isSelected ? "gis-pulse--selected" : ""}">
@@ -400,7 +319,7 @@ export function PHMap({
             <div class="gis-marker-badge" style="width: 30px; height: 30px;">
               <span class="gis-badge-code">${badgeText}</span>
             </div>
-            <div class="gis-marker-label" style="top: 32px;">${muni.name}${muni.items.length > 1 ? ` (${muni.items.length})` : ""}</div>
+            <div class="gis-marker-label" style="top: 32px;">${muni.name}${brgyN > 1 ? ` (${brgyN})` : ""}</div>
           </div>
         `;
 
@@ -422,7 +341,7 @@ export function PHMap({
         marker.bindTooltip(
           `<div class="p-1 font-sans text-xs">
             <div class="font-bold text-foreground">${muni.name}</div>
-            <div class="text-muted-foreground">${muni.parentName || "Region 1"} · ${muni.items.length} Hotspot${muni.items.length > 1 ? "s" : ""} · <span class="font-bold ${isHigh ? "text-destructive" : isMed ? "text-amber-500" : "text-primary"}">${muni.level.toUpperCase()}</span></div>
+            <div class="text-muted-foreground">${muni.parentName || "Philippines"} · ${brgyN} Barangay${brgyN > 1 ? "s" : ""} · <span class="font-bold ${isHigh ? "text-destructive" : isMed ? "text-amber-500" : "text-primary"}">${muni.level.toUpperCase()}</span></div>
             <div class="text-[11px] font-semibold text-foreground mt-0.5">${muni.cases} Active Cases (${muni.diseaseSummary})</div>
             <div class="text-[10px] text-primary font-semibold mt-1">Click to zoom into barangays &rarr;</div>
           </div>`,
@@ -434,82 +353,102 @@ export function PHMap({
       return;
     }
 
-    // 3. BARANGAY GRANULARITY (Zoomed in: zoom >= 12)
-    spots.forEach((spot) => {
-      const isSelected =
-        selected?.muni === spot.muni && selected?.disease === spot.disease;
-      const isHigh = /high/i.test(spot.level);
-      const isMed = /med|moderate/i.test(spot.level);
-      const colorHex = isHigh ? "#ef4444" : isMed ? "#f59e0b" : "#2563eb";
-      const diseaseShort =
-        spot.disease.toLowerCase() === "asthma"
-          ? "AST"
-          : spot.disease.toLowerCase() === "leptospirosis"
-          ? "LEP"
-          : spot.disease.toLowerCase() === "ili"
-          ? "ILI"
-          : spot.disease.slice(0, 3).toUpperCase();
+    // 3. BARANGAY GRANULARITY (Zoomed in: zoom >= 12) — one node per barangay
+    const brgyGroups: Record<string, Hotspot[]> = {};
+    spots.forEach((s) => {
+      const key = `${s.muni}__${s.barangay || ""}`;
+      if (!brgyGroups[key]) brgyGroups[key] = [];
+      brgyGroups[key].push(s);
+    });
 
-      // Individual Barangay Density Circle (Calibrated to barangay footprint)
+    const shortFor = shortForDisease;
+
+    Object.values(brgyGroups).forEach((items) => {
+      const byRisk = [...items].sort(
+        (a, b) => (b.probability ?? 0) - (a.probability ?? 0)
+      );
+      // ponytail: node headline is the worst disease; full list lives in the inspector
+      const rep = byRisk[0];
+      const label = rep.barangay ? `Brgy. ${rep.barangay}` : rep.muni;
+      const isSelected =
+        selected != null &&
+        items.some((s) => s.muni === selected.muni && s.disease === selected.disease);
+      const isHigh = items.some((s) => /high/i.test(s.level));
+      const isMed = items.some((s) => /med|moderate/i.test(s.level));
+      const colorHex = isHigh ? "#ef4444" : isMed ? "#f59e0b" : "#2563eb";
+      const totalCases = items.reduce((acc, s) => acc + (s.cases || 0), 0);
+
+      // Single Barangay Density Circle (worst level sets the envelope)
       if (showDensity) {
-        const radius = isHigh ? 650 : isMed ? 500 : 380;
-        const circle = L.circle([spot.lat, spot.lng], {
+        const radius = getBarangayDensityRadius(rep.level, currentZoom);
+        const circle = L.circle([rep.lat, rep.lng], {
           radius,
           color: colorHex,
           weight: 2,
           opacity: 0.85,
           fillColor: colorHex,
-          fillOpacity: isSelected ? 0.35 : 0.18,
+          fillOpacity: isSelected ? 0.35 : 0.16,
           dashArray: isHigh ? "5, 4" : undefined,
           className: "leaflet-density-circle",
         });
 
         circle.on("click", () => {
-          onSelect(isSelected ? null : spot);
+          onSelect(isSelected ? null : rep);
         });
 
         densityGroup.addLayer(circle);
       }
 
-      // Animated Pulse Marker
-      const labelText = spot.barangay || spot.muni.split(",")[0].replace(/^Brgy\.\s*/i, "");
+      // Single Animated Pulse Marker per barangay (compact badge + side-aligned label to prevent overlap)
+      const badgeText = shortFor(rep.disease);
       const iconHtml = `
-        <div class="gis-pulse-marker ${isHigh ? "gis-pulse--high" : isMed ? "gis-pulse--med" : "gis-pulse--baseline"} ${isSelected ? "gis-pulse--selected" : ""}">
+        <div class="gis-pulse-marker gis-pulse-marker--brgy ${isHigh ? "gis-pulse--high" : isMed ? "gis-pulse--med" : "gis-pulse--baseline"} ${isSelected ? "gis-pulse--selected" : ""}">
           <div class="gis-pulse-ring"></div>
           <div class="gis-marker-badge">
-            <span class="gis-badge-code">${diseaseShort}</span>
+            <span class="gis-badge-code">${badgeText}</span>
           </div>
-          <div class="gis-marker-label">${labelText}</div>
+          <div class="gis-marker-label gis-marker-label--side" title="${label}">${label}</div>
         </div>
       `;
 
       const customIcon = L.divIcon({
         html: iconHtml,
         className: "gis-custom-icon",
-        iconSize: [32, 32],
-        iconAnchor: [16, 16],
+        iconSize: [26, 26],
+        iconAnchor: [13, 13],
       });
 
-      const marker = L.marker([spot.lat, spot.lng], { icon: customIcon });
+      const marker = L.marker([rep.lat, rep.lng], { icon: customIcon });
+
+      if (isSelected) {
+        marker.setZIndexOffset(1000);
+      }
 
       marker.on("click", (e) => {
         L.DomEvent.stopPropagation(e);
-        onSelect(isSelected ? null : spot);
+        onSelect(isSelected ? null : rep);
       });
 
       // Interactive Tooltip
+      const diseaseLines = items
+        .map(
+          (s) =>
+            `<div class="flex justify-between gap-3"><span class="capitalize">${s.diseaseName || s.disease}</span><span class="font-semibold tabular-nums">${s.cases ?? 0} cases · ${Math.round((s.probability ?? 0) * 100)}%</span></div>`
+        )
+        .join("");
       marker.bindTooltip(
         `<div class="p-1 font-sans text-xs">
-          <div class="font-bold text-foreground">${spot.muni}</div>
-          <div class="capitalize text-muted-foreground">${spot.diseaseName || spot.disease} · <span class="font-bold ${isHigh ? "text-destructive" : isMed ? "text-amber-500" : "text-primary"}">${spot.level} risk</span></div>
-          ${spot.cases !== undefined ? `<div class="text-[11px] font-semibold text-foreground mt-0.5">${spot.cases} Active Cases (${Math.round((spot.probability ?? 0) * 100)}% Surge Prob.)</div>` : ""}
+          <div class="font-bold text-foreground">${label}</div>
+          <div class="text-muted-foreground">${rep.muni}${rep.province ? ` · ${rep.province}` : ""}</div>
+          <div class="mt-1 space-y-0.5 text-foreground">${diseaseLines}</div>
+          <div class="text-[11px] font-semibold mt-0.5">${totalCases} Total Active Cases</div>
         </div>`,
-        { direction: "top", offset: [0, -18], opacity: 0.95 }
+        { direction: "top", offset: [0, -14], opacity: 0.95 }
       );
 
       markersGroup.addLayer(marker);
     });
-  }, [spots, selected, showDensity, onSelect, granularity]);
+  }, [spots, selected, showDensity, onSelect, granularity, currentZoom]);
 
   // Fly to selected hotspot (auto-zooms to barangay level)
   useEffect(() => {
@@ -532,7 +471,7 @@ export function PHMap({
       const bounds = L.latLngBounds(spots.map((s) => [s.lat, s.lng]));
       map.fitBounds(bounds, { padding: [40, 40], maxZoom: 9 });
     } else {
-      map.flyTo(REGION_1_CENTER, DEFAULT_ZOOM, { duration: 1 });
+      map.flyTo(PH_CENTER, DEFAULT_ZOOM, { duration: 1 });
     }
   };
 
@@ -608,7 +547,7 @@ export function PHMap({
           type="button"
           onClick={handleReset}
           className="w-8 h-8 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
-          title="Reset to Region 1 Extent"
+          title="Reset to Philippines Extent"
         >
           <RotateCcw size={15} strokeWidth={2.2} />
         </button>
@@ -627,7 +566,7 @@ export function PHMap({
         <div className="flex items-center gap-1 bg-muted/80 p-0.5 rounded-md text-[11px]">
           <button
             type="button"
-            onClick={() => mapRef.current?.flyTo(REGION_1_CENTER, 8, { duration: 0.8 })}
+            onClick={() => mapRef.current?.flyTo(PH_CENTER, 6, { duration: 0.8 })}
             className={`px-2 py-0.5 rounded font-semibold transition-all flex items-center gap-1 ${
               granularity === "province"
                 ? "bg-primary text-primary-foreground shadow-xs"

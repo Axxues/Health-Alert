@@ -1,1 +1,90 @@
-﻿{"name":"edge-sync-notify","nodes":[{"name":"cron-5min","type":"n8n-nodes-base.scheduleTrigger","parameters":{"rule":{"interval":[{"field":"minutes","minutesInterval":5}]}},"position":[0,0],"typeVersion":1,"id":"8228205f-5f38-4c0c-9628-88dda928437b"},{"name":"fetch-normalize","type":"n8n-nodes-base.set","parameters":{"values":{"string":[{"name":"op","value":"outbox-drain"}]}},"position":[200,0],"typeVersion":1,"id":"648b6a06-b9d4-4799-be62-15f04e2047e0"},{"name":"POST outbox drain","type":"n8n-nodes-base.httpRequest","parameters":{"method":"GET","url":"http://host.docker.internal:5109/api/system/outbox"},"position":[400,0],"typeVersion":1,"id":"1be0342b-a86c-4b7d-a970-ad37fe1d8c5c"}],"connections":{"fetch-normalize":{"main":[[{"node":"POST outbox drain","type":"main","index":0}]]},"cron-5min":{"main":[[{"node":"fetch-normalize","type":"main","index":0}]]}},"settings":{"executionOrder":"v1"}}
+{
+  "name": "edge-sync-notify",
+  "nodes": [
+    {
+      "id": "sync-cron",
+      "name": "cron-5min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 5
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sync-webhook",
+      "name": "webhook-trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        150
+      ],
+      "parameters": {
+        "path": "edge-sync-notify",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      }
+    },
+    {
+      "id": "sync-fetch",
+      "name": "GET Outbox Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        300,
+        50
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "http://host.docker.internal:5109/api/system/outbox",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Cron-Key",
+              "value": "dev-cron-key"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "cron-5min": {
+      "main": [
+        [
+          {
+            "node": "GET Outbox Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "webhook-trigger": {
+      "main": [
+        [
+          {
+            "node": "GET Outbox Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

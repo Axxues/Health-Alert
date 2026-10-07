@@ -112,7 +112,10 @@ public class UploadTools(HealthAlertDbContext ctx)
                 && weekOk && yearOk && week >= 1 && week <= 53 && year >= 2000 && year <= 2100
                 && !string.IsNullOrWhiteSpace(disease))
             {
-                key = $"{muni}|{facility}|{year}-W{week:D2}|{disease}";
+                var brgy = Get(cols, "barangay");
+                key = string.IsNullOrWhiteSpace(brgy)
+                    ? $"{muni}|{facility}|{year}-W{week:D2}|{disease}"
+                    : $"{muni}|{brgy}|{facility}|{year}-W{week:D2}|{disease}";
                 monday = ISOWeek.ToDateTime(year, week, DayOfWeek.Monday);
             }
 

@@ -103,8 +103,10 @@ export function Layout() {
       menuItems.filter(
         (m) =>
           (!m.permission || hasPermission(m.permission)) &&
-          (m.path !== "/users" || getRole() === "Admin") &&
-          (m.path !== "/uploads" || getRole() === "Admin" || getRole() === "Encoder")
+          // ponytail: username check covers stale guest Admin sessions
+          (m.path !== "/users" || (getRole() === "Admin" && (getUsername() ?? "").toLowerCase() !== "guest")) &&
+          (m.path !== "/uploads" ||
+            ((getRole() === "Admin" || getRole() === "Encoder") && (getUsername() ?? "").toLowerCase() !== "guest"))
       ),
     []
   );

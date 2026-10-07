@@ -1,1 +1,113 @@
-﻿{"name":"failure-handler","nodes":[{"name":"webhook-error","type":"n8n-nodes-base.errorTrigger","parameters":{},"position":[0,0],"typeVersion":1,"id":"8587a50f-e2c7-4936-991c-2f45799f5775"},{"name":"fetch-normalize","type":"n8n-nodes-base.set","parameters":{"values":{"string":[{"name":"action","value":"dead-letter"}]}},"position":[200,0],"typeVersion":1,"id":"878bec2d-d7c9-4f40-8592-44ffb2b633e8"},{"name":"POST admin alert","type":"n8n-nodes-base.httpRequest","parameters":{"method":"POST","url":"http://host.docker.internal:5109/api/alerts","sendBody":true,"specifyBody":"json","jsonBody":"={\"message\": \"workflow {{$json.workflow}} failed\"}"},"position":[400,0],"typeVersion":1,"id":"458c74ed-a227-4e26-921b-3be7b2f86901"}],"connections":{"webhook-error":{"main":[[{"node":"fetch-normalize","type":"main","index":0}]]},"fetch-normalize":{"main":[[{"node":"POST admin alert","type":"main","index":0}]]}},"settings":{"executionOrder":"v1"}}
+{
+  "name": "failure-handler",
+  "nodes": [
+    {
+      "id": "error-trigger",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "error-webhook",
+      "name": "webhook-trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        150
+      ],
+      "parameters": {
+        "path": "failure-handler",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      }
+    },
+    {
+      "id": "error-format",
+      "name": "Format Incident Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        50
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "\nconst err = $input.first()?.json || {};\nreturn [{\n  json: {\n    title: 'Surveillance Ingest Warning',\n    message: err.execution?.error?.message || err.message || 'Workflow exception logged in surveillance cluster'\n  }\n}];\n"
+      }
+    },
+    {
+      "id": "error-post",
+      "name": "POST Log System Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        50
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5109/api/alerts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Cron-Key",
+              "value": "dev-cron-key"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}"
+      }
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Format Incident Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "webhook-trigger": {
+      "main": [
+        [
+          {
+            "node": "Format Incident Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Incident Alert": {
+      "main": [
+        [
+          {
+            "node": "POST Log System Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

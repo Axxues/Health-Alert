@@ -2,7 +2,11 @@ import axios, { type AxiosRequestConfig } from "axios";
 import { clearSession, getToken } from "@/utils/auth";
 import type { ApiResponse } from "./types";
 
-export const api = axios.create({ baseURL: "/api" });
+const apiBase = import.meta.env.VITE_API_URL
+  ? `${(import.meta.env.VITE_API_URL as string).replace(/\/+$/, "")}/api`
+  : "/api";
+
+export const api = axios.create({ baseURL: apiBase });
 
 // ponytail: in-memory GET cache + array offline queue; IndexedDB/Workbox if offline matters
 const getCache = new Map<string, unknown>();

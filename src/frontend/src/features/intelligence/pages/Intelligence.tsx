@@ -59,10 +59,10 @@ const PROVINCES = [
 ];
 
 const MUNICIPALITIES_BY_PROVINCE: Record<string, string[]> = {
-  "La Union": ["All Municipalities", "San Fernando City", "Agoo", "Bauang", "Bacnotan", "Naguilian", "San Juan"],
-  "Pangasinan": ["All Municipalities", "Dagupan City", "San Carlos City", "Urdaneta City", "Lingayen"],
+  "La Union": ["All Municipalities", "San Fernando City", "Agoo", "Bauang", "Bacnotan", "Naguilian", "San Juan", "Rosario", "Santo Tomas"],
+  "Pangasinan": ["All Municipalities", "Dagupan City", "San Carlos City", "Urdaneta City", "Lingayen", "Alaminos City", "Calasiao", "Mangaldan", "Binmaley"],
   "Ilocos Sur": ["All Municipalities", "Vigan City", "Candon City", "Narvacan", "Tagudin"],
-  "Ilocos Norte": ["All Municipalities", "Laoag City", "Batac City", "San Nicolas"],  "Benguet": ["All Municipalities", "Baguio City", "La Trinidad"],
+  "Ilocos Norte": ["All Municipalities", "Laoag City", "Batac City", "San Nicolas", "Paoay", "Dingras"],  "Benguet": ["All Municipalities", "Baguio City", "La Trinidad"],
   "Metro Manila (NCR)": ["All Municipalities", "Quezon City", "City of Manila", "Caloocan City", "Pasig City"],
   "Pampanga": ["All Municipalities", "City of San Fernando", "Angeles City"],
   "Bulacan": ["All Municipalities", "Malolos City", "Meycauayan City"],

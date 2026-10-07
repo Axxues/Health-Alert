@@ -122,7 +122,7 @@ describe("locations.api", () => {
     expect(mockHttp).toHaveBeenNthCalledWith(
       2,
       "/forecast/series",
-      expect.objectContaining({ params: { muni: "Butuan City", disease: "dengue" } })
+      expect.objectContaining({ params: { muni: "Butuan City", disease: "dengue", brgy: "Ampayon" } })
     );
     expect(detail.timeline.length).toBe(16);
     expect(detail.timeline.map((w) => w.weekNumber)).toEqual(Array.from({ length: 16 }, (_, i) => i + 1));
@@ -178,6 +178,43 @@ describe("locations.api", () => {
     });
     mockHttp.mockRejectedValueOnce(new Error("series offline"));
     await expect(getLocationDetail("agoosan-del-norte|dengue")).rejects.toThrow("series offline");
+  });
+
+  it("resolves 3-part IDs by barangay and passes brgy to series", async () => {
+    const brgyEntry = (id: string, barangay: string) => ({
+      id,
+      province: "La Union",
+      municipality: "Agoo",
+      barangay,
+      disease: "dengue",
+      diseaseName: "Dengue Fever",
+      category: "vector",
+      activeCases: 10,
+      prevWeekCases: 8,
+      changePercent: 25,
+      riskLevel: "high",
+      outbreakProbability: 0.8,
+      sentinelFacility: "LUMC",
+      lastUpdated: "2026-09-30T00:00:00Z",
+    });
+    mockHttp.mockResolvedValueOnce({
+      success: true,
+      code: "OK",
+      message: "",
+      data: [brgyEntry("agoo|san-nicolas|dengue", "San Nicolas"), brgyEntry("agoo|poblacion|dengue", "Poblacion")],
+    });
+    mockHttp.mockResolvedValueOnce(
+      liveSeries([wk("2026-09-07", 10, 10, false), wk("2026-09-28", null, 12, true)], null, null)
+    );
+
+    const detail = await getLocationDetail("agoo|san-nicolas|dengue");
+
+    expect(detail.barangay).toBe("San Nicolas");
+    expect(mockHttp).toHaveBeenNthCalledWith(
+      2,
+      "/forecast/series",
+      expect.objectContaining({ params: { muni: "Agoo", disease: "dengue", brgy: "San Nicolas" } })
+    );
   });
 
   const liveEntry = (over = {}) => ({

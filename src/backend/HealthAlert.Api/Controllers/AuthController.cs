@@ -20,13 +20,13 @@ public class AuthController(IConfiguration cfg, IHostEnvironment env) : Controll
         // ponytail: stub role by username; full Identity if roles grow (guest/MHO mapping unchanged)
         var role = (r.Username ?? "").ToLowerInvariant() switch
         {
-            "guest" => "Guest",
+            "guest" => "Viewer", // ponytail: guest is viewer — no uploads/users; elevate only with real account
             "admin" => "Admin",
             "encoder" => "Encoder",
             "viewer" => "Viewer",
             _ => "MHO",
         };
-        // ponytail: guests get full access for now; trim to public slices when roles grow
+        // ponytail: same view perms for all; uploads/users gated by role so guest Viewer is blocked
         var perms = new[] { Permissions.DashboardView, Permissions.ForecastView,
             Permissions.SurveillanceView, Permissions.RiskmapsView, Permissions.RagView,
             Permissions.PlaybookView, Permissions.AlertsView, Permissions.CitizenView };

@@ -73,7 +73,7 @@ describe("DashboardDetailDrawer", () => {
     );
 
     // Verifies full-screen backdrop blur covering header and sidenav
-    expect(html).toContain("backdrop-blur-md");
+    expect(html).toContain("backdrop-blur-[1.5px]");
     expect(html).toContain("fixed inset-0 z-50");
     // Verifies disease content
     expect(html).toContain("Dengue");

@@ -1,6 +1,6 @@
 import { Suspense, lazy } from "react";
 import { Navigate, Outlet, createBrowserRouter } from "react-router";
-import { hasPermission, getRole, isAuthenticated } from "@/utils/auth";
+import { hasPermission, getRole, getUsername, isAuthenticated } from "@/utils/auth";
 import { PERMISSIONS } from "@/constants/permissions";
 import { PageSkeleton } from "@/components/ui";
 
@@ -28,12 +28,15 @@ function PermissionRoute({ permission, children }: { permission: string; childre
 }
 
 function AdminRoute({ children }: { children?: React.ReactNode }) {
-  if (getRole() !== "Admin") return <Navigate to="/unauthorized" replace />;
+  // ponytail: username check covers stale guest Admin sessions
+  if (getRole() !== "Admin" || (getUsername() ?? "").toLowerCase() === "guest")
+    return <Navigate to="/unauthorized" replace />;
   return children ?? <Outlet />;
 }
 
 function UploadRoute({ children }: { children?: React.ReactNode }) {
   const role = getRole();
+  if ((getUsername() ?? "").toLowerCase() === "guest") return <Navigate to="/unauthorized" replace />;
   if (role !== "Admin" && role !== "Encoder") return <Navigate to="/unauthorized" replace />;
   return children ?? <Outlet />;
 }

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router";
 import {
@@ -82,40 +82,78 @@ const DISEASE_COVARIATES: Record<
 };
 
 export const DashboardDetailDrawer: React.FC<DashboardDetailDrawerProps> = ({
-  target,
+  target: incomingTarget,
   onClose,
   spots,
   outlooks,
 }) => {
+  // ponytail: delayed unmount keeps last target 200ms for slide-out, else exit snaps
+  const [renderTarget, setRenderTarget] = useState(incomingTarget);
+  const [isClosing, setIsClosing] = useState(false);
+
+  useEffect(() => {
+    if (incomingTarget) {
+      setRenderTarget(incomingTarget);
+      setIsClosing(false);
+      return;
+    }
+    // ponytail: deps on incoming only — including isClosing self-clears the timeout and sticks the blur
+    if (!renderTarget) return;
+    setIsClosing(true);
+    const id = setTimeout(() => {
+      setRenderTarget(null);
+      setIsClosing(false);
+    }, 200);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [incomingTarget]);
+
   // Listen for Escape key
   useEffect(() => {
-    if (!target) return;
+    if (!renderTarget) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [target, onClose]);
+  }, [renderTarget, onClose]);
 
   // Lock background scroll and blur entire page (header, sidenav, content) when drawer is open
+  // ponytail: lock once per open — isClosing here re-runs cleanup mid-close and flickers the scrollbar
   useEffect(() => {
-    if (!target) return;
+    if (!renderTarget) return;
     const orig = document.body.style.overflow;
+    const docEl = document.documentElement;
+    const origDoc = docEl.style.overflow;
     const mainEl = document.querySelector("main");
     const origMain = mainEl ? mainEl.style.overflow : "";
 
+    // ponytail: lock page level too — body/main alone leaves a page scrollbar in some browsers
     document.body.style.overflow = "hidden";
+    docEl.style.overflow = "hidden";
     if (mainEl) mainEl.style.overflow = "hidden";
     document.body.classList.add("dashboard-drawer-open");
 
     return () => {
       document.body.style.overflow = orig;
+      docEl.style.overflow = origDoc;
       if (mainEl) mainEl.style.overflow = origMain;
       document.body.classList.remove("dashboard-drawer-open");
+      document.body.classList.remove("dashboard-drawer-closing");
     };
-  }, [target]);
+  }, [renderTarget]);
 
-  if (!target) return null;
+  // ponytail: closing class eases page blur out in sync with backdrop, else 2 shades
+  useEffect(() => {
+    document.body.classList.toggle("dashboard-drawer-closing", isClosing);
+    return () => {
+      document.body.classList.remove("dashboard-drawer-closing");
+    };
+  }, [isClosing]);
+
+  if (!renderTarget) return null;
+
+  const target = renderTarget;
 
   const highCount = spots.filter((s) => /high/i.test(s.level)).length;
   const medCount = spots.filter((s) => /med|moderate/i.test(s.level)).length;
@@ -131,7 +169,7 @@ export const DashboardDetailDrawer: React.FC<DashboardDetailDrawerProps> = ({
         onWheel={(e) => e.preventDefault()}
         onTouchMove={(e) => e.preventDefault()}
         aria-hidden="true"
-        className="fixed inset-0 bg-background/70 backdrop-blur-md transition-opacity duration-200 cursor-pointer"
+        className={`fixed inset-0 bg-background/45 dark:bg-black/50 transition-all duration-200 cursor-pointer ${isClosing ? "opacity-0 backdrop-blur-none" : "opacity-100 backdrop-blur-[1.5px]"}`}
       />
 
       {/* Right Slide-Over Side Modal Panel */}
@@ -139,7 +177,7 @@ export const DashboardDetailDrawer: React.FC<DashboardDetailDrawerProps> = ({
         role="dialog"
         aria-modal="true"
         aria-label="Dashboard Details Inspector"
-        className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-lg border-l border-border bg-card shadow-2xl flex flex-col transition-all duration-200 ease-out animate-in slide-in-from-right overscroll-contain"
+        className={`fixed top-0 right-0 bottom-0 z-50 w-full max-w-lg border-l border-border bg-card shadow-2xl flex flex-col transition-all duration-200 ease-out overscroll-contain ${isClosing ? "translate-x-full opacity-0" : "translate-x-0 opacity-100 animate-in slide-in-from-right"}`}
       >
         {/* Drawer Header */}
         <div className="flex items-center justify-between border-b border-border p-5 bg-card/90 backdrop-blur-xs shrink-0">
@@ -194,7 +232,7 @@ export const DashboardDetailDrawer: React.FC<DashboardDetailDrawerProps> = ({
                         {prob}% <span className="text-xs font-normal text-muted-foreground">probability</span>
                       </div>
                     </div>
-                    <Badge variant={isHigh ? "danger" : isWatch ? "warning" : "success"} pulse={isHigh}>
+                    <Badge variant={isHigh ? "danger" : isWatch ? "warning" : "success"}>
                       {isHigh ? "High Outbreak Risk" : isWatch ? "Elevated Watch" : "Routine Baseline"}
                     </Badge>
                   </div>
@@ -327,7 +365,7 @@ export const DashboardDetailDrawer: React.FC<DashboardDetailDrawerProps> = ({
                   <span className="text-xs font-semibold text-destructive uppercase tracking-wider">
                     Hotspot Risk Summary
                   </span>
-                  <Badge variant="danger" pulse>
+                  <Badge variant="danger">
                     {highCount} Critical Alerts
                   </Badge>
                 </div>

@@ -14,7 +14,7 @@ import {
   Shield,
   X,
 } from "lucide-react";
-import { getRole } from "@/utils/auth";
+import { getRole, getUsername } from "@/utils/auth";
 
 export interface CommandPaletteProps {
   open: boolean;
@@ -71,7 +71,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose })
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim();
     const role = getRole();
+    // ponytail: username check covers stale guest Admin sessions
+    const isGuest = (getUsername() ?? "").toLowerCase() === "guest";
     return ITEMS.filter((item) => {
+      if (isGuest && (item.id === "users" || item.id === "uploads")) return false;
       if (item.id === "users" && role !== "Admin") return false;
       if (item.id === "uploads" && role !== "Admin" && role !== "Encoder") return false;
       if (!q) return true;

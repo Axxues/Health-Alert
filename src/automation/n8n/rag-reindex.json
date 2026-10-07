@@ -1,1 +1,97 @@
-{"name":"rag-reindex","nodes":[{"name":"cron-weekly-sun","type":"n8n-nodes-base.scheduleTrigger","parameters":{"rule":{"interval":[{"field":"weeks","triggerAtDay":[0],"triggerAtHour":4}]}},"position":[0,0],"typeVersion":1,"id":"f4fd265e-8597-495b-a8e8-85da82f64b7e"},{"name":"fetch-normalize","type":"n8n-nodes-base.set","parameters":{"values":{"string":[{"name":"op","value":"reindex"}]}},"position":[200,0],"typeVersion":1,"id":"96112ffa-df77-4e7b-a480-ef6b29f6236c"},{"name":"POST rag/reindex","type":"n8n-nodes-base.httpRequest","parameters":{"method":"POST","url":"http://host.docker.internal:5109/api/rag/reindex","sendHeaders":true,"headerParameters":{"parameters":[{"name":"X-Cron-Key","value":"={{$env.CRON_KEY || 'dev-cron-key'}}"}]}},"position":[400,0],"typeVersion":1,"id":"80339a32-dd0e-4b81-b9c3-a07916316185"}],"connections":{"fetch-normalize":{"main":[[{"node":"POST rag/reindex","type":"main","index":0}]]},"cron-weekly-sun":{"main":[[{"node":"fetch-normalize","type":"main","index":0}]]}},"settings":{"executionOrder":"v1"}}
+{
+  "name": "rag-reindex",
+  "nodes": [
+    {
+      "id": "rag-cron",
+      "name": "cron-weekly",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "weeksInterval": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "rag-webhook",
+      "name": "webhook-trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        150
+      ],
+      "parameters": {
+        "path": "rag-reindex",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      }
+    },
+    {
+      "id": "rag-post",
+      "name": "POST RAG Reindex",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        300,
+        50
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5109/api/rag/reindex",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Cron-Key",
+              "value": "dev-cron-key"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={}"
+      }
+    }
+  ],
+  "connections": {
+    "cron-weekly": {
+      "main": [
+        [
+          {
+            "node": "POST RAG Reindex",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "webhook-trigger": {
+      "main": [
+        [
+          {
+            "node": "POST RAG Reindex",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

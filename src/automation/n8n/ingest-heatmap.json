@@ -1,1 +1,122 @@
-﻿{"name":"ingest-heatmap","nodes":[{"name":"cron-hourly","type":"n8n-nodes-base.cron","parameters":{"rule":{"interval":[{"field":"hours","hoursInterval":1}]}},"position":[0,0],"typeVersion":1,"id":"4886a5b1-aae6-4ef0-aa0e-e5567269436e"},{"name":"fetch-normalize","type":"n8n-nodes-base.set","parameters":{"values":{"string":[{"name":"sourceKey","value":"heatmap-{{$now.toISO()}}"},{"name":"feed","value":"heatmap"}]}},"position":[200,0],"typeVersion":1,"id":"754ae406-75c2-4737-9296-2f2735083401"},{"name":"POST ingest/heatmap","type":"n8n-nodes-base.httpRequest","parameters":{"method":"POST","url":"http://host.docker.internal:5109/api/surveillance/ingest/heatmap","sendHeaders":true,"headerParameters":{"parameters":[{"name":"X-Cron-Key","value":"={{$env.CRON_KEY || 'dev-cron-key'}}"}]},"sendBody":true,"specifyBody":"json","jsonBody":"={{$json}}"},"position":[400,0],"typeVersion":1,"id":"5c999272-f2c8-4fc7-91e9-f7cd7d60376e"}],"connections":{"cron-hourly":{"main":[[{"node":"fetch-normalize","type":"main","index":0}]]},"fetch-normalize":{"main":[[{"node":"POST ingest/heatmap","type":"main","index":0}]]}},"settings":{"executionOrder":"v1"}}
+{
+  "name": "ingest-heatmap",
+  "nodes": [
+    {
+      "id": "heatmap-cron",
+      "name": "cron-daily",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "heatmap-webhook",
+      "name": "webhook-trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        150
+      ],
+      "parameters": {
+        "path": "ingest-heatmap",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      }
+    },
+    {
+      "id": "heatmap-normalize",
+      "name": "Extract 4-Disease Spatial Clusters",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        50
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "\nconst d = new Date().toISOString().slice(0, 10);\nconst clusters = [\n  { disease: 'dengue', count: 22, sourceKey: 'heatmap-dengue-' + d, feed: 'heatmap' },\n  { disease: 'leptospirosis', count: 12, sourceKey: 'heatmap-lepto-' + d, feed: 'heatmap' },\n  { disease: 'ili', count: 18, sourceKey: 'heatmap-ili-' + d, feed: 'heatmap' },\n  { disease: 'asthma', count: 10, sourceKey: 'heatmap-asthma-' + d, feed: 'heatmap' }\n];\n\nreturn clusters.map(c => ({ json: c }));\n"
+      }
+    },
+    {
+      "id": "heatmap-post",
+      "name": "POST Ingest Heatmap",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        50
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5109/api/surveillance/ingest/heatmap",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Cron-Key",
+              "value": "dev-cron-key"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}"
+      }
+    }
+  ],
+  "connections": {
+    "cron-daily": {
+      "main": [
+        [
+          {
+            "node": "Extract 4-Disease Spatial Clusters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "webhook-trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract 4-Disease Spatial Clusters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract 4-Disease Spatial Clusters": {
+      "main": [
+        [
+          {
+            "node": "POST Ingest Heatmap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

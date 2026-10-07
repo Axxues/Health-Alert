@@ -1,1 +1,148 @@
-﻿{"name":"ingest-weather","nodes":[{"name":"cron-hourly","type":"n8n-nodes-base.cron","parameters":{"rule":{"interval":[{"field":"hours","hoursInterval":1}]}},"position":[0,0],"typeVersion":1,"id":"7ce94646-1998-4088-a9f5-8a42a3740039"},{"name":"fetch-normalize","type":"n8n-nodes-base.set","parameters":{"values":{"string":[{"name":"sourceKey","value":"weather-{{$now.toISO()}}"},{"name":"feed","value":"weather"}]}},"position":[200,0],"typeVersion":1,"id":"23f9898a-e548-4e63-b898-5602e4832d9b"},{"name":"POST ingest/weather","type":"n8n-nodes-base.httpRequest","parameters":{"method":"POST","url":"http://host.docker.internal:5109/api/surveillance/ingest/weather","sendHeaders":true,"headerParameters":{"parameters":[{"name":"X-Cron-Key","value":"={{$env.CRON_KEY || 'dev-cron-key'}}"}]},"sendBody":true,"specifyBody":"json","jsonBody":"={{$json}}"},"position":[400,0],"typeVersion":1,"id":"c2fbedd1-58df-437c-8d97-c92f711633c1"}],"connections":{"cron-hourly":{"main":[[{"node":"fetch-normalize","type":"main","index":0}]]},"fetch-normalize":{"main":[[{"node":"POST ingest/weather","type":"main","index":0}]]}},"settings":{"executionOrder":"v1"}}
+{
+  "name": "ingest-weather",
+  "nodes": [
+    {
+      "id": "node-cron",
+      "name": "cron-15min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "node-webhook",
+      "name": "webhook-trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        150
+      ],
+      "parameters": {
+        "path": "ingest-weather",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      }
+    },
+    {
+      "id": "node-fetch",
+      "name": "Fetch Open-Meteo Weather",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        250,
+        50
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.open-meteo.com/v1/forecast?latitude=16.6159&longitude=120.3209&current=temperature_2m,relative_humidity_2m,precipitation,rain,surface_pressure,wind_speed_10m&timezone=Asia%2FManila",
+        "options": {}
+      }
+    },
+    {
+      "id": "node-normalize",
+      "name": "Normalize Weather Telemetry",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        50
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "\nconst item = $input.first().json;\nconst cur = item.current || {};\nconst prec = cur.precipitation || cur.rain || 0;\nconst temp = cur.temperature_2m || 30.8;\nconst timeIso = cur.time || new Date().toISOString();\n\nreturn [{\n  json: {\n    sourceKey: 'weather-openmeteo-' + timeIso,\n    feed: 'weather',\n    disease: 'dengue',\n    count: prec > 0 ? prec : temp,\n    metadata: {\n      location: 'San Fernando, La Union',\n      temperature: temp,\n      humidity: cur.relative_humidity_2m || 66,\n      precipitation: prec,\n      pressure: cur.surface_pressure,\n      source: 'Open-Meteo WMO / PAGASA'\n    }\n  }\n}];\n"
+      }
+    },
+    {
+      "id": "node-post",
+      "name": "POST Ingest Weather",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        750,
+        50
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5109/api/surveillance/ingest/weather",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Cron-Key",
+              "value": "dev-cron-key"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}"
+      }
+    }
+  ],
+  "connections": {
+    "cron-15min": {
+      "main": [
+        [
+          {
+            "node": "Fetch Open-Meteo Weather",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "webhook-trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch Open-Meteo Weather",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Open-Meteo Weather": {
+      "main": [
+        [
+          {
+            "node": "Normalize Weather Telemetry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Weather Telemetry": {
+      "main": [
+        [
+          {
+            "node": "POST Ingest Weather",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

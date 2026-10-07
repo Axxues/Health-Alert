@@ -48,7 +48,7 @@ public class AlertsController(AlertsGetTools g, AlertsEditTools e, IConfiguratio
         {
             message = b.ToString();
         }
-        var alert = new TblAlert { Message = message, Status = "active" };
+        var alert = new TblAlert { Kind = "auto", Message = message, Status = "new" };
         await ctx.Alerts.AddAsync(alert);
         await ctx.SaveChangesAsync();
         return Ok(ApiResponse.Ok(alert));
